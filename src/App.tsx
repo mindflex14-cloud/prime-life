@@ -52,11 +52,13 @@ import {
 } from './lib/supabaseSync';
 import { User } from '@supabase/supabase-js';
 import { Cloud, CloudLightning, LogOut } from 'lucide-react';
+import LoginView from './components/LoginView';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [guestBypass, setGuestBypass] = useState<boolean>(() => localStorage.getItem('lifeos_guest_bypass') === 'true');
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
@@ -920,6 +922,18 @@ export default function App() {
 
   const maxHabitStreak = habits.length > 0 ? Math.max(...habits.map(h => h.streak)) : 12;
 
+  if (!user && !guestBypass) {
+    return (
+      <LoginView 
+        onBypass={() => {
+          setGuestBypass(true);
+          localStorage.setItem('lifeos_guest_bypass', 'true');
+        }}
+        isDarkMode={isDarkMode}
+      />
+    );
+  }
+
   return (
     <div className={`min-h-screen flex relative overflow-hidden font-sans select-none transition-colors duration-300 ${
       isDarkMode ? 'bg-[#050508] text-slate-200' : 'bg-[#f4f4f7] text-slate-800'
@@ -1099,21 +1113,21 @@ export default function App() {
             {user ? (
               <div className="flex items-center justify-between gap-3 w-full">
                 <div className="flex items-center gap-3 min-w-0">
-                  {user.photoURL ? (
+                  {user.user_metadata?.avatar_url || (user as any).photoURL ? (
                     <img 
-                      src={user.photoURL} 
-                      alt={user.displayName || "Avatar"} 
+                      src={user.user_metadata?.avatar_url || (user as any).photoURL} 
+                      alt={user.user_metadata?.full_name || (user as any).displayName || "Avatar"} 
                       className="w-10 h-10 rounded-xl object-cover shadow-md shadow-cyan-500/20 shrink-0"
                       referrerPolicy="no-referrer"
                     />
                   ) : (
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-500 flex items-center justify-center font-display font-bold text-white text-sm shrink-0 shadow-md shadow-cyan-500/20">
-                      {user.displayName ? user.displayName.slice(0, 2).toUpperCase() : "EB"}
+                      {user.user_metadata?.full_name ? user.user_metadata.full_name.slice(0, 2).toUpperCase() : (user as any).displayName ? (user as any).displayName.slice(0, 2).toUpperCase() : "EB"}
                     </div>
                   )}
                   <div className="truncate text-left flex-1 min-w-0">
                     <p className={`text-sm font-semibold truncate ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>
-                      {user.displayName || 'Google User'}
+                      {user.user_metadata?.full_name || (user as any).displayName || user.email || 'Google User'}
                     </p>
                     <span className="text-[11px] font-medium block text-cyan-500 dark:text-cyan-400 flex items-center gap-1">
                       <Cloud className="w-3.5 h-3.5 inline-block shrink-0" /> Cloud Synced
@@ -1122,7 +1136,11 @@ export default function App() {
                 </div>
                 
                 <button
-                  onClick={signOutUser}
+                  onClick={async () => {
+                    await signOutUser();
+                    setGuestBypass(false);
+                    localStorage.removeItem('lifeos_guest_bypass');
+                  }}
                   className={`p-2 rounded-xl transition-all ${
                     isDarkMode 
                       ? 'hover:bg-red-500/10 text-slate-400 hover:text-red-400' 
@@ -1144,7 +1162,7 @@ export default function App() {
                       Cloud Sync
                     </p>
                     <span className="text-[11px] font-medium block text-slate-500 dark:text-slate-400">
-                      No Account Connected
+                      Local Sandbox Mode
                     </span>
                   </div>
                 </div>
@@ -1154,6 +1172,16 @@ export default function App() {
                   className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-mono font-bold tracking-wider uppercase rounded-xl transition-all shadow-md shadow-cyan-600/10 hover:shadow-cyan-500/20 cursor-pointer"
                 >
                   Connect Google Account
+                </button>
+
+                <button
+                  onClick={() => {
+                    setGuestBypass(false);
+                    localStorage.removeItem('lifeos_guest_bypass');
+                  }}
+                  className="w-full text-center text-[10px] font-mono font-bold tracking-wider text-slate-500 hover:text-cyan-400 uppercase mt-1 transition-colors"
+                >
+                  ← Return to Login Gate
                 </button>
               </div>
             )}
