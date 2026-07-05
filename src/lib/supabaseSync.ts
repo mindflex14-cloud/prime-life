@@ -76,7 +76,8 @@ const keyToLocalStorageMap: Record<string, string> = {
   exerciseRules: 'lifeos_exercise_rules',
   newMeSections: 'lifeos_newme_sections',
   newMeDataDrop: 'lifeos_newme_datadrop',
-  newMeInterventions: 'lifeos_newme_interventions'
+  newMeInterventions: 'lifeos_newme_interventions',
+  businessIdeas: 'lifeos_business_ideas'
 };
 
 // Save a specific key's data to Supabase (and cache locally)

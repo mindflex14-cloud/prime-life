@@ -18,6 +18,7 @@ import {
   ArrowDownCircle,
   FilePlus,
   Flame,
+  Calendar,
   AlertTriangle,
   Smartphone,
   Cigarette,
@@ -32,6 +33,8 @@ export interface NewMeSection {
   content: string;
   isOpen: boolean;
   readToday?: boolean;
+  createdDate?: string;
+  targetReviewDate?: string;
 }
 
 export interface HabitIntervention {
@@ -42,6 +45,8 @@ export interface HabitIntervention {
   replacementRoutine: string;
   costToLegacy: string;
   cleanStreakDays: number;
+  startDate?: string;
+  lastRelapseDate?: string;
 }
 
 export default function NewMeView({ isDarkMode = true, userId }: { isDarkMode?: boolean; userId?: string }) {
@@ -184,6 +189,8 @@ export default function NewMeView({ isDarkMode = true, userId }: { isDarkMode?: 
   const [isEditingSectionId, setIsEditingSectionId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
+  const [editReviewDate, setEditReviewDate] = useState('');
+  const [editCreatedDate, setEditCreatedDate] = useState('');
   
   // Quick notice states
   const [saveFeedback, setSaveFeedback] = useState(false);
@@ -192,6 +199,7 @@ export default function NewMeView({ isDarkMode = true, userId }: { isDarkMode?: 
   const [showAddModal, setShowAddModal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
+  const [newReviewDate, setNewReviewDate] = useState('');
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   // iOS Style habit/problem modals & state
@@ -203,6 +211,8 @@ export default function NewMeView({ isDarkMode = true, userId }: { isDarkMode?: 
   const [habitReplacement, setHabitReplacement] = useState('');
   const [habitCost, setHabitCost] = useState('');
   const [habitStreak, setHabitStreak] = useState(0);
+  const [habitStartDate, setHabitStartDate] = useState('');
+  const [habitLastRelapseDate, setHabitLastRelapseDate] = useState('');
   const [deleteHabitId, setDeleteHabitId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -261,13 +271,21 @@ export default function NewMeView({ isDarkMode = true, userId }: { isDarkMode?: 
     setIsEditingSectionId(sec.id);
     setEditTitle(sec.title);
     setEditContent(sec.content);
+    setEditCreatedDate(sec.createdDate || new Date().toISOString().split('T')[0]);
+    setEditReviewDate(sec.targetReviewDate || '');
     // Auto-expand section on edit
     setSections(prev => prev.map(s => s.id === sec.id ? { ...s, isOpen: true } : s));
   };
 
   const handleSaveSection = (id: string) => {
     setSections(prev => prev.map(s => 
-      s.id === id ? { ...s, title: editTitle, content: editContent } : s
+      s.id === id ? { 
+        ...s, 
+        title: editTitle, 
+        content: editContent,
+        createdDate: editCreatedDate,
+        targetReviewDate: editReviewDate
+      } : s
     ));
     setIsEditingSectionId(null);
     triggerSaveIndicator();
@@ -292,6 +310,8 @@ export default function NewMeView({ isDarkMode = true, userId }: { isDarkMode?: 
     setHabitReplacement('');
     setHabitCost('');
     setHabitStreak(0);
+    setHabitStartDate(new Date().toISOString().split('T')[0]);
+    setHabitLastRelapseDate('');
     setShowHabitModal(true);
   };
 
@@ -303,6 +323,8 @@ export default function NewMeView({ isDarkMode = true, userId }: { isDarkMode?: 
     setHabitReplacement(habit.replacementRoutine);
     setHabitCost(habit.costToLegacy);
     setHabitStreak(habit.cleanStreakDays);
+    setHabitStartDate(habit.startDate || new Date().toISOString().split('T')[0]);
+    setHabitLastRelapseDate(habit.lastRelapseDate || '');
     setShowHabitModal(true);
   };
 
@@ -322,7 +344,9 @@ export default function NewMeView({ isDarkMode = true, userId }: { isDarkMode?: 
               triggers: habitTriggers, 
               replacementRoutine: habitReplacement, 
               costToLegacy: habitCost, 
-              cleanStreakDays: habitStreak 
+              cleanStreakDays: habitStreak,
+              startDate: habitStartDate,
+              lastRelapseDate: habitLastRelapseDate || undefined
             }
           : h
       ));
@@ -334,7 +358,9 @@ export default function NewMeView({ isDarkMode = true, userId }: { isDarkMode?: 
         triggers: habitTriggers,
         replacementRoutine: habitReplacement,
         costToLegacy: habitCost,
-        cleanStreakDays: habitStreak
+        cleanStreakDays: habitStreak,
+        startDate: habitStartDate || new Date().toISOString().split('T')[0],
+        lastRelapseDate: habitLastRelapseDate || undefined
       };
       setHabitInterventions(prev => [newHabit, ...prev]);
     }
@@ -636,24 +662,69 @@ export default function NewMeView({ isDarkMode = true, userId }: { isDarkMode?: 
                             isDarkMode ? 'border-slate-800/80 bg-[#08080f]/80' : 'border-slate-150 bg-slate-50/40'
                           }`}>
                             {isEditing ? (
-                              <textarea
-                                value={editContent}
-                                onChange={(e) => setEditContent(e.target.value)}
-                                rows={6}
-                                className={`w-full rounded-lg p-3 text-xs outline-none resize-none font-mono leading-relaxed ${
-                                  isDarkMode 
-                                    ? 'bg-[#12121e] border border-cyan-500/35 text-slate-100 focus:border-cyan-400' 
-                                    : 'bg-white border border-slate-300 text-slate-900 focus:border-cyan-500'
-                                }`}
-                                placeholder="Inject guidelines, learnings, rules, or analyses here..."
-                              />
+                              <div className="space-y-4">
+                                <textarea
+                                  value={editContent}
+                                  onChange={(e) => setEditContent(e.target.value)}
+                                  rows={6}
+                                  className={`w-full rounded-lg p-3 text-xs outline-none resize-none font-mono leading-relaxed ${
+                                    isDarkMode 
+                                      ? 'bg-[#12121e] border border-cyan-500/35 text-slate-100 focus:border-cyan-400' 
+                                      : 'bg-white border border-slate-300 text-slate-900 focus:border-cyan-500'
+                                  }`}
+                                  placeholder="Inject guidelines, learnings, rules, or analyses here..."
+                                />
+                                <div className="grid grid-cols-2 gap-3 pt-2">
+                                  <div>
+                                    <label className="text-[10px] font-mono text-slate-500 font-bold block mb-1">Created Date</label>
+                                    <input
+                                      type="date"
+                                      value={editCreatedDate}
+                                      onChange={(e) => setEditCreatedDate(e.target.value)}
+                                      className={`w-full text-xs font-mono rounded-lg p-2 outline-none ${
+                                        isDarkMode ? 'bg-[#12121e] border border-white/5 text-white' : 'bg-slate-50 border border-slate-200 text-slate-900'
+                                      }`}
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-[10px] font-mono text-slate-500 font-bold block mb-1">Target Review Date</label>
+                                    <input
+                                      type="date"
+                                      value={editReviewDate}
+                                      onChange={(e) => setEditReviewDate(e.target.value)}
+                                      className={`w-full text-xs font-mono rounded-lg p-2 outline-none ${
+                                        isDarkMode ? 'bg-[#12121e] border border-white/5 text-white' : 'bg-slate-50 border border-slate-200 text-slate-900'
+                                      }`}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
                             ) : (
-                              <div className={`text-xs md:text-sm whitespace-pre-wrap leading-relaxed font-sans font-normal ${
-                                sec.readToday
-                                  ? 'text-slate-400 opacity-80'
-                                  : isDarkMode ? 'text-slate-300' : 'text-slate-700'
-                              }`}>
-                                {sec.content}
+                              <div className="space-y-4">
+                                <div className={`text-xs md:text-sm whitespace-pre-wrap leading-relaxed font-sans font-normal ${
+                                  sec.readToday
+                                    ? 'text-slate-400 opacity-80'
+                                    : isDarkMode ? 'text-slate-300' : 'text-slate-700'
+                                }`}>
+                                  {sec.content}
+                                </div>
+                                
+                                <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-slate-800/20 dark:border-white/5 text-[10px] font-mono text-slate-500">
+                                  {sec.createdDate && (
+                                    <span className="flex items-center gap-1">
+                                      <Calendar className="w-3.5 h-3.5" /> Programmed: {sec.createdDate}
+                                    </span>
+                                  )}
+                                  {sec.targetReviewDate && (
+                                    <span className={`flex items-center gap-1 px-2 py-0.5 rounded ${
+                                      new Date(sec.targetReviewDate).getTime() < new Date().getTime()
+                                        ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                                        : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                    }`}>
+                                      <Clock className="w-3.5 h-3.5" /> Review Due: {sec.targetReviewDate}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             )}
                           </div>
@@ -850,6 +921,20 @@ export default function NewMeView({ isDarkMode = true, userId }: { isDarkMode?: 
                             <p className="italic leading-relaxed font-sans font-normal">"{habit.costToLegacy}"</p>
                           </div>
                         )}
+
+                        {/* Dates of Intervention */}
+                        <div className="flex flex-wrap items-center gap-3 pt-1 text-[10px] font-mono text-slate-500">
+                          {habit.startDate && (
+                            <span className="flex items-center gap-1">
+                              <Calendar className="w-3.5 h-3.5" /> Programmed: {habit.startDate}
+                            </span>
+                          )}
+                          {habit.lastRelapseDate && (
+                            <span className="flex items-center gap-1 text-amber-500">
+                              <AlertTriangle className="w-3.5 h-3.5" /> Last Reset: {habit.lastRelapseDate}
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       {/* iOS Style Health Consistency Counter */}
@@ -997,6 +1082,18 @@ export default function NewMeView({ isDarkMode = true, userId }: { isDarkMode?: 
                 </div>
 
                 <div>
+                  <label className={`block text-[10px] font-mono uppercase tracking-widest mb-1.5 font-bold ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Target Review Date (Optional)</label>
+                  <input
+                    type="date"
+                    value={newReviewDate}
+                    onChange={(e) => setNewReviewDate(e.target.value)}
+                    className={`w-full border focus:border-emerald-500/30 font-mono rounded-xl p-3 text-xs outline-none transition-colors ${
+                      isDarkMode ? 'bg-[#141424] border-white/5 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-800'
+                    }`}
+                  />
+                </div>
+
+                <div>
                   <label className={`block text-[10px] font-mono uppercase tracking-widest mb-1.5 font-bold ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Guidelines / Mantras / Behavioral Codes</label>
                   <textarea
                     value={newContent}
@@ -1022,12 +1119,15 @@ export default function NewMeView({ isDarkMode = true, userId }: { isDarkMode?: 
                     id: `nm-${Date.now()}`,
                     title: newTitle,
                     content: newContent || '...',
-                    isOpen: true
+                    isOpen: true,
+                    createdDate: new Date().toISOString().split('T')[0],
+                    targetReviewDate: newReviewDate || undefined
                   };
                   setSections(prev => [newSec, ...prev]); // Insert at top
                   setShowAddModal(false);
                   setNewTitle('');
                   setNewContent('');
+                  setNewReviewDate('');
                   triggerSaveIndicator();
                 }}
                 className="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold font-mono text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10 cursor-pointer"
@@ -1220,6 +1320,31 @@ export default function NewMeView({ isDarkMode = true, userId }: { isDarkMode?: 
                       onChange={(e) => setHabitStreak(Math.max(0, parseInt(e.target.value) || 0))}
                       className={`w-full border focus:border-emerald-500/30 font-sans rounded-xl p-3 text-sm outline-none transition-colors ${
                         isDarkMode ? 'bg-[#141424] border-white/5 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
+                      }`}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={`block text-[10px] font-mono uppercase tracking-widest mb-1 font-bold ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Intervention Start Date</label>
+                    <input
+                      type="date"
+                      value={habitStartDate}
+                      onChange={(e) => setHabitStartDate(e.target.value)}
+                      className={`w-full border focus:border-emerald-500/30 font-mono rounded-xl p-3 text-xs outline-none transition-colors ${
+                        isDarkMode ? 'bg-[#141424] border-white/5 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-800'
+                      }`}
+                    />
+                  </div>
+                  <div>
+                    <label className={`block text-[10px] font-mono uppercase tracking-widest mb-1 font-bold ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Last Encounter / Relapse (Optional)</label>
+                    <input
+                      type="date"
+                      value={habitLastRelapseDate}
+                      onChange={(e) => setHabitLastRelapseDate(e.target.value)}
+                      className={`w-full border focus:border-emerald-500/30 font-mono rounded-xl p-3 text-xs outline-none transition-colors ${
+                        isDarkMode ? 'bg-[#141424] border-white/5 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-800'
                       }`}
                     />
                   </div>

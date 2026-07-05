@@ -15,7 +15,8 @@ import {
   Flame,
   Sun,
   Moon,
-  Activity
+  Activity,
+  Briefcase
 } from 'lucide-react';
 
 import { Goal, Milestone, Task, Habit, JournalEntry, FinancialRecord, HealthLog, LifeWheel, UserProfile, VisionCard, PhilosophicalEntry, BookWisdomEntry, IntuitionEntry } from './types';
@@ -41,6 +42,7 @@ import CalendarView from './components/CalendarView';
 import SettingsView from './components/SettingsView';
 import VisualizationView from './components/VisualizationView';
 import NewMeView from './components/NewMeView';
+import BusinessIdeasView from './components/BusinessIdeasView';
 import { supabase, isSupabaseConfigured } from './supabase';
 import { 
   signInWithGoogle, 
@@ -751,6 +753,7 @@ export default function App() {
   const DEFAULT_NAV_ITEMS = [
     { id: 'dashboard', label: 'DASHBOARD' },
     { id: 'newme', label: 'UNSTOPPABLE ME' },
+    { id: 'ventures', label: 'VENTURE LAB' },
     { id: 'vision', label: 'VISION BOARD' },
     { id: 'goals', label: 'GOALS & PLANS' },
     { id: 'productivity', label: 'PRODUCTIVITY' },
@@ -788,6 +791,7 @@ export default function App() {
     switch (id) {
       case 'dashboard': return <LayoutDashboard className={className} />;
       case 'newme': return <Flame className={className} />;
+      case 'ventures': return <Briefcase className={className} />;
       case 'vision': return <Sparkles className={className} />;
       case 'goals': return <Target className={className} />;
       case 'productivity': return <Clock className={className} />;
@@ -825,6 +829,10 @@ export default function App() {
       case 'newme':
         return (
           <NewMeView isDarkMode={isDarkMode} userId={user?.id} />
+        );
+      case 'ventures':
+        return (
+          <BusinessIdeasView isDarkMode={isDarkMode} userId={user?.id} />
         );
       case 'vision':
         return (
