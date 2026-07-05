@@ -31,8 +31,11 @@ import {
   Dumbbell
 } from 'lucide-react';
 import { HealthLog, Habit } from '../types';
+import { supabase } from '../supabase';
+import { saveUserDataToCloud } from '../lib/supabaseSync';
 
 interface VitalsManagerProps {
+  userId?: string;
   healthLogs: Record<string, HealthLog>;
   updateHealthLog: (date: string, log: Partial<HealthLog>) => void;
   habits: Habit[];
@@ -42,6 +45,7 @@ interface VitalsManagerProps {
 }
 
 export default function VitalsManager({
+  userId,
   healthLogs,
   updateHealthLog,
   habits,
@@ -425,6 +429,31 @@ export default function VitalsManager({
     ];
   });
 
+  // Sync states to local storage and Supabase Cloud
+  useEffect(() => {
+    localStorage.setItem('lifeos_exercise_rules', JSON.stringify(exercises));
+    if (userId) {
+      saveUserDataToCloud(userId, 'exerciseRules', exercises);
+    }
+  }, [exercises, userId]);
+
+  // Real-time listener for cloud changes across tabs or devices
+  useEffect(() => {
+    const handleSync = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail && customEvent.detail.key === 'lifeos_exercise_rules') {
+        const cloudVal = customEvent.detail.value;
+        if (JSON.stringify(cloudVal) !== JSON.stringify(exercises)) {
+          setExercises(cloudVal);
+        }
+      }
+    };
+    window.addEventListener('local-storage-sync', handleSync);
+    return () => {
+      window.removeEventListener('local-storage-sync', handleSync);
+    };
+  }, [exercises]);
+
   const [newExType, setNewExType] = useState('');
   const [newExGoal, setNewExGoal] = useState('');
 
@@ -438,7 +467,6 @@ export default function VitalsManager({
     };
     const updated = [...exercises, rule];
     setExercises(updated);
-    localStorage.setItem('lifeos_exercise_rules', JSON.stringify(updated));
     setNewExType('');
     setNewExGoal('');
   };
@@ -446,7 +474,6 @@ export default function VitalsManager({
   const handleDeleteExercise = (id: string) => {
     const updated = exercises.filter(ex => ex.id !== id);
     setExercises(updated);
-    localStorage.setItem('lifeos_exercise_rules', JSON.stringify(updated));
   };
 
   // --- Soundscape Web Audio Synth Engine ---

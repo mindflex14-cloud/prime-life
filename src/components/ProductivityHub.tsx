@@ -35,6 +35,8 @@ import FocusExecutiveTimer from './FocusExecutiveTimer';
 import ExecutionCore from './ExecutionCore';
 import AIPredictions from './AIPredictions';
 import { BrainCircuit } from 'lucide-react';
+import { supabase } from '../supabase';
+import { saveUserDataToCloud } from '../lib/supabaseSync';
 
 export interface RecurrenceConfig {
   frequency: 'daily' | 'weekly' | 'monthly';
@@ -48,6 +50,7 @@ export interface RecurrenceConfig {
 }
 
 interface ProductivityHubProps {
+  userId?: string;
   tasks: Task[];
   habits: Habit[];
   goals: Goal[];
@@ -62,6 +65,7 @@ interface ProductivityHubProps {
 }
 
 export default function ProductivityHub({
+  userId,
   tasks,
   habits,
   goals,
@@ -321,9 +325,29 @@ export default function ProductivityHub({
     };
   });
 
-  // Sync states to local storage
+  // Sync states to local storage and Supabase Cloud
   useEffect(() => {
     localStorage.setItem('lifeos_power_system', JSON.stringify(powerSystem));
+    if (userId) {
+      saveUserDataToCloud(userId, 'powerSystem', powerSystem);
+    }
+  }, [powerSystem, userId]);
+
+  // Real-time listener for cloud changes across tabs or devices
+  useEffect(() => {
+    const handleSync = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail && customEvent.detail.key === 'lifeos_power_system') {
+        const cloudVal = customEvent.detail.value;
+        if (JSON.stringify(cloudVal) !== JSON.stringify(powerSystem)) {
+          setPowerSystem(cloudVal);
+        }
+      }
+    };
+    window.addEventListener('local-storage-sync', handleSync);
+    return () => {
+      window.removeEventListener('local-storage-sync', handleSync);
+    };
   }, [powerSystem]);
 
   // --- Task Form & Filters ---

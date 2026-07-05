@@ -41,10 +41,23 @@ import CalendarView from './components/CalendarView';
 import SettingsView from './components/SettingsView';
 import VisualizationView from './components/VisualizationView';
 import NewMeView from './components/NewMeView';
+import { supabase, isSupabaseConfigured } from './supabase';
+import { 
+  signInWithGoogle, 
+  signOutUser, 
+  saveUserDataToCloud, 
+  loadAllUserDataFromCloud, 
+  subscribeToUserDataCloud,
+  syncPendingData
+} from './lib/supabaseSync';
+import { User } from '@supabase/supabase-js';
+import { Cloud, CloudLightning, LogOut } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
   
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem('lifeos_dark_mode');
@@ -166,58 +179,321 @@ export default function App() {
 
   const [activeTimerTaskId, setActiveTimerTaskId] = useState<string | null>(null);
 
-  // --- SYNC STATE TO LOCAL STORAGE ---
+  // --- SUPABASE AUTH AND REAL-TIME SYNC ---
+  useEffect(() => {
+    if (!supabase) return;
+
+    // Retrieve initial session and set user
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser(session.user);
+      }
+    });
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const sUser = session?.user || null;
+      setUser(sUser);
+      if (sUser) {
+        setIsSyncing(true);
+        try {
+          // Sync any pending offline changes
+          await syncPendingData(sUser.id);
+
+          const cloudData = await loadAllUserDataFromCloud(sUser.id);
+          
+          if (Object.keys(cloudData).length === 0) {
+            // Seed cloud data with current local state
+            await saveUserDataToCloud(sUser.id, 'profile', profile);
+            await saveUserDataToCloud(sUser.id, 'visionCards', visionCards);
+            await saveUserDataToCloud(sUser.id, 'goals', goals);
+            await saveUserDataToCloud(sUser.id, 'milestones', milestones);
+            await saveUserDataToCloud(sUser.id, 'tasks', tasks);
+            await saveUserDataToCloud(sUser.id, 'habits', habits);
+            await saveUserDataToCloud(sUser.id, 'journalEntries', journalEntries);
+            await saveUserDataToCloud(sUser.id, 'financeRecords', financeRecords);
+            await saveUserDataToCloud(sUser.id, 'healthLogs', healthLogs);
+            await saveUserDataToCloud(sUser.id, 'lifeWheel', lifeWheel);
+            await saveUserDataToCloud(sUser.id, 'philosophicalEntries', philosophicalEntries);
+            await saveUserDataToCloud(sUser.id, 'bookWisdomEntries', bookWisdomEntries);
+            await saveUserDataToCloud(sUser.id, 'intuitionEntries', intuitionEntries);
+            
+            const savedPower = localStorage.getItem('lifeos_power_system');
+            if (savedPower) await saveUserDataToCloud(sUser.id, 'powerSystem', JSON.parse(savedPower));
+            const savedRules = localStorage.getItem('lifeos_exercise_rules');
+            if (savedRules) await saveUserDataToCloud(sUser.id, 'exerciseRules', JSON.parse(savedRules));
+            const savedSecs = localStorage.getItem('lifeos_newme_sections');
+            if (savedSecs) await saveUserDataToCloud(sUser.id, 'newMeSections', JSON.parse(savedSecs));
+            const savedDrop = localStorage.getItem('lifeos_newme_datadrop');
+            if (savedDrop) await saveUserDataToCloud(sUser.id, 'newMeDataDrop', savedDrop);
+            const savedInts = localStorage.getItem('lifeos_newme_interventions');
+            if (savedInts) await saveUserDataToCloud(sUser.id, 'newMeInterventions', JSON.parse(savedInts));
+          } else {
+            // Apply downloaded cloud data to states if different
+            if (cloudData.profile && JSON.stringify(cloudData.profile) !== JSON.stringify(profile)) {
+              setProfile(cloudData.profile);
+            }
+            if (cloudData.visionCards && JSON.stringify(cloudData.visionCards) !== JSON.stringify(visionCards)) {
+              setVisionCards(cloudData.visionCards);
+            }
+            if (cloudData.goals && JSON.stringify(cloudData.goals) !== JSON.stringify(goals)) {
+              setGoals(cloudData.goals);
+            }
+            if (cloudData.milestones && JSON.stringify(cloudData.milestones) !== JSON.stringify(milestones)) {
+              setMilestones(cloudData.milestones);
+            }
+            if (cloudData.tasks && JSON.stringify(cloudData.tasks) !== JSON.stringify(tasks)) {
+              setTasks(cloudData.tasks);
+            }
+            if (cloudData.habits && JSON.stringify(cloudData.habits) !== JSON.stringify(habits)) {
+              setHabits(cloudData.habits);
+            }
+            if (cloudData.journalEntries && JSON.stringify(cloudData.journalEntries) !== JSON.stringify(journalEntries)) {
+              setJournalEntries(cloudData.journalEntries);
+            }
+            if (cloudData.financeRecords && JSON.stringify(cloudData.financeRecords) !== JSON.stringify(financeRecords)) {
+              setFinanceRecords(cloudData.financeRecords);
+            }
+            if (cloudData.healthLogs && JSON.stringify(cloudData.healthLogs) !== JSON.stringify(healthLogs)) {
+              setHealthLogs(cloudData.healthLogs);
+            }
+            if (cloudData.lifeWheel && JSON.stringify(cloudData.lifeWheel) !== JSON.stringify(lifeWheel)) {
+              setLifeWheel(cloudData.lifeWheel);
+            }
+            if (cloudData.philosophicalEntries && JSON.stringify(cloudData.philosophicalEntries) !== JSON.stringify(philosophicalEntries)) {
+              setPhilosophicalEntries(cloudData.philosophicalEntries);
+            }
+            if (cloudData.bookWisdomEntries && JSON.stringify(cloudData.bookWisdomEntries) !== JSON.stringify(bookWisdomEntries)) {
+              setBookWisdomEntries(cloudData.bookWisdomEntries);
+            }
+            if (cloudData.intuitionEntries && JSON.stringify(cloudData.intuitionEntries) !== JSON.stringify(intuitionEntries)) {
+              setIntuitionEntries(cloudData.intuitionEntries);
+            }
+            
+            // Sync extra component local keys
+            const extraKeys = ['powerSystem', 'exerciseRules', 'newMeSections', 'newMeDataDrop', 'newMeInterventions'];
+            const localStorageKeysMap: Record<string, string> = {
+              powerSystem: 'lifeos_power_system',
+              exerciseRules: 'lifeos_exercise_rules',
+              newMeSections: 'lifeos_newme_sections',
+              newMeDataDrop: 'lifeos_newme_datadrop',
+              newMeInterventions: 'lifeos_newme_interventions'
+            };
+            
+            extraKeys.forEach((key) => {
+              if (cloudData[key] !== undefined) {
+                const lsKey = localStorageKeysMap[key];
+                const stringVal = typeof cloudData[key] === 'string' ? cloudData[key] : JSON.stringify(cloudData[key]);
+                if (localStorage.getItem(lsKey) !== stringVal) {
+                  localStorage.setItem(lsKey, stringVal);
+                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: cloudData[key] } }));
+                }
+              }
+            });
+          }
+        } catch (err) {
+          console.error("Error doing initial sync:", err);
+        } finally {
+          setIsSyncing(false);
+        }
+
+        // Start real-time Supabase listener
+        const unsubscribeSnapshot = subscribeToUserDataCloud(sUser.id, (key, data) => {
+          const stringified = JSON.stringify(data);
+          switch (key) {
+            case 'profile':
+              setProfile(prev => JSON.stringify(prev) !== stringified ? data : prev);
+              break;
+            case 'visionCards':
+              setVisionCards(prev => JSON.stringify(prev) !== stringified ? data : prev);
+              break;
+            case 'goals':
+              setGoals(prev => JSON.stringify(prev) !== stringified ? data : prev);
+              break;
+            case 'milestones':
+              setMilestones(prev => JSON.stringify(prev) !== stringified ? data : prev);
+              break;
+            case 'tasks':
+              setTasks(prev => JSON.stringify(prev) !== stringified ? data : prev);
+              break;
+            case 'habits':
+              setHabits(prev => JSON.stringify(prev) !== stringified ? data : prev);
+              break;
+            case 'journalEntries':
+              setJournalEntries(prev => JSON.stringify(prev) !== stringified ? data : prev);
+              break;
+            case 'financeRecords':
+              setFinanceRecords(prev => JSON.stringify(prev) !== stringified ? data : prev);
+              break;
+            case 'healthLogs':
+              setHealthLogs(prev => JSON.stringify(prev) !== stringified ? data : prev);
+              break;
+            case 'lifeWheel':
+              setLifeWheel(prev => JSON.stringify(prev) !== stringified ? data : prev);
+              break;
+            case 'philosophicalEntries':
+              setPhilosophicalEntries(prev => JSON.stringify(prev) !== stringified ? data : prev);
+              break;
+            case 'bookWisdomEntries':
+              setBookWisdomEntries(prev => JSON.stringify(prev) !== stringified ? data : prev);
+              break;
+            case 'intuitionEntries':
+              setIntuitionEntries(prev => JSON.stringify(prev) !== stringified ? data : prev);
+              break;
+            case 'powerSystem': {
+              const lsKey = 'lifeos_power_system';
+              if (localStorage.getItem(lsKey) !== stringified) {
+                localStorage.setItem(lsKey, stringified);
+                window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+              }
+              break;
+            }
+            case 'exerciseRules': {
+              const lsKey = 'lifeos_exercise_rules';
+              if (localStorage.getItem(lsKey) !== stringified) {
+                localStorage.setItem(lsKey, stringified);
+                window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+              }
+              break;
+            }
+            case 'newMeSections': {
+              const lsKey = 'lifeos_newme_sections';
+              if (localStorage.getItem(lsKey) !== stringified) {
+                localStorage.setItem(lsKey, stringified);
+                window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+              }
+              break;
+            }
+            case 'newMeDataDrop': {
+              const lsKey = 'lifeos_newme_datadrop';
+              if (localStorage.getItem(lsKey) !== data) {
+                localStorage.setItem(lsKey, data);
+                window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+              }
+              break;
+            }
+            case 'newMeInterventions': {
+              const lsKey = 'lifeos_newme_interventions';
+              if (localStorage.getItem(lsKey) !== stringified) {
+                localStorage.setItem(lsKey, stringified);
+                window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+              }
+              break;
+            }
+          }
+        });
+
+        // Trigger sync of pending data when becoming online or trigger event is received
+        const handleSyncTrigger = () => {
+          syncPendingData(sUser.id);
+        };
+        window.addEventListener('supabase-sync-trigger', handleSyncTrigger);
+
+        return () => {
+          unsubscribeSnapshot();
+          window.removeEventListener('supabase-sync-trigger', handleSyncTrigger);
+        };
+      } else {
+        setIsSyncing(false);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // --- SYNC STATE TO LOCAL STORAGE & SUPABASE CLOUD ---
   useEffect(() => {
     localStorage.setItem('lifeos_profile', JSON.stringify(profile));
-  }, [profile]);
+    if (user) {
+      saveUserDataToCloud(user.id, 'profile', profile);
+    }
+  }, [profile, user]);
 
   useEffect(() => {
     localStorage.setItem('lifeos_vision_cards', JSON.stringify(visionCards));
-  }, [visionCards]);
+    if (user) {
+      saveUserDataToCloud(user.id, 'visionCards', visionCards);
+    }
+  }, [visionCards, user]);
 
   useEffect(() => {
     localStorage.setItem('lifeos_goals', JSON.stringify(goals));
-  }, [goals]);
+    if (user) {
+      saveUserDataToCloud(user.id, 'goals', goals);
+    }
+  }, [goals, user]);
 
   useEffect(() => {
     localStorage.setItem('lifeos_milestones', JSON.stringify(milestones));
-  }, [milestones]);
+    if (user) {
+      saveUserDataToCloud(user.id, 'milestones', milestones);
+    }
+  }, [milestones, user]);
 
   useEffect(() => {
     localStorage.setItem('lifeos_tasks', JSON.stringify(tasks));
-  }, [tasks]);
+    if (user) {
+      saveUserDataToCloud(user.id, 'tasks', tasks);
+    }
+  }, [tasks, user]);
 
   useEffect(() => {
     localStorage.setItem('lifeos_habits', JSON.stringify(habits));
-  }, [habits]);
+    if (user) {
+      saveUserDataToCloud(user.id, 'habits', habits);
+    }
+  }, [habits, user]);
 
   useEffect(() => {
     localStorage.setItem('lifeos_journals', JSON.stringify(journalEntries));
-  }, [journalEntries]);
+    if (user) {
+      saveUserDataToCloud(user.id, 'journalEntries', journalEntries);
+    }
+  }, [journalEntries, user]);
 
   useEffect(() => {
     localStorage.setItem('lifeos_finance', JSON.stringify(financeRecords));
-  }, [financeRecords]);
+    if (user) {
+      saveUserDataToCloud(user.id, 'financeRecords', financeRecords);
+    }
+  }, [financeRecords, user]);
 
   useEffect(() => {
     localStorage.setItem('lifeos_health', JSON.stringify(healthLogs));
-  }, [healthLogs]);
+    if (user) {
+      saveUserDataToCloud(user.id, 'healthLogs', healthLogs);
+    }
+  }, [healthLogs, user]);
 
   useEffect(() => {
     localStorage.setItem('lifeos_lifewheel', JSON.stringify(lifeWheel));
-  }, [lifeWheel]);
+    if (user) {
+      saveUserDataToCloud(user.id, 'lifeWheel', lifeWheel);
+    }
+  }, [lifeWheel, user]);
 
   useEffect(() => {
     localStorage.setItem('lifeos_philosophical', JSON.stringify(philosophicalEntries));
-  }, [philosophicalEntries]);
+    if (user) {
+      saveUserDataToCloud(user.id, 'philosophicalEntries', philosophicalEntries);
+    }
+  }, [philosophicalEntries, user]);
 
   useEffect(() => {
     localStorage.setItem('lifeos_book_wisdom', JSON.stringify(bookWisdomEntries));
-  }, [bookWisdomEntries]);
+    if (user) {
+      saveUserDataToCloud(user.id, 'bookWisdomEntries', bookWisdomEntries);
+    }
+  }, [bookWisdomEntries, user]);
 
   useEffect(() => {
     localStorage.setItem('lifeos_intuition', JSON.stringify(intuitionEntries));
-  }, [intuitionEntries]);
+    if (user) {
+      saveUserDataToCloud(user.id, 'intuitionEntries', intuitionEntries);
+    }
+  }, [intuitionEntries, user]);
 
   // Rotates the quote of the day automatically on load
   useEffect(() => {
@@ -546,7 +822,7 @@ export default function App() {
         );
       case 'newme':
         return (
-          <NewMeView isDarkMode={isDarkMode} />
+          <NewMeView isDarkMode={isDarkMode} userId={user?.id} />
         );
       case 'vision':
         return (
@@ -575,6 +851,7 @@ export default function App() {
       case 'productivity':
         return (
           <ProductivityHub 
+            userId={user?.id}
             tasks={tasks}
             habits={habits}
             goals={goals}
@@ -604,6 +881,7 @@ export default function App() {
       case 'vitals':
         return (
           <VitalsManager 
+            userId={user?.id}
             healthLogs={healthLogs}
             updateHealthLog={updateHealthLog}
             habits={habits}
@@ -671,12 +949,12 @@ export default function App() {
                 <span className={`font-display font-extrabold text-lg tracking-wider leading-none uppercase ${
                   isDarkMode ? 'text-white' : 'text-slate-900'
                 }`}>
-                  AETHER
+                  PRIME LIFE
                 </span>
                 <span className={`text-[10px] font-mono tracking-widest font-semibold uppercase leading-tight ${
                   isDarkMode ? 'text-cyan-400/80' : 'text-cyan-600'
                 }`}>
-                  Elite Life OS
+                  Cloud Synced
                 </span>
               </div>
             </div>
@@ -814,35 +1092,71 @@ export default function App() {
             </button>
           </div>
 
-          {/* Premium User/Workspace Card at bottom */}
-          <div className={`p-3 rounded-2xl flex items-center justify-between gap-3 ${
+          {/* Cloud Sync / Google Sign-In Card */}
+          <div className={`p-3 rounded-2xl flex flex-col gap-3 ${
             isDarkMode ? 'bg-[#0f0f16] border border-white/5' : 'bg-slate-50/80 border border-slate-100 shadow-sm'
           }`}>
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-500 flex items-center justify-center font-display font-bold text-white text-sm shrink-0 shadow-md shadow-cyan-500/20">
-                {profile.name ? profile.name.slice(0, 2).toUpperCase() : "EB"}
+            {user ? (
+              <div className="flex items-center justify-between gap-3 w-full">
+                <div className="flex items-center gap-3 min-w-0">
+                  {user.photoURL ? (
+                    <img 
+                      src={user.photoURL} 
+                      alt={user.displayName || "Avatar"} 
+                      className="w-10 h-10 rounded-xl object-cover shadow-md shadow-cyan-500/20 shrink-0"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-500 flex items-center justify-center font-display font-bold text-white text-sm shrink-0 shadow-md shadow-cyan-500/20">
+                      {user.displayName ? user.displayName.slice(0, 2).toUpperCase() : "EB"}
+                    </div>
+                  )}
+                  <div className="truncate text-left flex-1 min-w-0">
+                    <p className={`text-sm font-semibold truncate ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>
+                      {user.displayName || 'Google User'}
+                    </p>
+                    <span className="text-[11px] font-medium block text-cyan-500 dark:text-cyan-400 flex items-center gap-1">
+                      <Cloud className="w-3.5 h-3.5 inline-block shrink-0" /> Cloud Synced
+                    </span>
+                  </div>
+                </div>
+                
+                <button
+                  onClick={signOutUser}
+                  className={`p-2 rounded-xl transition-all ${
+                    isDarkMode 
+                      ? 'hover:bg-red-500/10 text-slate-400 hover:text-red-400' 
+                      : 'hover:bg-red-50 text-slate-500 hover:text-red-600'
+                  }`}
+                  title="Sign Out of Cloud"
+                >
+                  <LogOut className="w-4.5 h-4.5 stroke-[1.8]" />
+                </button>
               </div>
-              <div className="truncate text-left">
-                <p className={`text-sm font-semibold truncate ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>
-                  {profile.name || 'Elite Builder'}
-                </p>
-                <span className={`text-[11px] font-medium block ${isDarkMode ? 'text-slate-500' : 'text-slate-450'}`}>
-                  Elite Builder
-                </span>
+            ) : (
+              <div className="flex flex-col gap-2.5 w-full">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-display font-bold text-slate-500 dark:text-slate-400 text-sm shrink-0 shadow-sm">
+                    <CloudLightning className="w-5 h-5" />
+                  </div>
+                  <div className="truncate text-left">
+                    <p className={`text-sm font-semibold truncate ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>
+                      Cloud Sync
+                    </p>
+                    <span className="text-[11px] font-medium block text-slate-500 dark:text-slate-400">
+                      No Account Connected
+                    </span>
+                  </div>
+                </div>
+                
+                <button
+                  onClick={signInWithGoogle}
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-mono font-bold tracking-wider uppercase rounded-xl transition-all shadow-md shadow-cyan-600/10 hover:shadow-cyan-500/20 cursor-pointer"
+                >
+                  Connect Google Account
+                </button>
               </div>
-            </div>
-            
-            <button
-              onClick={() => setActiveTab('settings')}
-              className={`p-2 rounded-xl transition-all ${
-                isDarkMode 
-                  ? 'hover:bg-white/5 text-slate-400 hover:text-cyan-400' 
-                  : 'hover:bg-slate-200/50 text-slate-500 hover:text-cyan-600'
-              }`}
-              title="Workspace Settings"
-            >
-              <SettingsIcon className="w-4.5 h-4.5 stroke-[1.8]" />
-            </button>
+            )}
           </div>
         </div>
       </aside>
@@ -856,7 +1170,7 @@ export default function App() {
             <Compass className="w-4.5 h-4.5 text-slate-950" />
           </div>
           <div>
-            <h2 className={`text-sm font-display font-bold uppercase ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>AETHER<span className="text-cyan-400">.OS</span></h2>
+            <h2 className={`text-sm font-display font-bold uppercase ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>PRIME LIFE</h2>
           </div>
         </div>
 
@@ -980,9 +1294,9 @@ export default function App() {
 
         {/* Small Footer bar */}
         <footer className="w-full max-w-7xl mx-auto pt-6 border-t border-slate-200 dark:border-slate-900 text-[10px] font-mono text-slate-500 flex flex-col md:flex-row justify-between items-center gap-2.5">
-          <span>AETHER.OS — Goals & Personal Executive Planner</span>
+          <span>PRIME LIFE — Real-time Synchronized Personal Executive Planner</span>
           <div className="flex gap-4">
-            <span>Secure Local Data Storage</span>
+            <span>Secure Cloud Syncing Enabled</span>
           </div>
         </footer>
 

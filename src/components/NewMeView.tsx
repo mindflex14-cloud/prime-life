@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { supabase } from '../supabase';
+import { saveUserDataToCloud } from '../lib/supabaseSync';
 import { 
   Zap, 
   Plus, 
@@ -42,7 +44,7 @@ export interface HabitIntervention {
   cleanStreakDays: number;
 }
 
-export default function NewMeView({ isDarkMode = true }: { isDarkMode?: boolean }) {
+export default function NewMeView({ isDarkMode = true, userId }: { isDarkMode?: boolean; userId?: string }) {
   const [subTab, setSubTab] = useState<'mindset' | 'problems'>(() => {
     const saved = localStorage.getItem('lifeos_newme_subtab');
     return (saved === 'mindset' || saved === 'problems') ? saved : 'mindset';
@@ -205,15 +207,45 @@ export default function NewMeView({ isDarkMode = true }: { isDarkMode?: boolean 
 
   useEffect(() => {
     localStorage.setItem('lifeos_newme_sections', JSON.stringify(sections));
-  }, [sections]);
+    if (userId) {
+      saveUserDataToCloud(userId, 'newMeSections', sections);
+    }
+  }, [sections, userId]);
 
   useEffect(() => {
     localStorage.setItem('lifeos_newme_datadrop', dataDrop);
-  }, [dataDrop]);
+    if (userId) {
+      saveUserDataToCloud(userId, 'newMeDataDrop', dataDrop);
+    }
+  }, [dataDrop, userId]);
 
   useEffect(() => {
     localStorage.setItem('lifeos_newme_interventions', JSON.stringify(habitInterventions));
-  }, [habitInterventions]);
+    if (userId) {
+      saveUserDataToCloud(userId, 'newMeInterventions', habitInterventions);
+    }
+  }, [habitInterventions, userId]);
+
+  // Real-time listener for cloud changes across tabs or devices
+  useEffect(() => {
+    const handleSync = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail) {
+        const { key, value } = customEvent.detail;
+        if (key === 'lifeos_newme_sections' && JSON.stringify(value) !== JSON.stringify(sections)) {
+          setSections(value);
+        } else if (key === 'lifeos_newme_datadrop' && value !== dataDrop) {
+          setDataDrop(value);
+        } else if (key === 'lifeos_newme_interventions' && JSON.stringify(value) !== JSON.stringify(habitInterventions)) {
+          setHabitInterventions(value);
+        }
+      }
+    };
+    window.addEventListener('local-storage-sync', handleSync);
+    return () => {
+      window.removeEventListener('local-storage-sync', handleSync);
+    };
+  }, [sections, dataDrop, habitInterventions]);
 
   const triggerSaveIndicator = () => {
     setSaveFeedback(true);
