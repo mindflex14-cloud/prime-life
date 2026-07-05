@@ -6,6 +6,8 @@ export interface Goal {
   description: string;
   completed: boolean;
   imageUrl?: string;
+  quote?: string;
+  imageUrls?: string[];
 }
 
 export interface Milestone {
@@ -97,6 +99,7 @@ export interface VisionCard {
   id: string;
   title: string;
   imageUrl: string;
+  imageUrls?: string[];
   instructions: string; // Editable instructions to self
   category: string;
   targetDate?: string;

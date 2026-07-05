@@ -24,7 +24,14 @@ import {
   Cigarette,
   Ban,
   RefreshCw,
-  Trophy
+  Trophy,
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  Music,
+  Headphones,
+  Radio
 } from 'lucide-react';
 
 export interface NewMeSection {
@@ -214,6 +221,262 @@ export default function NewMeView({ isDarkMode = true, userId }: { isDarkMode?: 
   const [habitStartDate, setHabitStartDate] = useState('');
   const [habitLastRelapseDate, setHabitLastRelapseDate] = useState('');
   const [deleteHabitId, setDeleteHabitId] = useState<string | null>(null);
+
+  // ==========================================
+  // Premium Mindset Focus Acoustics Engine
+  // ==========================================
+  const TRACKS = [
+    { id: 'sleepy_cat', name: 'Cozy Rain & Chill (Soft Lo-Fi)', desc: 'Extremely soft chords with subtle vinyl crackle and a soothing slow-tempo rhythm.', type: 'audio', url: 'https://assets.mixkit.co/music/preview/mixkit-sleepy-cat-135.mp3' },
+    { id: 'dreaming_big', name: 'Ethereal Dreamer (Ambient Lo-Fi)', desc: 'A serene and gentle synth-driven lo-fi track with a soft, warm heart.', type: 'audio', url: 'https://assets.mixkit.co/music/preview/mixkit-dreaming-big-31.mp3' },
+    { id: 'warm_lights', name: 'Warm Lights (Midnight Chill Beat)', desc: 'Soft fender-rhodes electric piano chords with a relaxed, low-volume chill beat.', type: 'audio', url: 'https://assets.mixkit.co/music/preview/mixkit-warm-lights-297.mp3' },
+    { id: 'silent_forest', name: 'Silent Forest (Gentle Nature Study)', desc: 'Peaceful keys blended with soft woodwinds and a minimal ambient background.', type: 'audio', url: 'https://assets.mixkit.co/music/preview/mixkit-silent-forest-273.mp3' },
+    { id: 'synth_alignment', name: 'Sovereign Focus (Procedural Alpha Synth)', desc: 'Live-synthesized binaural focus pads designed for deep reading and mental resonance.', type: 'synth' }
+  ];
+
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [activeTrackId, setActiveTrackId] = useState('sleepy_cat');
+  const [volume, setVolume] = useState(0.4);
+  const [playbackProgress, setPlaybackProgress] = useState(0);
+  const [audioDuration, setAudioDuration] = useState(0);
+
+  const audioRef = React.useRef<HTMLAudioElement | null>(null);
+  const synthCtxRef = React.useRef<AudioContext | null>(null);
+  const synthIntervalRef = React.useRef<any>(null);
+  const synthActiveNodesRef = React.useRef<{ oscs: OscillatorNode[]; gains: GainNode[]; filter: BiquadFilterNode; master: GainNode }[]>([]);
+
+  // Dynamically update volumes of active audio streams or synth nodes
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume;
+    }
+    synthActiveNodesRef.current.forEach(group => {
+      try {
+        const now = synthCtxRef.current ? synthCtxRef.current.currentTime : 0;
+        group.master.gain.setValueAtTime(volume * 0.15, now);
+      } catch (e) {}
+    });
+  }, [volume]);
+
+  // Clean up all audio on unmount
+  useEffect(() => {
+    return () => {
+      if (synthIntervalRef.current) {
+        clearInterval(synthIntervalRef.current);
+      }
+      synthActiveNodesRef.current.forEach(group => {
+        try {
+          group.oscs.forEach(o => o.disconnect());
+          group.gains.forEach(g => g.disconnect());
+          group.filter.disconnect();
+          group.master.disconnect();
+        } catch (e) {}
+      });
+      if (synthCtxRef.current) {
+        try {
+          synthCtxRef.current.close();
+        } catch (e) {}
+      }
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  const startHtmlAudio = (url: string) => {
+    try {
+      if (!audioRef.current) {
+        const audio = new Audio(url);
+        audio.loop = true;
+        audio.volume = volume;
+        
+        audio.addEventListener('timeupdate', () => {
+          if (audio.duration) {
+            setPlaybackProgress((audio.currentTime / audio.duration) * 100);
+          }
+        });
+        audio.addEventListener('durationchange', () => {
+          setAudioDuration(audio.duration || 0);
+        });
+        audio.addEventListener('ended', () => {
+          setPlaybackProgress(0);
+        });
+
+        audioRef.current = audio;
+      } else {
+        audioRef.current.src = url;
+        audioRef.current.volume = volume;
+      }
+
+      audioRef.current.play().catch(err => {
+        console.warn("Autoplay blocked or network delay. Waiting for user interaction.", err);
+        setIsPlaying(false);
+      });
+    } catch (err) {
+      console.error("HTML audio setup failed", err);
+    }
+  };
+
+  const startSynth = () => {
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) return;
+
+      const ctx = new AudioContextClass();
+      synthCtxRef.current = ctx;
+
+      const progressions = [
+        [130.81, 164.81, 196.00, 246.94, 293.66], // Cmaj9
+        [110.00, 130.81, 164.81, 220.00, 261.63], // Am9
+        [87.31, 130.81, 174.61, 220.00, 261.63],  // Fmaj9
+        [98.00, 146.83, 196.00, 246.94, 293.66]   // G11
+      ];
+
+      let chordIndex = 0;
+
+      const playChord = () => {
+        if (!ctx || ctx.state === 'closed') return;
+        
+        const now = ctx.currentTime;
+        const chord = progressions[chordIndex];
+        chordIndex = (chordIndex + 1) % progressions.length;
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(250, now);
+        filter.frequency.exponentialRampToValueAtTime(450, now + 4);
+        filter.frequency.exponentialRampToValueAtTime(200, now + 10);
+        filter.Q.setValueAtTime(1, now);
+
+        const masterGain = ctx.createGain();
+        masterGain.gain.setValueAtTime(0, now);
+        masterGain.gain.linearRampToValueAtTime(volume * 0.15, now + 2); // Warm attack
+        masterGain.gain.setValueAtTime(volume * 0.15, now + 8);
+        masterGain.gain.exponentialRampToValueAtTime(0.001, now + 11.5); // Warm decay
+
+        filter.connect(masterGain);
+        masterGain.connect(ctx.destination);
+
+        const oscs: OscillatorNode[] = [];
+        const gains: GainNode[] = [];
+
+        chord.forEach((freq, idx) => {
+          const osc1 = ctx.createOscillator();
+          const osc2 = ctx.createOscillator();
+          const oscGain = ctx.createGain();
+
+          osc1.type = idx === 0 ? 'sine' : 'triangle';
+          osc2.type = 'sine';
+
+          osc1.frequency.setValueAtTime(freq, now);
+          osc2.frequency.setValueAtTime(freq + (Math.random() * 1.6 - 0.8), now);
+
+          const noteGain = idx >= 3 ? 0.03 : 0.06;
+          oscGain.gain.setValueAtTime(noteGain, now);
+
+          osc1.connect(oscGain);
+          osc2.connect(oscGain);
+          oscGain.connect(filter);
+
+          osc1.start(now);
+          osc2.start(now);
+          osc1.stop(now + 12);
+          osc2.stop(now + 12);
+
+          oscs.push(osc1, osc2);
+          gains.push(oscGain);
+        });
+
+        const nodeGroup = { oscs, gains, filter, master: masterGain };
+        synthActiveNodesRef.current.push(nodeGroup);
+
+        setTimeout(() => {
+          oscs.forEach(o => { try { o.disconnect(); } catch (e) {} });
+          gains.forEach(g => { try { g.disconnect(); } catch (e) {} });
+          try { filter.disconnect(); } catch (e) {}
+          try { masterGain.disconnect(); } catch (e) {}
+          synthActiveNodesRef.current = synthActiveNodesRef.current.filter(item => item !== nodeGroup);
+        }, 13000);
+      };
+
+      playChord();
+      synthIntervalRef.current = setInterval(playChord, 10000);
+
+    } catch (err) {
+      console.error("Failed to start synthetic focus acoustics", err);
+    }
+  };
+
+  const stopSynth = () => {
+    if (synthIntervalRef.current) {
+      clearInterval(synthIntervalRef.current);
+      synthIntervalRef.current = null;
+    }
+
+    synthActiveNodesRef.current.forEach(group => {
+      try {
+        group.master.gain.cancelScheduledValues(0);
+        group.master.gain.setValueAtTime(group.master.gain.value, 0);
+        group.master.gain.exponentialRampToValueAtTime(0.001, 0.2);
+      } catch (e) {}
+      setTimeout(() => {
+        group.oscs.forEach(o => { try { o.disconnect(); } catch (e) {} });
+        group.gains.forEach(g => { try { g.disconnect(); } catch (e) {} });
+        try { group.filter.disconnect(); } catch (e) {}
+        try { group.master.disconnect(); } catch (e) {}
+      }, 500);
+    });
+    synthActiveNodesRef.current = [];
+
+    if (synthCtxRef.current) {
+      try {
+        synthCtxRef.current.close();
+      } catch (e) {}
+      synthCtxRef.current = null;
+    }
+  };
+
+  const stopAudio = () => {
+    setIsPlaying(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+    stopSynth();
+  };
+
+  const handlePlayPause = () => {
+    if (isPlaying) {
+      stopAudio();
+    } else {
+      const currentTrack = TRACKS.find(t => t.id === activeTrackId);
+      if (!currentTrack) return;
+      setIsPlaying(true);
+      if (currentTrack.type === 'synth') {
+        startSynth();
+      } else if (currentTrack.type === 'audio' && currentTrack.url) {
+        startHtmlAudio(currentTrack.url);
+      }
+    }
+  };
+
+  const handleTrackChange = (trackId: string) => {
+    setActiveTrackId(trackId);
+    if (isPlaying) {
+      stopSynth();
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      setTimeout(() => {
+        const currentTrack = TRACKS.find(t => t.id === trackId);
+        if (!currentTrack) return;
+        if (currentTrack.type === 'synth') {
+          startSynth();
+        } else if (currentTrack.type === 'audio' && currentTrack.url) {
+          startHtmlAudio(currentTrack.url);
+        }
+      }, 100);
+    }
+  };
 
   useEffect(() => {
     localStorage.setItem('lifeos_newme_sections', JSON.stringify(sections));
@@ -473,46 +736,150 @@ export default function NewMeView({ isDarkMode = true, userId }: { isDarkMode?: 
       {/* MINDSET SECTION */}
       {subTab === 'mindset' && (
         <div className="space-y-6 animate-fadeIn">
-          {/* Today's Alignment Index Progress Card */}
-          <div className={`p-4 md:p-5 rounded-2xl border transition-all ${
-            isDarkMode 
-              ? 'bg-[#0b0b14] border-emerald-500/10 shadow-[0_0_15px_rgba(16,185,129,0.03)]' 
-              : 'bg-white border-slate-200 shadow-sm'
-          }`}>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-              <div className="space-y-1">
-                <span className="text-[10px] font-mono font-bold uppercase text-emerald-400 tracking-wider flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                  MINDSET INTEGRITY INDEX
-                </span>
-                <h4 className={`text-base font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>
-                  Daily Subconscious Alignment Progress
-                </h4>
-                <p className="text-xs text-slate-400 font-sans">
-                  Read and check off your daily rules to lock in executive focus.
-                </p>
-              </div>
-              <div className="flex items-center gap-3 shrink-0 font-sans">
-                <div className="text-right">
-                  <span className={`text-2xl font-mono font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                    {sections.filter(s => s.readToday).length} / {sections.length}
+          {/* Today's Alignment & Background Focus Music Station */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            {/* Left: Today's Alignment Index Progress Card */}
+            <div className={`lg:col-span-7 p-4 md:p-5 rounded-2xl border transition-all flex flex-col justify-between ${
+              isDarkMode 
+                ? 'bg-[#0b0b14] border-emerald-500/10 shadow-[0_0_15px_rgba(16,185,129,0.03)]' 
+                : 'bg-white border-slate-200 shadow-sm'
+            }`}>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-mono font-bold uppercase text-emerald-400 tracking-wider flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                    MINDSET INTEGRITY INDEX
                   </span>
-                  <span className="text-slate-500 text-[10px] block font-mono uppercase tracking-wider font-bold">Rules Anchored Today</span>
+                  <h4 className={`text-base font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>
+                    Daily Subconscious Alignment Progress
+                  </h4>
+                  <p className="text-xs text-slate-400 font-sans">
+                    Read and check off your daily rules to lock in executive focus.
+                  </p>
                 </div>
-                <div className="w-12 h-12 rounded-full border border-slate-800/80 flex items-center justify-center relative overflow-hidden bg-slate-950/40">
-                  <div className="absolute inset-0 bg-emerald-500/10 flex items-center justify-center font-mono text-[10px] font-bold text-emerald-400">
-                    {sections.length > 0 ? Math.round((sections.filter(s => s.readToday).length / sections.length) * 100) : 0}%
+                <div className="flex items-center gap-3 shrink-0 font-sans">
+                  <div className="text-right">
+                    <span className={`text-2xl font-mono font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                      {sections.filter(s => s.readToday).length} / {sections.length}
+                    </span>
+                    <span className="text-slate-500 text-[10px] block font-mono uppercase tracking-wider font-bold">Rules Anchored Today</span>
+                  </div>
+                  <div className="w-12 h-12 rounded-full border border-slate-800/80 flex items-center justify-center relative overflow-hidden bg-slate-950/40">
+                    <div className="absolute inset-0 bg-emerald-500/10 flex items-center justify-center font-mono text-[10px] font-bold text-emerald-400">
+                      {sections.length > 0 ? Math.round((sections.filter(s => s.readToday).length / sections.length) * 100) : 0}%
+                    </div>
                   </div>
                 </div>
               </div>
+              
+              {/* Elegant Progress bar */}
+              <div className="w-full h-1.5 bg-slate-900/60 rounded-full overflow-hidden mt-4 border border-slate-850/60">
+                <div 
+                  className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 shadow-[0_0_10px_rgba(16,185,129,0.5)] transition-all duration-500 rounded-full"
+                  style={{ width: `${sections.length > 0 ? (sections.filter(s => s.readToday).length / sections.length) * 100 : 0}%` }}
+                />
+              </div>
             </div>
-            
-            {/* Elegant Progress bar */}
-            <div className="w-full h-1.5 bg-slate-900/60 rounded-full overflow-hidden mt-4 border border-slate-850/60">
-              <div 
-                className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 shadow-[0_0_10px_rgba(16,185,129,0.5)] transition-all duration-500 rounded-full"
-                style={{ width: `${sections.length > 0 ? (sections.filter(s => s.readToday).length / sections.length) * 100 : 0}%` }}
-              />
+
+            {/* Right: Sovereign Alignment Acoustics Player */}
+            <div className={`lg:col-span-5 p-4 md:p-5 rounded-2xl border transition-all flex flex-col justify-between ${
+              isDarkMode 
+                ? 'bg-[#0b0b14] border-emerald-500/10 shadow-[0_0_15px_rgba(16,185,129,0.03)]' 
+                : 'bg-white border-slate-200 shadow-sm'
+            }`}>
+              <div className="space-y-3">
+                <div className="flex justify-between items-start gap-2">
+                  <div className="space-y-0.5">
+                    <span className="text-[10px] font-mono font-bold uppercase text-teal-400 tracking-wider flex items-center gap-1.5">
+                      <Headphones className="w-3.5 h-3.5" />
+                      ALIGNMENT ACOUSTICS
+                    </span>
+                    <h4 className={`text-sm font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>
+                      Instrumental Focus Music
+                    </h4>
+                  </div>
+
+                  {/* Wave Visualizer */}
+                  <div className="flex items-end gap-[3px] h-6 px-2 bg-emerald-500/5 rounded-lg border border-emerald-500/10">
+                    <span className={`w-[2px] bg-emerald-400 rounded-full transition-all duration-300 ${isPlaying ? 'h-4 animate-pulse' : 'h-1.5'}`} style={{ animationDuration: '0.6s' }} />
+                    <span className={`w-[2px] bg-emerald-400 rounded-full transition-all duration-300 ${isPlaying ? 'h-3 animate-pulse' : 'h-2'}`} style={{ animationDuration: '0.4s' }} />
+                    <span className={`w-[2px] bg-emerald-400 rounded-full transition-all duration-300 ${isPlaying ? 'h-5 animate-pulse' : 'h-1'}`} style={{ animationDuration: '0.8s' }} />
+                    <span className={`w-[2px] bg-emerald-400 rounded-full transition-all duration-300 ${isPlaying ? 'h-2.5 animate-pulse' : 'h-2'}`} style={{ animationDuration: '0.5s' }} />
+                    <span className={`w-[2px] bg-emerald-400 rounded-full transition-all duration-300 ${isPlaying ? 'h-3.5 animate-pulse' : 'h-1.5'}`} style={{ animationDuration: '0.7s' }} />
+                  </div>
+                </div>
+
+                {/* Dropdown Selector */}
+                <div className="relative">
+                  <select
+                    value={activeTrackId}
+                    onChange={(e) => handleTrackChange(e.target.value)}
+                    className={`w-full text-xs font-mono rounded-xl p-2.5 pr-8 outline-none border appearance-none transition-all cursor-pointer ${
+                      isDarkMode 
+                        ? 'bg-[#141424] border-white/5 text-slate-200 focus:border-emerald-500/45' 
+                        : 'bg-slate-50 border-slate-200 text-slate-800 focus:border-emerald-500/45'
+                    }`}
+                  >
+                    {TRACKS.map(track => (
+                      <option key={track.id} value={track.id} className={isDarkMode ? 'bg-[#0f0f1b] text-slate-200' : 'bg-white text-slate-800'}>
+                        {track.name}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+
+                <p className={`text-[10px] font-mono leading-relaxed transition-colors min-h-[30px] ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                  {TRACKS.find(t => t.id === activeTrackId)?.desc}
+                </p>
+              </div>
+
+              {/* Player Controls & Volume */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-slate-800/15 dark:border-white/5 mt-2">
+                {/* Play/Pause Button */}
+                <button
+                  onClick={handlePlayPause}
+                  className={`py-1.5 px-4 rounded-xl font-mono font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer ${
+                    isPlaying
+                      ? 'bg-rose-500/15 text-rose-400 border border-rose-500/20 hover:bg-rose-500/25'
+                      : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/25'
+                  }`}
+                >
+                  {isPlaying ? (
+                    <>
+                      <Pause className="w-3.5 h-3.5 fill-current" /> PAUSE
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-3.5 h-3.5 fill-current" /> PLAY MUSIC
+                    </>
+                  )}
+                </button>
+
+                {/* Volume slider */}
+                <div className="flex items-center gap-2 flex-1 max-w-[160px] self-end sm:self-auto">
+                  <button 
+                    onClick={() => setVolume(v => v === 0 ? 0.4 : 0)}
+                    className="text-slate-500 hover:text-emerald-400 transition-colors cursor-pointer"
+                  >
+                    {volume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                  </button>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={volume}
+                    onChange={(e) => setVolume(parseFloat(e.target.value))}
+                    className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                  <span className="text-[10px] font-mono text-slate-500 min-w-[24px]">
+                    {Math.round(volume * 100)}%
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 

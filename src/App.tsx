@@ -408,92 +408,100 @@ export default function App() {
   }, []);
 
   // --- SYNC STATE TO LOCAL STORAGE & SUPABASE CLOUD ---
+  const safeSetItem = (key: string, value: string) => {
+    try {
+      localStorage.setItem(key, value);
+    } catch (e) {
+      console.warn(`[Storage Quota Warning] Failed to save key "${key}" to localStorage. If you have uploaded many large images, some might only be synchronized with your Cloud account:`, e);
+    }
+  };
+
   useEffect(() => {
-    localStorage.setItem('lifeos_profile', JSON.stringify(profile));
+    safeSetItem('lifeos_profile', JSON.stringify(profile));
     if (user) {
       saveUserDataToCloud(user.id, 'profile', profile);
     }
   }, [profile, user]);
 
   useEffect(() => {
-    localStorage.setItem('lifeos_vision_cards', JSON.stringify(visionCards));
+    safeSetItem('lifeos_vision_cards', JSON.stringify(visionCards));
     if (user) {
       saveUserDataToCloud(user.id, 'visionCards', visionCards);
     }
   }, [visionCards, user]);
 
   useEffect(() => {
-    localStorage.setItem('lifeos_goals', JSON.stringify(goals));
+    safeSetItem('lifeos_goals', JSON.stringify(goals));
     if (user) {
       saveUserDataToCloud(user.id, 'goals', goals);
     }
   }, [goals, user]);
 
   useEffect(() => {
-    localStorage.setItem('lifeos_milestones', JSON.stringify(milestones));
+    safeSetItem('lifeos_milestones', JSON.stringify(milestones));
     if (user) {
       saveUserDataToCloud(user.id, 'milestones', milestones);
     }
   }, [milestones, user]);
 
   useEffect(() => {
-    localStorage.setItem('lifeos_tasks', JSON.stringify(tasks));
+    safeSetItem('lifeos_tasks', JSON.stringify(tasks));
     if (user) {
       saveUserDataToCloud(user.id, 'tasks', tasks);
     }
   }, [tasks, user]);
 
   useEffect(() => {
-    localStorage.setItem('lifeos_habits', JSON.stringify(habits));
+    safeSetItem('lifeos_habits', JSON.stringify(habits));
     if (user) {
       saveUserDataToCloud(user.id, 'habits', habits);
     }
   }, [habits, user]);
 
   useEffect(() => {
-    localStorage.setItem('lifeos_journals', JSON.stringify(journalEntries));
+    safeSetItem('lifeos_journals', JSON.stringify(journalEntries));
     if (user) {
       saveUserDataToCloud(user.id, 'journalEntries', journalEntries);
     }
   }, [journalEntries, user]);
 
   useEffect(() => {
-    localStorage.setItem('lifeos_finance', JSON.stringify(financeRecords));
+    safeSetItem('lifeos_finance', JSON.stringify(financeRecords));
     if (user) {
       saveUserDataToCloud(user.id, 'financeRecords', financeRecords);
     }
   }, [financeRecords, user]);
 
   useEffect(() => {
-    localStorage.setItem('lifeos_health', JSON.stringify(healthLogs));
+    safeSetItem('lifeos_health', JSON.stringify(healthLogs));
     if (user) {
       saveUserDataToCloud(user.id, 'healthLogs', healthLogs);
     }
   }, [healthLogs, user]);
 
   useEffect(() => {
-    localStorage.setItem('lifeos_lifewheel', JSON.stringify(lifeWheel));
+    safeSetItem('lifeos_lifewheel', JSON.stringify(lifeWheel));
     if (user) {
       saveUserDataToCloud(user.id, 'lifeWheel', lifeWheel);
     }
   }, [lifeWheel, user]);
 
   useEffect(() => {
-    localStorage.setItem('lifeos_philosophical', JSON.stringify(philosophicalEntries));
+    safeSetItem('lifeos_philosophical', JSON.stringify(philosophicalEntries));
     if (user) {
       saveUserDataToCloud(user.id, 'philosophicalEntries', philosophicalEntries);
     }
   }, [philosophicalEntries, user]);
 
   useEffect(() => {
-    localStorage.setItem('lifeos_book_wisdom', JSON.stringify(bookWisdomEntries));
+    safeSetItem('lifeos_book_wisdom', JSON.stringify(bookWisdomEntries));
     if (user) {
       saveUserDataToCloud(user.id, 'bookWisdomEntries', bookWisdomEntries);
     }
   }, [bookWisdomEntries, user]);
 
   useEffect(() => {
-    localStorage.setItem('lifeos_intuition', JSON.stringify(intuitionEntries));
+    safeSetItem('lifeos_intuition', JSON.stringify(intuitionEntries));
     if (user) {
       saveUserDataToCloud(user.id, 'intuitionEntries', intuitionEntries);
     }
@@ -517,6 +525,29 @@ export default function App() {
       completed: false
     };
     setGoals(prev => [goal, ...prev]);
+  };
+
+  const updateGoal = (id: string, updates: Partial<Goal>) => {
+    setGoals(prev => prev.map(g => {
+      if (g.id === id) {
+        const updated = { ...g, ...updates };
+        setVisionCards(vPrev => vPrev.map(c => {
+          if (c.goalId === id) {
+            return {
+              ...c,
+              title: updated.title,
+              category: updated.category,
+              targetDate: updated.targetDate,
+              imageUrl: updated.imageUrl || c.imageUrl,
+              imageUrls: updated.imageUrls || c.imageUrls
+            };
+          }
+          return c;
+        }));
+        return updated;
+      }
+      return g;
+    }));
   };
 
   const toggleGoalCompleted = (id: string) => {
@@ -666,8 +697,19 @@ export default function App() {
     setVisionCards(prev => prev.map(c => {
       if (c.id === id) {
         const updated = { ...c, ...updates };
-        if (updated.goalId && updates.imageUrl) {
-          setGoals(gPrev => gPrev.map(g => g.id === updated.goalId ? { ...g, imageUrl: updates.imageUrl } : g));
+        if (updated.goalId) {
+          setGoals(gPrev => gPrev.map(g => {
+            if (g.id === updated.goalId) {
+              const gUpdates: Partial<Goal> = {};
+              if (updates.imageUrl !== undefined) gUpdates.imageUrl = updates.imageUrl;
+              if (updates.imageUrls !== undefined) gUpdates.imageUrls = updates.imageUrls;
+              if (updates.title !== undefined) gUpdates.title = updates.title;
+              if (updates.category !== undefined) gUpdates.category = updates.category;
+              if (updates.targetDate !== undefined) gUpdates.targetDate = updates.targetDate;
+              return { ...g, ...gUpdates };
+            }
+            return g;
+          }));
         }
         return updated;
       }
@@ -851,6 +893,7 @@ export default function App() {
             goals={goals}
             milestones={milestones}
             addGoal={addGoal}
+            updateGoal={updateGoal}
             toggleGoalCompleted={toggleGoalCompleted}
             deleteGoal={deleteGoal}
             addMilestone={addMilestone}

@@ -13,9 +13,20 @@ import {
   Upload,
   Link2,
   AlertCircle,
-  X
+  X,
+  Settings,
+  Clock,
+  Globe,
+  RefreshCw,
+  Sliders,
+  ChevronDown,
+  Heart,
+  Camera,
+  Compass,
+  Eye
 } from 'lucide-react';
 import { VisionCard, Goal } from '../types';
+import { SwipeableImageCarousel } from './SwipeableImageCarousel';
 
 // High Precision Real-Time countdown subcomponent with BIG display typography
 function GoalCountdown({ targetDate, isDarkMode }: { targetDate: string; isDarkMode: boolean }) {
@@ -105,6 +116,31 @@ function GoalCountdown({ targetDate, isDarkMode }: { targetDate: string; isDarkM
   );
 }
 
+// Helper functions for timezone-safe local date operations
+const formatLocalISO = (date: Date): string => {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const yyyy = date.getFullYear();
+  const MM = pad(date.getMonth() + 1);
+  const dd = pad(date.getDate());
+  const hh = pad(date.getHours());
+  const mm = pad(date.getMinutes());
+  const ss = pad(date.getSeconds());
+  return `${yyyy}-${MM}-${dd}T${hh}:${mm}:${ss}`;
+};
+
+const parseLocalISO = (str: string): Date => {
+  if (!str) return new Date();
+  const parts = str.split(/[-T:]/);
+  if (parts.length < 5) return new Date(str);
+  const yr = parseInt(parts[0]);
+  const mo = parseInt(parts[1]) - 1;
+  const dy = parseInt(parts[2]);
+  const hr = parseInt(parts[3]);
+  const mi = parseInt(parts[4]);
+  const sc = parts[5] ? parseInt(parts[5]) : 0;
+  return new Date(yr, mo, dy, hr, mi, sc);
+};
+
 interface VisualizationViewProps {
   visionCards: VisionCard[];
   goals: Goal[];
@@ -124,7 +160,174 @@ export default function VisualizationView({
 }: VisualizationViewProps) {
   const [editingCardId, setEditingCardId] = useState<string | null>(null);
   const [tempTitle, setTempTitle] = useState('');
+
+  // ==========================================
+  // Premium Cosmic Earth Horizon Countdown State
+  // ==========================================
+  const [earthCountdownTarget, setEarthCountdownTarget] = useState<string>(() => {
+    const saved = localStorage.getItem('lifeos_earth_target');
+    if (saved) return saved;
+    // Default: exactly 50 years into the future from now
+    const target = new Date();
+    target.setFullYear(target.getFullYear() + 50);
+    return formatLocalISO(target);
+  });
+
+  const [earthCountdownTitle, setEarthCountdownTitle] = useState<string>(() => {
+    return localStorage.getItem('lifeos_earth_title') || 'Time I Have on Earth';
+  });
+
+  const [earthCountdownImage, setEarthCountdownImage] = useState<string>(() => {
+    return localStorage.getItem('lifeos_earth_image') || 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80';
+  });
+
+  const [earthCountdownQuote, setEarthCountdownQuote] = useState<string>(() => {
+    return localStorage.getItem('lifeos_earth_quote') || 'Remember how small you are, how precious your seconds are, and how sovereign your attention must remain.';
+  });
+
+  const [showEarthEdit, setShowEarthEdit] = useState(false);
+
+  // Form states for editing Earth Countdown
+  const [editEarthTitle, setEditEarthTitle] = useState(earthCountdownTitle);
+  const [editEarthTarget, setEditEarthTarget] = useState(earthCountdownTarget);
+  const [editEarthImage, setEditEarthImage] = useState(earthCountdownImage);
+  const [editEarthQuote, setEditEarthQuote] = useState(earthCountdownQuote);
+
+  const [relativeOffsetError, setRelativeOffsetError] = useState<string | null>(null);
+
+  // Direct Days, Hours, Minutes, Seconds relative adder states
+  const [relativeDays, setRelativeDays] = useState<string>('');
+  const [relativeHours, setRelativeHours] = useState<string>('');
+  const [relativeMinutes, setRelativeMinutes] = useState<string>('');
+  const [relativeSeconds, setRelativeSeconds] = useState<string>('');
+
+  const earthFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Sync back on state change
+  useEffect(() => {
+    localStorage.setItem('lifeos_earth_target', earthCountdownTarget);
+  }, [earthCountdownTarget]);
+
+  useEffect(() => {
+    localStorage.setItem('lifeos_earth_title', earthCountdownTitle);
+  }, [earthCountdownTitle]);
+
+  useEffect(() => {
+    localStorage.setItem('lifeos_earth_image', earthCountdownImage);
+  }, [earthCountdownImage]);
+
+  useEffect(() => {
+    localStorage.setItem('lifeos_earth_quote', earthCountdownQuote);
+  }, [earthCountdownQuote]);
+
+  // Live countdown state computed from target or from live edit target (for reactive live preview!)
+  const [earthTimeLeft, setEarthTimeLeft] = useState<{
+    days: number;
+    hours: number;
+    minutes: number;
+    seconds: number;
+    isOver: boolean;
+  } | null>(null);
+
+  const activeCountdownTarget = showEarthEdit ? editEarthTarget : earthCountdownTarget;
+
+  useEffect(() => {
+    const calculate = () => {
+      const targetTime = parseLocalISO(activeCountdownTarget).getTime();
+      const now = Date.now();
+      const diff = targetTime - now;
+
+      if (isNaN(targetTime) || diff <= 0) {
+        setEarthTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, isOver: true });
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      setEarthTimeLeft({ days, hours, minutes, seconds, isOver: false });
+    };
+
+    calculate();
+    const interval = setInterval(calculate, 1000);
+    return () => clearInterval(interval);
+  }, [activeCountdownTarget]);
+
+  // Helper to split editEarthTarget into components for direct edits
+  const parsedTarget = parseLocalISO(editEarthTarget);
+  const targetYear = isNaN(parsedTarget.getTime()) ? new Date().getFullYear() : parsedTarget.getFullYear();
+  const targetMonth = isNaN(parsedTarget.getTime()) ? new Date().getMonth() + 1 : parsedTarget.getMonth() + 1;
+  const targetDay = isNaN(parsedTarget.getTime()) ? new Date().getDate() : parsedTarget.getDate();
+  const targetHour = isNaN(parsedTarget.getTime()) ? 12 : parsedTarget.getHours();
+  const targetMinute = isNaN(parsedTarget.getTime()) ? 0 : parsedTarget.getMinutes();
+  const targetSecond = isNaN(parsedTarget.getTime()) ? 0 : parsedTarget.getSeconds();
+
+  const handleComponentChange = (field: 'year' | 'month' | 'day' | 'hour' | 'minute' | 'second', val: number) => {
+    const d = parseLocalISO(editEarthTarget);
+    if (isNaN(d.getTime())) return;
+
+    if (field === 'year') d.setFullYear(val);
+    else if (field === 'month') d.setMonth(val - 1);
+    else if (field === 'day') d.setDate(val);
+    else if (field === 'hour') d.setHours(val);
+    else if (field === 'minute') d.setMinutes(val);
+    else if (field === 'second') d.setSeconds(val);
+
+    setEditEarthTarget(formatLocalISO(d));
+  };
+
+  const applyRelativeOffset = () => {
+    const days = parseInt(relativeDays) || 0;
+    const hours = parseInt(relativeHours) || 0;
+    const mins = parseInt(relativeMinutes) || 0;
+    const secs = parseInt(relativeSeconds) || 0;
+
+    if (days === 0 && hours === 0 && mins === 0 && secs === 0) {
+      setRelativeOffsetError("Please enter some positive duration values (Days, Hours, Minutes, or Seconds) to compute.");
+      return;
+    }
+
+    setRelativeOffsetError(null);
+    const newTarget = new Date();
+    newTarget.setDate(newTarget.getDate() + days);
+    newTarget.setHours(newTarget.getHours() + hours);
+    newTarget.setMinutes(newTarget.getMinutes() + mins);
+    newTarget.setSeconds(newTarget.getSeconds() + secs);
+
+    const targetStr = formatLocalISO(newTarget);
+    setEditEarthTarget(targetStr);
+    
+    // Reset inputs
+    setRelativeDays('');
+    setRelativeHours('');
+    setRelativeMinutes('');
+    setRelativeSeconds('');
+  };
+
+  const handleEarthImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setEditEarthImage(base64String);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const saveEarthCountdown = () => {
+    setEarthCountdownTitle(editEarthTitle);
+    setEarthCountdownTarget(editEarthTarget);
+    setEarthCountdownImage(editEarthImage);
+    setEarthCountdownQuote(editEarthQuote);
+    setShowEarthEdit(false);
+  };
   const [tempImageUrl, setTempImageUrl] = useState('');
+  const [tempImageUrls, setTempImageUrls] = useState<string[]>([]);
+  const [editUrlInput, setEditUrlInput] = useState('');
   const [tempCategory, setTempCategory] = useState('');
   const [tempTargetDate, setTempTargetDate] = useState('');
   const [tempGoalId, setTempGoalId] = useState('');
@@ -158,15 +361,21 @@ export default function VisualizationView({
     setEditingCardId(card.id);
     setTempTitle(card.title);
     setTempImageUrl(card.imageUrl);
+    setTempImageUrls(card.imageUrls || (card.imageUrl ? [card.imageUrl] : []));
     setTempCategory(card.category);
     setTempTargetDate(card.targetDate || '');
     setTempGoalId(card.goalId || '');
   };
 
   const handleSaveEdit = (id: string) => {
+    const finalImageUrls = [...tempImageUrls];
+    if (tempImageUrl.trim() && !finalImageUrls.includes(tempImageUrl.trim())) {
+      finalImageUrls.unshift(tempImageUrl.trim());
+    }
     onUpdateCard(id, {
       title: tempTitle,
-      imageUrl: tempImageUrl,
+      imageUrl: finalImageUrls[0] || tempImageUrl,
+      imageUrls: finalImageUrls.length > 0 ? finalImageUrls : undefined,
       category: tempCategory,
       targetDate: tempTargetDate || undefined,
       goalId: tempGoalId || undefined
@@ -188,6 +397,11 @@ export default function VisualizationView({
 
   // Process manual local image uploads via FileReader (Base64)
   const processImageFile = (file: File, cardId?: string) => {
+    if (!file.type.startsWith('image/')) {
+      alert("Please select a valid image file.");
+      return;
+    }
+
     const reader = new FileReader();
     
     if (cardId) {
@@ -195,15 +409,84 @@ export default function VisualizationView({
     }
 
     reader.onloadend = () => {
-      const base64String = reader.result as string;
+      const originalBase64 = reader.result as string;
+      
+      const img = new Image();
+      img.onload = () => {
+        const maxWidth = 1024;
+        const maxHeight = 1024;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          applyImage(originalBase64);
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+        try {
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+          applyImage(compressedBase64);
+        } catch (e) {
+          console.error("Canvas compression failed, falling back to original", e);
+          applyImage(originalBase64);
+        }
+      };
+
+      img.onerror = () => {
+        applyImage(originalBase64);
+      };
+
+      img.src = originalBase64;
+    };
+
+    const applyImage = (base64String: string) => {
       if (cardId) {
-        onUpdateCard(cardId, { imageUrl: base64String });
+        // If we are actively editing this card, append to the temp edit lists
+        if (editingCardId === cardId) {
+          setTempImageUrl(base64String);
+          setTempImageUrls(prev => {
+            if (prev.includes(base64String)) return prev;
+            return [...prev, base64String];
+          });
+        } else {
+          // If we are updating directly from the card overlay uploader
+          const currentCard = visionCards.find(c => c.id === cardId);
+          if (currentCard) {
+            const currentList = currentCard.imageUrls || (currentCard.imageUrl ? [currentCard.imageUrl] : []);
+            const updatedList = currentList.includes(base64String) ? currentList : [...currentList, base64String];
+            onUpdateCard(cardId, {
+              imageUrl: base64String,
+              imageUrls: updatedList
+            });
+          } else {
+            onUpdateCard(cardId, { imageUrl: base64String });
+          }
+        }
         setImageErrors(prev => ({ ...prev, [cardId]: false }));
         setUploadingCardId(null);
       } else {
         setNewImageUrl(base64String);
       }
     };
+
     reader.onerror = () => {
       alert("Error reading file");
       setUploadingCardId(null);
@@ -212,9 +495,14 @@ export default function VisualizationView({
   };
 
   const handleFileUploadChange = (e: React.ChangeEvent<HTMLInputElement>, cardId?: string) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      processImageFile(file, cardId);
+    const files = e.target.files;
+    if (files) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files.item(i);
+        if (file) {
+          processImageFile(file, cardId);
+        }
+      }
     }
   };
 
@@ -268,6 +556,7 @@ export default function VisualizationView({
         type="file"
         ref={fileInputRef}
         accept="image/*"
+        multiple
         className="hidden"
         onChange={(e) => {
           if (activeUploadCardIdRef.current) {
@@ -300,6 +589,542 @@ export default function VisualizationView({
           {showAddForm ? <CheckCircle2 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
           {showAddForm ? 'Close Visualizer Setup' : 'Add Goal Photo Card'}
         </button>
+      </div>
+
+      {/* TIME I HAVE ON EARTH MAIN COUNTDOWN WIDGET */}
+      <div className={`relative overflow-hidden rounded-3xl border transition-all ${
+        isDarkMode 
+          ? 'bg-[#0a0a12] border-cyan-500/15 shadow-[0_0_25px_rgba(6,182,212,0.05)]' 
+          : 'bg-white border-slate-200 shadow-md'
+      }`}>
+        {/* Hidden Earth File Input */}
+        <input
+          type="file"
+          ref={earthFileInputRef}
+          accept="image/*"
+          className="hidden"
+          onChange={handleEarthImageUpload}
+        />
+
+        {/* Banner with Earth Image & Overlay */}
+        <div className="relative h-48 sm:h-56 md:h-64 overflow-hidden">
+          <img 
+            src={showEarthEdit ? editEarthImage : earthCountdownImage} 
+            alt="Horizon Background" 
+            className="w-full h-full object-cover select-none filter brightness-[0.4]"
+            referrerPolicy="no-referrer"
+          />
+          {/* Subtle Ambient Glow Overlays */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a12] via-[#0a0a12]/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a12]/85 via-transparent to-[#0a0a12]/20" />
+          
+          {/* Live Content Overlay */}
+          <div className="absolute inset-0 p-6 md:p-8 flex flex-col justify-between">
+            {/* Top row: Title and Edit button */}
+            <div className="flex justify-between items-start gap-4">
+              <div className="space-y-1">
+                <span className="text-[10px] font-mono font-bold uppercase text-cyan-400 tracking-widest flex items-center gap-1.5 drop-shadow-md">
+                  <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+                  MEMENTO MORI ACTUARY
+                </span>
+                <h3 className="text-xl md:text-2xl font-black text-white tracking-tight drop-shadow-md uppercase">
+                  {showEarthEdit ? editEarthTitle : earthCountdownTitle}
+                </h3>
+                <p className="text-xs text-slate-300 italic font-serif max-w-xl drop-shadow-md leading-relaxed mt-1">
+                  "{showEarthEdit ? editEarthQuote : earthCountdownQuote}"
+                </p>
+              </div>
+              
+              <button
+                onClick={() => {
+                  setEditEarthTitle(earthCountdownTitle);
+                  setEditEarthTarget(earthCountdownTarget);
+                  setEditEarthImage(earthCountdownImage);
+                  setEditEarthQuote(earthCountdownQuote);
+                  setShowEarthEdit(!showEarthEdit);
+                }}
+                className="py-1.5 px-3 bg-white/10 hover:bg-white/20 border border-white/10 hover:border-cyan-400/40 text-white rounded-xl text-xs font-mono font-bold tracking-wider flex items-center gap-1.5 transition-all cursor-pointer backdrop-blur-md"
+              >
+                <Settings className="w-3.5 h-3.5" />
+                {showEarthEdit ? 'Hide Settings' : 'Edit Horizon'}
+              </button>
+            </div>
+
+            {/* Middle/Bottom row: The Majestic Live Countdown Display */}
+            {earthTimeLeft ? (
+              <div className="grid grid-cols-4 gap-2.5 sm:gap-4 max-w-xl">
+                {/* DAYS */}
+                <div className="bg-slate-950/75 border border-white/5 rounded-2xl py-2 px-1 text-center backdrop-blur-md">
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-extrabold font-mono text-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,0.35)] leading-none">
+                    {String(earthTimeLeft.days).padStart(2, '0')}
+                  </div>
+                  <div className="text-[9px] font-mono text-slate-400 uppercase tracking-widest mt-1">Days</div>
+                </div>
+
+                {/* HOURS */}
+                <div className="bg-slate-950/75 border border-white/5 rounded-2xl py-2 px-1 text-center backdrop-blur-md">
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-extrabold font-mono text-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,0.35)] leading-none">
+                    {String(earthTimeLeft.hours).padStart(2, '0')}
+                  </div>
+                  <div className="text-[9px] font-mono text-slate-400 uppercase tracking-widest mt-1">Hours</div>
+                </div>
+
+                {/* MINUTES */}
+                <div className="bg-slate-950/75 border border-white/5 rounded-2xl py-2 px-1 text-center backdrop-blur-md">
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-extrabold font-mono text-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,0.35)] leading-none">
+                    {String(earthTimeLeft.minutes).padStart(2, '0')}
+                  </div>
+                  <div className="text-[9px] font-mono text-slate-400 uppercase tracking-widest mt-1">Mins</div>
+                </div>
+
+                {/* SECONDS */}
+                <div className="bg-slate-950/75 border border-cyan-500/25 rounded-2xl py-2 px-1 text-center backdrop-blur-md shadow-[0_0_15px_rgba(6,182,212,0.1)]">
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-extrabold font-mono text-emerald-400 drop-shadow-[0_0_12px_rgba(52,211,153,0.35)] leading-none animate-pulse">
+                    {String(earthTimeLeft.seconds).padStart(2, '0')}
+                  </div>
+                  <div className="text-[9px] font-mono text-slate-300 uppercase tracking-widest font-bold mt-1">Secs</div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-xs text-slate-400 font-mono animate-pulse">Calculating ticking bio-horizon...</div>
+            )}
+          </div>
+        </div>
+
+        {/* Expandable Edit Control panel */}
+        <AnimatePresence>
+          {showEarthEdit && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className={`border-t overflow-hidden ${isDarkMode ? 'bg-[#0f0f1d] border-white/5' : 'bg-slate-50 border-slate-200'}`}
+            >
+              <div className="p-5 md:p-6 space-y-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-white/5 pb-3">
+                  <h4 className={`text-sm font-bold flex items-center gap-2 ${isDarkMode ? 'text-cyan-400' : 'text-slate-900'}`}>
+                    <Sliders className="w-4 h-4 text-cyan-500" />
+                    Configure Cosmic Life Horizon Actuary
+                  </h4>
+                  <p className="text-[10px] font-mono text-slate-500">
+                    Target: {editEarthTarget}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Left Column: Title, Quote, & Target Picker */}
+                  <div className="space-y-4">
+                    {/* Title input */}
+                    <div className="space-y-1.5">
+                      <label className={`block text-[10px] font-mono uppercase font-bold ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                        Display Slogan / Title
+                      </label>
+                      <input 
+                        type="text"
+                        value={editEarthTitle}
+                        onChange={(e) => setEditEarthTitle(e.target.value)}
+                        placeholder="Time I Have on Earth"
+                        className={`w-full rounded-xl p-2.5 text-xs font-mono border outline-none transition-all ${
+                          isDarkMode 
+                            ? 'bg-[#141426] border-white/5 text-slate-200 focus:border-cyan-500/40' 
+                            : 'bg-white border-slate-200 text-slate-800 focus:border-cyan-500/40'
+                        }`}
+                      />
+                    </div>
+
+                    {/* Inspiring Quote input (Requested) */}
+                    <div className="space-y-1.5">
+                      <label className={`block text-[10px] font-mono uppercase font-bold ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                        Memento Mori Quote / Mantra
+                      </label>
+                      <textarea 
+                        value={editEarthQuote}
+                        onChange={(e) => setEditEarthQuote(e.target.value)}
+                        placeholder="Remember how small you are, how precious your seconds are..."
+                        rows={2}
+                        className={`w-full rounded-xl p-2.5 text-xs font-mono border outline-none transition-all resize-none leading-relaxed ${
+                          isDarkMode 
+                            ? 'bg-[#141426] border-white/5 text-slate-200 focus:border-cyan-500/40' 
+                            : 'bg-white border-slate-200 text-slate-800 focus:border-cyan-500/40'
+                        }`}
+                      />
+                    </div>
+
+                    {/* Exact Target Date Calendar input */}
+                    <div className="space-y-1.5">
+                      <label className={`block text-[10px] font-mono uppercase font-bold ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                        Target Horizon Date & Time
+                      </label>
+                      <input 
+                        type="datetime-local"
+                        value={editEarthTarget.slice(0, 16)} // datetime-local input takes YYYY-MM-DDTHH:mm
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            setEditEarthTarget(e.target.value + ':00');
+                          }
+                        }}
+                        className={`w-full rounded-xl p-2.5 text-xs font-mono border outline-none transition-all cursor-pointer ${
+                          isDarkMode 
+                            ? 'bg-[#141426] border-white/5 text-slate-200 focus:border-cyan-500/40' 
+                            : 'bg-white border-slate-200 text-slate-800 focus:border-cyan-500/40'
+                        }`}
+                      />
+                    </div>
+
+                    {/* Sub-inputs for custom numeric components: Year, Month, Day, Hour, Min, Sec (Requested with interactive buttons) */}
+                    <div className="space-y-2 border-t border-white/5 pt-3">
+                      <span className={`block text-[10px] font-mono uppercase font-bold ${isDarkMode ? 'text-cyan-500' : 'text-slate-500'}`}>
+                        Option to Edit Date Components Directly
+                      </span>
+                      
+                      <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+                        {/* Year */}
+                        <div className="space-y-1">
+                          <label className="block text-[8px] font-mono text-slate-500 uppercase text-center">Year</label>
+                          <div className={`flex items-center justify-between border rounded-lg overflow-hidden ${
+                            isDarkMode ? 'bg-[#141426]/60 border-white/10' : 'bg-slate-100 border-slate-200'
+                          }`}>
+                            <button
+                              type="button"
+                              onClick={() => handleComponentChange('year', targetYear - 1)}
+                              className="px-1.5 py-1 text-[10px] hover:bg-cyan-500/10 text-cyan-500 font-bold transition-all cursor-pointer"
+                            >
+                              -
+                            </button>
+                            <input 
+                              type="text"
+                              value={targetYear}
+                              onChange={(e) => handleComponentChange('year', parseInt(e.target.value) || new Date().getFullYear())}
+                              className={`w-full text-[10px] font-mono text-center bg-transparent border-0 outline-none p-0 focus:ring-0 ${
+                                isDarkMode ? 'text-white' : 'text-slate-800'
+                              }`}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleComponentChange('year', targetYear + 1)}
+                              className="px-1.5 py-1 text-[10px] hover:bg-cyan-500/10 text-cyan-500 font-bold transition-all cursor-pointer"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Month */}
+                        <div className="space-y-1">
+                          <label className="block text-[8px] font-mono text-slate-500 uppercase text-center">Month</label>
+                          <div className={`flex items-center justify-between border rounded-lg overflow-hidden ${
+                            isDarkMode ? 'bg-[#141426]/60 border-white/10' : 'bg-slate-100 border-slate-200'
+                          }`}>
+                            <button
+                              type="button"
+                              onClick={() => handleComponentChange('month', targetMonth - 1 < 1 ? 12 : targetMonth - 1)}
+                              className="px-1.5 py-1 text-[10px] hover:bg-cyan-500/10 text-cyan-500 font-bold transition-all cursor-pointer"
+                            >
+                              -
+                            </button>
+                            <input 
+                              type="text"
+                              value={targetMonth}
+                              onChange={(e) => handleComponentChange('month', Math.max(1, Math.min(12, parseInt(e.target.value) || 1)))}
+                              className={`w-full text-[10px] font-mono text-center bg-transparent border-0 outline-none p-0 focus:ring-0 ${
+                                isDarkMode ? 'text-white' : 'text-slate-800'
+                              }`}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleComponentChange('month', targetMonth + 1 > 12 ? 1 : targetMonth + 1)}
+                              className="px-1.5 py-1 text-[10px] hover:bg-cyan-500/10 text-cyan-500 font-bold transition-all cursor-pointer"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Day */}
+                        <div className="space-y-1">
+                          <label className="block text-[8px] font-mono text-slate-500 uppercase text-center">Day</label>
+                          <div className={`flex items-center justify-between border rounded-lg overflow-hidden ${
+                            isDarkMode ? 'bg-[#141426]/60 border-white/10' : 'bg-slate-100 border-slate-200'
+                          }`}>
+                            <button
+                              type="button"
+                              onClick={() => handleComponentChange('day', targetDay - 1 < 1 ? 31 : targetDay - 1)}
+                              className="px-1.5 py-1 text-[10px] hover:bg-cyan-500/10 text-cyan-500 font-bold transition-all cursor-pointer"
+                            >
+                              -
+                            </button>
+                            <input 
+                              type="text"
+                              value={targetDay}
+                              onChange={(e) => handleComponentChange('day', Math.max(1, Math.min(31, parseInt(e.target.value) || 1)))}
+                              className={`w-full text-[10px] font-mono text-center bg-transparent border-0 outline-none p-0 focus:ring-0 ${
+                                isDarkMode ? 'text-white' : 'text-slate-800'
+                              }`}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleComponentChange('day', targetDay + 1 > 31 ? 1 : targetDay + 1)}
+                              className="px-1.5 py-1 text-[10px] hover:bg-cyan-500/10 text-cyan-500 font-bold transition-all cursor-pointer"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Hour */}
+                        <div className="space-y-1">
+                          <label className="block text-[8px] font-mono text-slate-500 uppercase text-center">Hour</label>
+                          <div className={`flex items-center justify-between border rounded-lg overflow-hidden ${
+                            isDarkMode ? 'bg-[#141426]/60 border-white/10' : 'bg-slate-100 border-slate-200'
+                          }`}>
+                            <button
+                              type="button"
+                              onClick={() => handleComponentChange('hour', targetHour - 1 < 0 ? 23 : targetHour - 1)}
+                              className="px-1.5 py-1 text-[10px] hover:bg-cyan-500/10 text-cyan-500 font-bold transition-all cursor-pointer"
+                            >
+                              -
+                            </button>
+                            <input 
+                              type="text"
+                              value={targetHour}
+                              onChange={(e) => handleComponentChange('hour', Math.max(0, Math.min(23, parseInt(e.target.value) || 0)))}
+                              className={`w-full text-[10px] font-mono text-center bg-transparent border-0 outline-none p-0 focus:ring-0 ${
+                                isDarkMode ? 'text-white' : 'text-slate-800'
+                              }`}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleComponentChange('hour', targetHour + 1 > 23 ? 0 : targetHour + 1)}
+                              className="px-1.5 py-1 text-[10px] hover:bg-cyan-500/10 text-cyan-500 font-bold transition-all cursor-pointer"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Minute */}
+                        <div className="space-y-1">
+                          <label className="block text-[8px] font-mono text-slate-500 uppercase text-center">Min</label>
+                          <div className={`flex items-center justify-between border rounded-lg overflow-hidden ${
+                            isDarkMode ? 'bg-[#141426]/60 border-white/10' : 'bg-slate-100 border-slate-200'
+                          }`}>
+                            <button
+                              type="button"
+                              onClick={() => handleComponentChange('minute', targetMinute - 1 < 0 ? 59 : targetMinute - 1)}
+                              className="px-1.5 py-1 text-[10px] hover:bg-cyan-500/10 text-cyan-500 font-bold transition-all cursor-pointer"
+                            >
+                              -
+                            </button>
+                            <input 
+                              type="text"
+                              value={targetMinute}
+                              onChange={(e) => handleComponentChange('minute', Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))}
+                              className={`w-full text-[10px] font-mono text-center bg-transparent border-0 outline-none p-0 focus:ring-0 ${
+                                isDarkMode ? 'text-white' : 'text-slate-800'
+                              }`}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleComponentChange('minute', targetMinute + 1 > 59 ? 0 : targetMinute + 1)}
+                              className="px-1.5 py-1 text-[10px] hover:bg-cyan-500/10 text-cyan-500 font-bold transition-all cursor-pointer"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Second */}
+                        <div className="space-y-1">
+                          <label className="block text-[8px] font-mono text-slate-500 uppercase text-center">Sec</label>
+                          <div className={`flex items-center justify-between border rounded-lg overflow-hidden ${
+                            isDarkMode ? 'bg-[#141426]/60 border-white/10' : 'bg-slate-100 border-slate-200'
+                          }`}>
+                            <button
+                              type="button"
+                              onClick={() => handleComponentChange('second', targetSecond - 1 < 0 ? 59 : targetSecond - 1)}
+                              className="px-1.5 py-1 text-[10px] hover:bg-cyan-500/10 text-cyan-500 font-bold transition-all cursor-pointer"
+                            >
+                              -
+                            </button>
+                            <input 
+                              type="text"
+                              value={targetSecond}
+                              onChange={(e) => handleComponentChange('second', Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))}
+                              className={`w-full text-[10px] font-mono text-center bg-transparent border-0 outline-none p-0 focus:ring-0 ${
+                                isDarkMode ? 'text-white' : 'text-slate-800'
+                              }`}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleComponentChange('second', targetSecond + 1 > 59 ? 0 : targetSecond + 1)}
+                              className="px-1.5 py-1 text-[10px] hover:bg-cyan-500/10 text-cyan-500 font-bold transition-all cursor-pointer"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Custom Background & Relative Offset Adder */}
+                  <div className="space-y-4">
+                    {/* Background image selection / preset panel */}
+                    <div className="space-y-2">
+                      <label className={`block text-[10px] font-mono uppercase font-bold ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                        Horizon Banner Background
+                      </label>
+                      
+                      {/* Image URL input */}
+                      <div className="flex gap-2">
+                        <input 
+                          type="text"
+                          value={editEarthImage}
+                          onChange={(e) => setEditEarthImage(e.target.value)}
+                          placeholder="Paste image link..."
+                          className={`w-full rounded-xl p-2.5 text-xs font-mono border outline-none transition-all ${
+                            isDarkMode 
+                              ? 'bg-[#141426] border-white/5 text-slate-200 focus:border-cyan-500/40' 
+                              : 'bg-white border-slate-200 text-slate-800 focus:border-cyan-500/40'
+                          }`}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => earthFileInputRef.current?.click()}
+                          className="px-3.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-xl flex items-center justify-center cursor-pointer transition-colors"
+                          title="Upload image file"
+                        >
+                          <Camera className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* Built-in high-quality premium image presets */}
+                      <div className="grid grid-cols-5 gap-1.5 pt-1">
+                        {[
+                          { name: 'Earth', url: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80' },
+                          { name: 'Nebula', url: 'https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?auto=format&fit=crop&w=1200&q=80' },
+                          { name: 'Aurora', url: 'https://images.unsplash.com/photo-1524260855046-f743b3cdbb07?auto=format&fit=crop&w=1200&q=80' },
+                          { name: 'Cyber', url: 'https://images.unsplash.com/photo-1515621061946-eff1c2a352bd?auto=format&fit=crop&w=1200&q=80' },
+                          { name: 'Ocean', url: 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?auto=format&fit=crop&w=1200&q=80' }
+                        ].map(preset => (
+                          <button
+                            key={preset.name}
+                            type="button"
+                            onClick={() => setEditEarthImage(preset.url)}
+                            className={`relative h-10 rounded-lg overflow-hidden border transition-all cursor-pointer ${
+                              editEarthImage === preset.url ? 'border-cyan-400 scale-[1.03]' : 'border-white/5 hover:border-white/20'
+                            }`}
+                          >
+                            <img src={preset.url} alt={preset.name} className="w-full h-full object-cover filter brightness-[0.6]" />
+                            <span className="absolute inset-0 flex items-center justify-center text-[8px] font-mono font-bold text-white uppercase bg-black/40">
+                              {preset.name}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Relative offset calculator section */}
+                    <div className="p-3.5 rounded-2xl border border-cyan-500/10 bg-cyan-500/5 space-y-2">
+                      <span className="text-[10px] font-mono font-bold uppercase text-cyan-400 tracking-wider flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5" />
+                        Quick relative countdown offset (Add from Now)
+                      </span>
+                      <p className="text-[9px] text-slate-400 font-sans leading-relaxed">
+                        Specify exact remaining duration values relative to the current live moment to compute the exact future target instantly.
+                      </p>
+
+                      <div className="grid grid-cols-4 gap-1.5">
+                        <div>
+                          <label className="block text-[8px] font-mono text-slate-500 uppercase">Days</label>
+                          <input 
+                            type="number"
+                            min="0"
+                            placeholder="0"
+                            value={relativeDays}
+                            onChange={(e) => setRelativeDays(e.target.value)}
+                            className="w-full rounded-lg p-1 text-xs font-mono text-center border border-white/5 bg-slate-900 text-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[8px] font-mono text-slate-500 uppercase">Hours</label>
+                          <input 
+                            type="number"
+                            min="0"
+                            placeholder="0"
+                            value={relativeHours}
+                            onChange={(e) => setRelativeHours(e.target.value)}
+                            className="w-full rounded-lg p-1 text-xs font-mono text-center border border-white/5 bg-slate-900 text-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[8px] font-mono text-slate-500 uppercase">Mins</label>
+                          <input 
+                            type="number"
+                            min="0"
+                            placeholder="0"
+                            value={relativeMinutes}
+                            onChange={(e) => setRelativeMinutes(e.target.value)}
+                            className="w-full rounded-lg p-1 text-xs font-mono text-center border border-white/5 bg-slate-900 text-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[8px] font-mono text-slate-500 uppercase">Secs</label>
+                          <input 
+                            type="number"
+                            min="0"
+                            placeholder="0"
+                            value={relativeSeconds}
+                            onChange={(e) => setRelativeSeconds(e.target.value)}
+                            className="w-full rounded-lg p-1 text-xs font-mono text-center border border-white/5 bg-slate-900 text-white"
+                          />
+                        </div>
+                      </div>
+
+                      {relativeOffsetError && (
+                        <p className="text-[9px] text-rose-400 font-mono text-center leading-normal mt-1">
+                          {relativeOffsetError}
+                        </p>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={applyRelativeOffset}
+                        className="w-full py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-mono font-bold text-[9px] rounded-lg tracking-wider uppercase transition-all flex items-center justify-center gap-1 cursor-pointer"
+                      >
+                        <RefreshCw className="w-3 h-3" /> Compute & Apply Dynamic Target
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Confirm Save / Discard buttons */}
+                <div className="flex justify-end gap-3 pt-3 border-t border-white/5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditEarthTitle(earthCountdownTitle);
+                      setEditEarthTarget(earthCountdownTarget);
+                      setEditEarthImage(earthCountdownImage);
+                      setEditEarthQuote(earthCountdownQuote);
+                      setShowEarthEdit(false);
+                    }}
+                    className="py-2 px-4 border border-white/5 hover:border-white/10 text-slate-400 hover:text-white rounded-xl text-xs font-mono cursor-pointer transition-colors"
+                  >
+                    Discard Changes
+                  </button>
+                  <button
+                    type="button"
+                    onClick={saveEarthCountdown}
+                    className="py-2 px-5 bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-slate-950 font-bold font-mono text-xs rounded-xl flex items-center gap-1.5 shadow-md transition-all cursor-pointer"
+                  >
+                    <Save className="w-3.5 h-3.5" /> Save Horizon Changes
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Add New Vision Card Form Panel */}
@@ -593,11 +1418,9 @@ export default function VisualizationView({
                     <span className="text-[9px] text-slate-400 mt-2 font-mono">Or drag & drop photo here</span>
                   </div>
                 ) : (
-                  <img
-                    src={card.imageUrl}
+                  <SwipeableImageCarousel
+                    images={card.imageUrls && card.imageUrls.length > 0 ? card.imageUrls : [card.imageUrl]}
                     alt={card.title}
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     onError={() => {
                       // Flag this card's image as failed so we can show the helpful uploader fallback!
                       setImageErrors(prev => ({ ...prev, [card.id]: true }));
@@ -711,44 +1534,91 @@ export default function VisualizationView({
                         />
                       </div>
 
-                      <div className="md:col-span-2">
-                        <label className="text-[9px] font-mono text-slate-400 block mb-1">Goal Image (Paste URL or Upload File)</label>
-                        <div className="flex gap-2">
+                      <div className="md:col-span-2 space-y-2">
+                        <label className="text-[9px] font-mono text-slate-400 block mb-0.5">Goal Images (Drag & Drop multiple files or paste URL)</label>
+                        
+                        <div
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            const files = e.dataTransfer.files;
+                            if (files) {
+                              activeUploadCardIdRef.current = card.id;
+                              for (let i = 0; i < files.length; i++) {
+                                const file = files.item(i);
+                                if (file) {
+                                  processImageFile(file, card.id);
+                                }
+                              }
+                            }
+                          }}
+                          onClick={() => {
+                            activeUploadCardIdRef.current = card.id;
+                            if (fileInputRef.current) fileInputRef.current.click();
+                          }}
+                          className={`border-2 border-dashed rounded-xl p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
+                            isDarkMode 
+                              ? 'border-white/10 hover:border-cyan-500/40 bg-[#0d0d15]/50' 
+                              : 'border-slate-300 hover:border-cyan-500 bg-slate-50/50'
+                          }`}
+                        >
+                          <Upload className="w-5 h-5 text-slate-400 mb-1" />
+                          <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">
+                            Drag & drop files, or <span className="text-cyan-500">browse files</span>
+                          </span>
+                        </div>
+
+                        {/* Thumbnail Row */}
+                        {tempImageUrls.length > 0 && (
+                          <div className="space-y-1">
+                            <span className="text-[8px] font-mono text-slate-400 uppercase block">Selected Images ({tempImageUrls.length})</span>
+                            <div className="flex flex-wrap gap-1.5 p-1.5 border border-slate-200 dark:border-white/10 rounded-lg bg-slate-50/20 dark:bg-[#0d0d15]/40 max-h-24 overflow-y-auto">
+                              {tempImageUrls.map((url, idx) => (
+                                <div key={idx} className="relative w-12 h-12 rounded overflow-hidden border border-slate-200 dark:border-white/10 group bg-slate-100 dark:bg-slate-950 flex-shrink-0">
+                                  <img src={url} className="w-full h-full object-cover" alt="" />
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setTempImageUrls(prev => prev.filter((_, i) => i !== idx));
+                                    }}
+                                    className="absolute top-0.5 right-0.5 p-0.5 bg-slate-950/80 hover:bg-rose-500 rounded-full text-white cursor-pointer z-10"
+                                  >
+                                    <X className="w-2 h-2" />
+                                  </button>
+                                  <span className="absolute bottom-0 inset-x-0 text-center text-[7px] font-mono font-bold bg-black/60 text-white truncate pointer-events-none">
+                                    {idx === 0 ? 'Primary' : `#${idx + 1}`}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Direct input with add button */}
+                        <div className="flex gap-1.5">
                           <input
                             type="text"
-                            value={tempImageUrl.startsWith('data:') ? 'Local Image File Attached ✓' : tempImageUrl}
-                            onChange={(e) => {
-                              setTempImageUrl(e.target.value);
-                              setImageErrors(prev => ({ ...prev, [card.id]: false }));
-                            }}
-                            placeholder="Paste direct image link URL"
-                            className={`flex-1 border rounded p-1.5 text-xs focus:border-cyan-400 outline-none text-left truncate ${
+                            value={editUrlInput}
+                            onChange={(e) => setEditUrlInput(e.target.value)}
+                            placeholder="Or paste direct image URL and click '+'"
+                            className={`flex-1 border rounded p-1.5 text-xs focus:border-cyan-400 outline-none ${
                               isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-200 text-slate-900'
                             }`}
-                            disabled={tempImageUrl.startsWith('data:')}
                           />
-                          {tempImageUrl && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setTempImageUrl('');
-                                setImageErrors(prev => ({ ...prev, [card.id]: false }));
-                              }}
-                              className="px-2 bg-rose-500/20 hover:bg-rose-500 hover:text-white text-rose-400 rounded text-xs transition-colors"
-                              title="Clear Image"
-                            >
-                              <X className="w-3.5 h-3.5" />
-                            </button>
-                          )}
                           <button
                             type="button"
                             onClick={() => {
-                              activeUploadCardIdRef.current = card.id;
-                              if (fileInputRef.current) fileInputRef.current.click();
+                              if (editUrlInput.trim()) {
+                                setTempImageUrls(prev => [...prev, editUrlInput.trim()]);
+                                setEditUrlInput('');
+                              }
                             }}
-                            className="px-3 py-1 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded text-xs font-mono flex items-center gap-1.5 cursor-pointer shrink-0"
+                            className="px-3 bg-cyan-550 hover:bg-cyan-600 text-white font-bold rounded text-xs cursor-pointer shrink-0"
                           >
-                            <Upload className="w-3.5 h-3.5" /> Upload File
+                            + Add
                           </button>
                         </div>
                       </div>
