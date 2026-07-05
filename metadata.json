@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Goal Execution \u0026 Life OS",
+  "description": "A glassmorphism personal dashboard for goal setting, milestone tracking, daily focus, habit tracking, Pomodoro timer, learning logs, and progress metrics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

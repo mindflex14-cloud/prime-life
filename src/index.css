@@ -1,0 +1,172 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Typography Upgrade: Increase base size by 15-20% across sections */
+  --text-xs: 0.85rem;      /* ~13.6px instead of 12px (+15%) */
+  --text-sm: 1.05rem;      /* ~16.8px instead of 14px (+20%) */
+  --text-base: 1.2rem;     /* ~19.2px instead of 16px (+20%) */
+  --text-lg: 1.38rem;      /* ~22px instead of 18px (+22%) */
+  --text-xl: 1.5rem;       /* ~24px instead of 20px (+20%) */
+  --text-2xl: 1.8rem;      /* ~28.8px instead of 24px (+20%) */
+  --text-3xl: 2.25rem;     /* ~36px instead of 30px (+20%) */
+
+  /* Semantic Theme Mappings */
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-tertiary: var(--bg-tertiary);
+  --color-text-main: var(--text-main);
+  --color-container-border: var(--container-border);
+}
+
+:root {
+  /* High-fidelity Light Mode Theme variables conforming to User specifications */
+  --bg-primary: #FFFFFF; /* Pure white background */
+  --bg-secondary: #F2F2F7; /* Soft light gray (Apple System Gray 6) */
+  --bg-tertiary: #E5E5EA; /* Apple System Gray 5 */
+  
+  --panel-bg: #FFFFFF;
+  --panel-border: rgba(0, 0, 0, 0.06); /* Ultra soft borders */
+  --container-border: rgba(0, 0, 0, 0.06);
+  --panel-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03), 0 2px 8px -1px rgba(0, 0, 0, 0.02);
+  
+  --text-primary: #1C1C1E; /* Dark slate text (Apple System Dark) */
+  --text-main: #1C1C1E;
+  --text-secondary: #3A3A40;
+  --text-muted: #8E8E93; /* Apple System Gray */
+  
+  --accent-cyan-bg: rgba(6, 182, 212, 0.08);
+  --accent-cyan-border: rgba(6, 182, 212, 0.25);
+  --accent-cyan-text: #0891b2; /* cyan-600 */
+  
+  --accent-red-bg: rgba(239, 68, 68, 0.08);
+  --accent-red-border: rgba(239, 68, 68, 0.25);
+  --accent-red-text: #f43f5e; /* red-500/rose-500 */
+
+  --accent-emerald-bg: rgba(16, 185, 129, 0.08);
+  --accent-emerald-border: rgba(16, 185, 129, 0.25);
+  --accent-emerald-text: #10b981;
+
+  --accent-amber-bg: rgba(245, 158, 11, 0.08);
+  --accent-amber-border: rgba(245, 158, 11, 0.25);
+  --accent-amber-text: #f59e0b;
+
+  --accent-blue-bg: rgba(59, 130, 246, 0.08);
+  --accent-blue-border: rgba(59, 130, 246, 0.25);
+  --accent-blue-text: #3b82f6;
+}
+
+#lifeos-application-root.dark {
+  /* Dynamic Dark Mode Theme variables conforming to User specifications */
+  --bg-primary: #0D0D0F; /* deep charcoal/black background */
+  --bg-secondary: #141417;
+  --bg-tertiary: #1E1E22;
+  
+  --panel-bg: rgba(20, 20, 23, 0.85);
+  --panel-border: rgba(255, 255, 255, 0.08); /* --container-border */
+  --container-border: rgba(255, 255, 255, 0.08);
+  --panel-shadow: none;
+  
+  --text-primary: #E0E0E0; /* soft light-grey text */
+  --text-main: #E0E0E0;
+  --text-secondary: #B5B5BC;
+  --text-muted: #80808A;
+
+  --accent-cyan-bg: rgba(6, 182, 212, 0.05);
+  --accent-cyan-border: rgba(6, 182, 212, 0.2);
+  --accent-cyan-text: #22d3ee; /* cyan-400 */
+
+  --accent-red-bg: rgba(248, 113, 113, 0.05);
+  --accent-red-border: rgba(248, 113, 113, 0.2);
+  --accent-red-text: #f87171; /* red-400 */
+
+  --accent-emerald-bg: rgba(52, 211, 153, 0.05);
+  --accent-emerald-border: rgba(52, 211, 153, 0.2);
+  --accent-emerald-text: #34d399; /* emerald-400 */
+
+  --accent-amber-bg: rgba(251, 191, 36, 0.05);
+  --accent-amber-border: rgba(251, 191, 36, 0.2);
+  --accent-amber-text: #fbbf24; /* amber-400 */
+
+  --accent-blue-bg: rgba(96, 165, 250, 0.05);
+  --accent-blue-border: rgba(96, 165, 250, 0.2);
+  --accent-blue-text: #60a5fa; /* blue-400 */
+}
+
+@layer base {
+  body {
+    @apply font-sans overflow-x-hidden selection:bg-cyan-500/30 selection:text-cyan-200 transition-colors duration-300;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+  }
+}
+
+/* Custom scrollbars for a highly polished tech look, adapting to light/dark themes */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--panel-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-cyan-text);
+}
+
+/* Neon glow helper classes */
+.neon-glow-blue {
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.35);
+}
+
+.neon-glow-green {
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.35);
+}
+
+/* Glassmorphism utility rules with dynamic light/dark support */
+.glass-panel {
+  background: var(--panel-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--panel-border);
+  box-shadow: var(--panel-shadow);
+}
+
+.glass-panel-active {
+  background: var(--panel-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--accent-cyan-border);
+  box-shadow: 0 8px 30px rgba(6, 182, 212, 0.08);
+}
+
+/* Custom animations */
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.15;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(1.05);
+  }
+}
+
+.glow-bg-1 {
+  animation: pulse-glow 12s ease-in-out infinite alternate;
+}
+
+.glow-bg-2 {
+  animation: pulse-glow 16s ease-in-out infinite alternate-reverse;
+}
