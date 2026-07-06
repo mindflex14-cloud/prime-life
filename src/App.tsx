@@ -37,7 +37,7 @@ import Dashboard from './components/Dashboard';
 import GoalsAndMilestones from './components/GoalsAndMilestones';
 import ProductivityHub from './components/ProductivityHub';
 import LogsAndBrain from './components/LogsAndBrain';
-import VitalsManager from './components/VitalsManager';
+import BiologicalCommand from './components/BiologicalCommand';
 import CalendarView from './components/CalendarView';
 import SettingsView from './components/SettingsView';
 import VisualizationView from './components/VisualizationView';
@@ -1113,15 +1113,7 @@ export default function App() {
         );
       case 'vitals':
         return (
-          <VitalsManager 
-            userId={user?.id}
-            healthLogs={healthLogs}
-            updateHealthLog={updateHealthLog}
-            habits={habits}
-            addHabit={addHabit}
-            toggleHabitCompleted={toggleHabitCompleted}
-            deleteHabit={deleteHabit}
-          />
+          <BiologicalCommand isDarkMode={isDarkMode} />
         );
       case 'calendar':
         return (
@@ -1192,7 +1184,7 @@ export default function App() {
   }
 
   return (
-    <div className={`min-h-screen flex relative overflow-hidden font-sans select-none transition-colors duration-300 ${
+    <div className={`h-screen w-full flex relative overflow-hidden font-sans select-none transition-colors duration-300 ${
       isDarkMode ? 'bg-[#050508] text-slate-200' : 'bg-[#f4f4f7] text-slate-800'
     }`} id="lifeos-application-root">
       
@@ -1205,7 +1197,7 @@ export default function App() {
       )}
 
       {/* --- DESKTOP STATIC SIDEBAR --- */}
-      <aside className={`w-[310px] p-5 flex flex-col justify-between hidden lg:flex z-40 relative shrink-0 transition-colors duration-300 ${
+      <aside className={`w-[310px] p-5 flex flex-col justify-between hidden lg:flex z-40 relative shrink-0 overflow-y-auto custom-scrollbar transition-colors duration-300 ${
         isDarkMode ? 'bg-[#08080c] border-r border-white/5' : 'bg-white border-r border-slate-200 shadow-sm'
       }`} id="desktop-sidebar-frame">
         <div className="space-y-6">
