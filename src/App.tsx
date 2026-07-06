@@ -62,6 +62,7 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [guestBypass, setGuestBypass] = useState<boolean>(() => localStorage.getItem('lifeos_guest_bypass') === 'true');
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
   
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem('lifeos_dark_mode');
@@ -340,6 +341,7 @@ export default function App() {
           console.error("Error doing initial sync:", err);
         } finally {
           setIsSyncing(false);
+          setIsInitialLoading(false);
         }
 
         // Start real-time Supabase listener
@@ -490,6 +492,7 @@ export default function App() {
         };
       } else {
         setIsSyncing(false);
+        setIsInitialLoading(false);
       }
     });
 
@@ -813,35 +816,57 @@ export default function App() {
   };
 
   const handleExportData = () => {
-    const payload = {
-      profile,
-      goals,
-      milestones,
-      tasks,
-      habits,
-      journals: journalEntries,
-      finance: financeRecords,
-      health: healthLogs,
-      lifewheel: lifeWheel,
-      visionCards: visionCards,
-      philosophical: philosophicalEntries,
-      bookWisdom: bookWisdomEntries,
-      intuition: intuitionEntries
-    };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `goal_execution_life_os_${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    try {
+      const payload = {
+        profile,
+        goals,
+        milestones,
+        tasks,
+        habits,
+        journals: journalEntries,
+        finance: financeRecords,
+        health: healthLogs,
+        lifewheel: lifeWheel,
+        visionCards: visionCards,
+        philosophical: philosophicalEntries,
+        bookWisdom: bookWisdomEntries,
+        intuition: intuitionEntries
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `prime-life-backup-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("Export failed:", e);
+      alert("Data export failed. Details: " + (e instanceof Error ? e.message : String(e)));
+    }
   };
 
   const handleImportData = (json: string): boolean => {
     try {
+      if (!json || !json.trim()) {
+        alert("Please paste a valid JSON backup string.");
+        return false;
+      }
       const payload = JSON.parse(json);
+      if (!payload || typeof payload !== 'object') {
+        throw new Error("Parsed JSON is not a valid backup ledger object.");
+      }
+
+      // Explicit warning confirmation before overwrite
+      const userConfirmed = window.confirm(
+        "CRITICAL WARNING:\n\nRestoring from this backup will completely OVERWRITE all your current Prime Life data (including Goals, Tasks, Habits, Vision Board images, Financial ledgers, and Philosophical journals).\n\nThis action cannot be undone. Are you sure you want to restore and overwrite your workspace?"
+      );
+
+      if (!userConfirmed) {
+        return false;
+      }
+
       if (payload.profile) setProfile(payload.profile);
       if (payload.goals) setGoals(payload.goals);
       if (payload.milestones) setMilestones(payload.milestones);
@@ -855,9 +880,12 @@ export default function App() {
       if (payload.philosophical) setPhilosophicalEntries(payload.philosophical);
       if (payload.bookWisdom) setBookWisdomEntries(payload.bookWisdom);
       if (payload.intuition) setIntuitionEntries(payload.intuition);
+
+      alert("✓ Data backup ledger successfully restored to your device!");
       return true;
     } catch (e) {
-      console.error(e);
+      console.error("Import failed:", e);
+      alert("⚠️ Data restore failed. Please verify that you pasted a valid Prime Life backup JSON payload. Details: " + (e instanceof Error ? e.message : String(e)));
       return false;
     }
   };
@@ -1067,6 +1095,32 @@ export default function App() {
   };
 
   const maxHabitStreak = habits.length > 0 ? Math.max(...habits.map(h => h.streak)) : 12;
+
+  if (isInitialLoading) {
+    return (
+      <div className={`min-h-screen flex flex-col items-center justify-center relative overflow-hidden font-sans select-none transition-colors duration-300 ${
+        isDarkMode ? 'bg-[#050508] text-slate-200' : 'bg-[#f4f4f7] text-slate-800'
+      }`}>
+        <div className="flex flex-col items-center gap-4 text-center p-6 z-10 max-w-xs">
+          <div className="relative w-16 h-16 flex items-center justify-center">
+            {/* Spinning ambient border */}
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-cyan-500 via-blue-500 to-emerald-500 animate-spin opacity-80 blur-xs" />
+            <div className={`absolute inset-[3px] rounded-xl ${isDarkMode ? 'bg-[#050508]' : 'bg-[#f4f4f7]'} flex items-center justify-center`}>
+              <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />
+            </div>
+          </div>
+          <div className="space-y-1.5 mt-2">
+            <h3 className={`text-sm font-mono font-bold tracking-widest uppercase ${isDarkMode ? 'text-cyan-400' : 'text-cyan-600'}`}>
+              Prime Life
+            </h3>
+            <p className={`text-[10px] font-mono ${isDarkMode ? 'text-slate-400' : 'text-slate-500'} tracking-wider uppercase animate-pulse`}>
+              Calibrating Horizon Caches...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!user && !guestBypass) {
     return (

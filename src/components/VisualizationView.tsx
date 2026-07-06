@@ -117,6 +117,85 @@ function GoalCountdown({ targetDate, isDarkMode }: { targetDate: string; isDarkM
   );
 }
 
+interface EarthCountdownLiveDisplayProps {
+  activeCountdownTarget: string;
+  isDarkMode: boolean;
+}
+
+function EarthCountdownLiveDisplay({ activeCountdownTarget, isDarkMode }: EarthCountdownLiveDisplayProps) {
+  const [timeLeft, setTimeLeft] = useState<{
+    days: number;
+    hours: number;
+    minutes: number;
+    seconds: number;
+    isOver: boolean;
+  } | null>(null);
+
+  useEffect(() => {
+    const calculate = () => {
+      const targetTime = parseLocalISO(activeCountdownTarget).getTime();
+      const now = Date.now();
+      const diff = targetTime - now;
+
+      if (isNaN(targetTime) || diff <= 0) {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, isOver: true });
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      setTimeLeft({ days, hours, minutes, seconds, isOver: false });
+    };
+
+    calculate();
+    const interval = setInterval(calculate, 1000);
+    return () => clearInterval(interval);
+  }, [activeCountdownTarget]);
+
+  if (!timeLeft) {
+    return <div className="text-xs text-slate-400 font-mono animate-pulse">Calculating ticking bio-horizon...</div>;
+  }
+
+  return (
+    <div className="grid grid-cols-4 gap-2.5 sm:gap-4 max-w-xl">
+      {/* DAYS */}
+      <div className="bg-slate-950/75 border border-white/5 rounded-2xl py-2 px-1 text-center backdrop-blur-md">
+        <div className="text-2xl sm:text-3xl md:text-4xl font-extrabold font-mono text-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,0.35)] leading-none">
+          {String(timeLeft.days).padStart(2, '0')}
+        </div>
+        <div className="text-[9px] font-mono text-slate-400 uppercase tracking-widest mt-1">Days</div>
+      </div>
+
+      {/* HOURS */}
+      <div className="bg-slate-950/75 border border-white/5 rounded-2xl py-2 px-1 text-center backdrop-blur-md">
+        <div className="text-2xl sm:text-3xl md:text-4xl font-extrabold font-mono text-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,0.35)] leading-none">
+          {String(timeLeft.hours).padStart(2, '0')}
+        </div>
+        <div className="text-[9px] font-mono text-slate-400 uppercase tracking-widest mt-1">Hours</div>
+      </div>
+
+      {/* MINUTES */}
+      <div className="bg-slate-950/75 border border-white/5 rounded-2xl py-2 px-1 text-center backdrop-blur-md">
+        <div className="text-2xl sm:text-3xl md:text-4xl font-extrabold font-mono text-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,0.35)] leading-none">
+          {String(timeLeft.minutes).padStart(2, '0')}
+        </div>
+        <div className="text-[9px] font-mono text-slate-400 uppercase tracking-widest mt-1">Mins</div>
+      </div>
+
+      {/* SECONDS */}
+      <div className="bg-slate-950/75 border border-cyan-500/25 rounded-2xl py-2 px-1 text-center backdrop-blur-md shadow-[0_0_15px_rgba(6,182,212,0.1)]">
+        <div className="text-2xl sm:text-3xl md:text-4xl font-extrabold font-mono text-emerald-400 drop-shadow-[0_0_12px_rgba(52,211,153,0.35)] leading-none animate-pulse">
+          {String(timeLeft.seconds).padStart(2, '0')}
+        </div>
+        <div className="text-[9px] font-mono text-slate-300 uppercase tracking-widest font-bold mt-1">Secs</div>
+      </div>
+    </div>
+  );
+}
+
 // Helper functions for timezone-safe local date operations
 const formatLocalISO = (date: Date): string => {
   const pad = (n: number) => String(n).padStart(2, '0');
@@ -256,40 +335,7 @@ export default function VisualizationView({
     return () => window.removeEventListener('local-storage-sync', handleSync);
   }, [earthCountdownTarget, earthCountdownTitle, earthCountdownImage, earthCountdownQuote]);
 
-  // Live countdown state computed from target or from live edit target (for reactive live preview!)
-  const [earthTimeLeft, setEarthTimeLeft] = useState<{
-    days: number;
-    hours: number;
-    minutes: number;
-    seconds: number;
-    isOver: boolean;
-  } | null>(null);
-
   const activeCountdownTarget = showEarthEdit ? editEarthTarget : earthCountdownTarget;
-
-  useEffect(() => {
-    const calculate = () => {
-      const targetTime = parseLocalISO(activeCountdownTarget).getTime();
-      const now = Date.now();
-      const diff = targetTime - now;
-
-      if (isNaN(targetTime) || diff <= 0) {
-        setEarthTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, isOver: true });
-        return;
-      }
-
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-      setEarthTimeLeft({ days, hours, minutes, seconds, isOver: false });
-    };
-
-    calculate();
-    const interval = setInterval(calculate, 1000);
-    return () => clearInterval(interval);
-  }, [activeCountdownTarget]);
 
   // Helper to split editEarthTarget into components for direct edits
   const parsedTarget = parseLocalISO(editEarthTarget);
@@ -363,6 +409,8 @@ export default function VisualizationView({
   };
   const [tempImageUrl, setTempImageUrl] = useState('');
   const [tempImageUrls, setTempImageUrls] = useState<string[]>([]);
+  const [tempThumbnailUrl, setTempThumbnailUrl] = useState('');
+  const [tempThumbnailUrls, setTempThumbnailUrls] = useState<string[]>([]);
   const [editUrlInput, setEditUrlInput] = useState('');
   const [tempCategory, setTempCategory] = useState('');
   const [tempTargetDate, setTempTargetDate] = useState('');
@@ -372,6 +420,7 @@ export default function VisualizationView({
   const [showAddForm, setShowAddForm] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newImageUrl, setNewImageUrl] = useState('');
+  const [newThumbnailUrl, setNewThumbnailUrl] = useState('');
   const [newCategory, setNewCategory] = useState('');
   const [newTargetDate, setNewTargetDate] = useState('');
   const [newInstructions, setNewInstructions] = useState('');
@@ -398,6 +447,8 @@ export default function VisualizationView({
     setTempTitle(card.title);
     setTempImageUrl(card.imageUrl);
     setTempImageUrls(card.imageUrls || (card.imageUrl ? [card.imageUrl] : []));
+    setTempThumbnailUrl(card.thumbnailUrl || card.imageUrl);
+    setTempThumbnailUrls(card.thumbnailUrls || (card.thumbnailUrl ? [card.thumbnailUrl] : (card.imageUrls || [card.imageUrl])));
     setTempCategory(card.category);
     setTempTargetDate(card.targetDate || '');
     setTempGoalId(card.goalId || '');
@@ -408,10 +459,16 @@ export default function VisualizationView({
     if (tempImageUrl.trim() && !finalImageUrls.includes(tempImageUrl.trim())) {
       finalImageUrls.unshift(tempImageUrl.trim());
     }
+    const finalThumbnailUrls = [...tempThumbnailUrls];
+    if (tempThumbnailUrl.trim() && !finalThumbnailUrls.includes(tempThumbnailUrl.trim())) {
+      finalThumbnailUrls.unshift(tempThumbnailUrl.trim());
+    }
     onUpdateCard(id, {
       title: tempTitle,
       imageUrl: finalImageUrls[0] || tempImageUrl,
       imageUrls: finalImageUrls.length > 0 ? finalImageUrls : undefined,
+      thumbnailUrl: finalThumbnailUrls[0] || tempThumbnailUrl || finalImageUrls[0],
+      thumbnailUrls: finalThumbnailUrls.length > 0 ? finalThumbnailUrls : (finalImageUrls.length > 0 ? finalImageUrls : undefined),
       category: tempCategory,
       targetDate: tempTargetDate || undefined,
       goalId: tempGoalId || undefined
@@ -449,6 +506,7 @@ export default function VisualizationView({
       
       const img = new Image();
       img.onload = () => {
+        // 1. Generate full-size image (max 1024x1024, quality 0.7)
         const maxWidth = 1024;
         const maxHeight = 1024;
         let width = img.width;
@@ -471,36 +529,69 @@ export default function VisualizationView({
         canvas.height = height;
 
         const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          applyImage(originalBase64);
-          return;
+        let fullBase64 = originalBase64;
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          try {
+            fullBase64 = canvas.toDataURL('image/jpeg', 0.7);
+          } catch (e) {
+            console.error("Full-size canvas compression failed", e);
+          }
         }
 
-        ctx.drawImage(img, 0, 0, width, height);
-        try {
-          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-          applyImage(compressedBase64);
-        } catch (e) {
-          console.error("Canvas compression failed, falling back to original", e);
-          applyImage(originalBase64);
+        // 2. Generate small thumbnail image (max 250x250, quality 0.5)
+        const thumbMax = 250;
+        let thumbW = img.width;
+        let thumbH = img.height;
+        if (thumbW > thumbH) {
+          if (thumbW > thumbMax) {
+            thumbH = Math.round((thumbH * thumbMax) / thumbW);
+            thumbW = thumbMax;
+          }
+        } else {
+          if (thumbH > thumbMax) {
+            thumbW = Math.round((thumbW * thumbMax) / thumbH);
+            thumbH = thumbMax;
+          }
         }
+
+        const thumbCanvas = document.createElement('canvas');
+        thumbCanvas.width = thumbW;
+        thumbCanvas.height = thumbH;
+        const thumbCtx = thumbCanvas.getContext('2d');
+        let thumbBase64 = fullBase64;
+        if (thumbCtx) {
+          thumbCtx.drawImage(img, 0, 0, thumbW, thumbH);
+          try {
+            thumbBase64 = thumbCanvas.toDataURL('image/jpeg', 0.5);
+          } catch (e) {
+            console.error("Thumbnail canvas compression failed", e);
+          }
+        }
+
+        applyImage(fullBase64, thumbBase64);
       };
 
       img.onerror = () => {
-        applyImage(originalBase64);
+        applyImage(originalBase64, originalBase64);
       };
 
       img.src = originalBase64;
     };
 
-    const applyImage = (base64String: string) => {
+    const applyImage = (base64String: string, thumbnailBase64: string) => {
       if (cardId) {
         // If we are actively editing this card, append to the temp edit lists
         if (editingCardId === cardId) {
           setTempImageUrl(base64String);
+          setTempThumbnailUrl(thumbnailBase64);
           setTempImageUrls(prev => {
             if (prev.includes(base64String)) return prev;
             return [...prev, base64String];
+          });
+          setTempThumbnailUrls(prev => {
+            if (prev.includes(thumbnailBase64)) return prev;
+            return [...prev, thumbnailBase64];
           });
         } else {
           // If we are updating directly from the card overlay uploader
@@ -508,18 +599,28 @@ export default function VisualizationView({
           if (currentCard) {
             const currentList = currentCard.imageUrls || (currentCard.imageUrl ? [currentCard.imageUrl] : []);
             const updatedList = currentList.includes(base64String) ? currentList : [...currentList, base64String];
+            
+            const currentThumbList = currentCard.thumbnailUrls || (currentCard.thumbnailUrl ? [currentCard.thumbnailUrl] : []);
+            const updatedThumbList = currentThumbList.includes(thumbnailBase64) ? currentThumbList : [...currentThumbList, thumbnailBase64];
+
             onUpdateCard(cardId, {
               imageUrl: base64String,
-              imageUrls: updatedList
+              imageUrls: updatedList,
+              thumbnailUrl: thumbnailBase64,
+              thumbnailUrls: updatedThumbList
             });
           } else {
-            onUpdateCard(cardId, { imageUrl: base64String });
+            onUpdateCard(cardId, { 
+              imageUrl: base64String,
+              thumbnailUrl: thumbnailBase64
+            });
           }
         }
         setImageErrors(prev => ({ ...prev, [cardId]: false }));
         setUploadingCardId(null);
       } else {
         setNewImageUrl(base64String);
+        setNewThumbnailUrl(thumbnailBase64);
       }
     };
 
@@ -555,10 +656,14 @@ export default function VisualizationView({
 
     // Use default premium placeholder if no image provided
     const imgUrl = newImageUrl.trim() || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80';
+    const thumbUrl = newThumbnailUrl.trim() || imgUrl;
 
     onAddCard({
       title: newTitle,
       imageUrl: imgUrl,
+      imageUrls: [imgUrl],
+      thumbnailUrl: thumbUrl,
+      thumbnailUrls: [thumbUrl],
       category: newCategory || 'Personal Manifest',
       targetDate: newTargetDate || undefined,
       instructions: newInstructions.trim() || 'Add your visual reminders, action guides, and strategic declarations here.',
@@ -568,6 +673,7 @@ export default function VisualizationView({
     // Reset Form
     setNewTitle('');
     setNewImageUrl('');
+    setNewThumbnailUrl('');
     setNewCategory('');
     setNewTargetDate('');
     setNewInstructions('');
@@ -687,43 +793,7 @@ export default function VisualizationView({
             </div>
 
             {/* Middle/Bottom row: The Majestic Live Countdown Display */}
-            {earthTimeLeft ? (
-              <div className="grid grid-cols-4 gap-2.5 sm:gap-4 max-w-xl">
-                {/* DAYS */}
-                <div className="bg-slate-950/75 border border-white/5 rounded-2xl py-2 px-1 text-center backdrop-blur-md">
-                  <div className="text-2xl sm:text-3xl md:text-4xl font-extrabold font-mono text-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,0.35)] leading-none">
-                    {String(earthTimeLeft.days).padStart(2, '0')}
-                  </div>
-                  <div className="text-[9px] font-mono text-slate-400 uppercase tracking-widest mt-1">Days</div>
-                </div>
-
-                {/* HOURS */}
-                <div className="bg-slate-950/75 border border-white/5 rounded-2xl py-2 px-1 text-center backdrop-blur-md">
-                  <div className="text-2xl sm:text-3xl md:text-4xl font-extrabold font-mono text-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,0.35)] leading-none">
-                    {String(earthTimeLeft.hours).padStart(2, '0')}
-                  </div>
-                  <div className="text-[9px] font-mono text-slate-400 uppercase tracking-widest mt-1">Hours</div>
-                </div>
-
-                {/* MINUTES */}
-                <div className="bg-slate-950/75 border border-white/5 rounded-2xl py-2 px-1 text-center backdrop-blur-md">
-                  <div className="text-2xl sm:text-3xl md:text-4xl font-extrabold font-mono text-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,0.35)] leading-none">
-                    {String(earthTimeLeft.minutes).padStart(2, '0')}
-                  </div>
-                  <div className="text-[9px] font-mono text-slate-400 uppercase tracking-widest mt-1">Mins</div>
-                </div>
-
-                {/* SECONDS */}
-                <div className="bg-slate-950/75 border border-cyan-500/25 rounded-2xl py-2 px-1 text-center backdrop-blur-md shadow-[0_0_15px_rgba(6,182,212,0.1)]">
-                  <div className="text-2xl sm:text-3xl md:text-4xl font-extrabold font-mono text-emerald-400 drop-shadow-[0_0_12px_rgba(52,211,153,0.35)] leading-none animate-pulse">
-                    {String(earthTimeLeft.seconds).padStart(2, '0')}
-                  </div>
-                  <div className="text-[9px] font-mono text-slate-300 uppercase tracking-widest font-bold mt-1">Secs</div>
-                </div>
-              </div>
-            ) : (
-              <div className="text-xs text-slate-400 font-mono animate-pulse">Calculating ticking bio-horizon...</div>
-            )}
+            <EarthCountdownLiveDisplay activeCountdownTarget={activeCountdownTarget} isDarkMode={isDarkMode} />
           </div>
         </div>
 
@@ -1455,7 +1525,8 @@ export default function VisualizationView({
                   </div>
                 ) : (
                   <SwipeableImageCarousel
-                    images={card.imageUrls && card.imageUrls.length > 0 ? card.imageUrls : [card.imageUrl]}
+                    images={card.thumbnailUrls && card.thumbnailUrls.length > 0 ? card.thumbnailUrls : (card.thumbnailUrl ? [card.thumbnailUrl] : (card.imageUrls && card.imageUrls.length > 0 ? card.imageUrls : [card.imageUrl]))}
+                    fullImages={card.imageUrls && card.imageUrls.length > 0 ? card.imageUrls : [card.imageUrl]}
                     alt={card.title}
                     onError={() => {
                       // Flag this card's image as failed so we can show the helpful uploader fallback!

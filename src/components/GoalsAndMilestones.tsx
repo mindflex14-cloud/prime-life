@@ -40,7 +40,11 @@ export default function GoalsAndMilestones({
 
   // Multiple image states
   const [goalImageUrls, setGoalImageUrls] = useState<string[]>([]);
+  const [goalThumbnailUrl, setGoalThumbnailUrl] = useState('');
+  const [goalThumbnailUrls, setGoalThumbnailUrls] = useState<string[]>([]);
   const [editImageUrls, setEditImageUrls] = useState<string[]>([]);
+  const [editThumbnailUrl, setEditThumbnailUrl] = useState('');
+  const [editThumbnailUrls, setEditThumbnailUrls] = useState<string[]>([]);
   const [urlInput, setUrlInput] = useState('');
   const [editUrlInput, setEditUrlInput] = useState('');
 
@@ -75,6 +79,7 @@ export default function GoalsAndMilestones({
       
       const img = new Image();
       img.onload = () => {
+        // 1. Full image compression
         const maxWidth = 1024;
         const maxHeight = 1024;
         let width = img.width;
@@ -97,40 +102,78 @@ export default function GoalsAndMilestones({
         canvas.height = height;
 
         const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          applyImage(originalBase64);
-          return;
+        let fullBase64 = originalBase64;
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          try {
+            fullBase64 = canvas.toDataURL('image/jpeg', 0.7);
+          } catch (e) {
+            console.error("Canvas compression failed, falling back to original", e);
+          }
         }
 
-        ctx.drawImage(img, 0, 0, width, height);
-        try {
-          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-          applyImage(compressedBase64);
-        } catch (e) {
-          console.error("Canvas compression failed, falling back to original", e);
-          applyImage(originalBase64);
+        // 2. Thumbnail compression
+        const thumbMax = 250;
+        let thumbW = img.width;
+        let thumbH = img.height;
+        if (thumbW > thumbH) {
+          if (thumbW > thumbMax) {
+            thumbH = Math.round((thumbH * thumbMax) / thumbW);
+            thumbW = thumbMax;
+          }
+        } else {
+          if (thumbH > thumbMax) {
+            thumbW = Math.round((thumbW * thumbMax) / thumbH);
+            thumbH = thumbMax;
+          }
         }
+
+        const thumbCanvas = document.createElement('canvas');
+        thumbCanvas.width = thumbW;
+        thumbCanvas.height = thumbH;
+        const thumbCtx = thumbCanvas.getContext('2d');
+        let thumbBase64 = fullBase64;
+        if (thumbCtx) {
+          thumbCtx.drawImage(img, 0, 0, thumbW, thumbH);
+          try {
+            thumbBase64 = thumbCanvas.toDataURL('image/jpeg', 0.5);
+          } catch (e) {
+            console.error("Thumbnail canvas compression failed", e);
+          }
+        }
+
+        applyImage(fullBase64, thumbBase64);
       };
       
       img.onerror = () => {
-        applyImage(originalBase64);
+        applyImage(originalBase64, originalBase64);
       };
       
       img.src = originalBase64;
     };
 
-    const applyImage = (base64String: string) => {
+    const applyImage = (base64String: string, thumbnailBase64: string) => {
       if (isEdit) {
         setEditImageUrl(base64String);
+        setEditThumbnailUrl(thumbnailBase64);
         setEditImageUrls(prev => {
           if (prev.includes(base64String)) return prev;
           return [...prev, base64String];
         });
+        setEditThumbnailUrls(prev => {
+          if (prev.includes(thumbnailBase64)) return prev;
+          return [...prev, thumbnailBase64];
+        });
       } else {
         setGoalImageUrl(base64String);
+        setGoalThumbnailUrl(thumbnailBase64);
         setGoalImageUrls(prev => {
           if (prev.includes(base64String)) return prev;
           return [...prev, base64String];
+        });
+        setGoalThumbnailUrls(prev => {
+          if (prev.includes(thumbnailBase64)) return prev;
+          return [...prev, thumbnailBase64];
         });
       }
     };
@@ -160,6 +203,10 @@ export default function GoalsAndMilestones({
     if (goalImageUrl.trim() && !finalImageUrls.includes(goalImageUrl.trim())) {
       finalImageUrls.unshift(goalImageUrl.trim());
     }
+    const finalThumbnailUrls = [...goalThumbnailUrls];
+    if (goalThumbnailUrl.trim() && !finalThumbnailUrls.includes(goalThumbnailUrl.trim())) {
+      finalThumbnailUrls.unshift(goalThumbnailUrl.trim());
+    }
     addGoal({
       title: goalTitle,
       category: goalCategory,
@@ -167,12 +214,16 @@ export default function GoalsAndMilestones({
       description: goalDesc,
       imageUrl: finalImageUrls[0] || undefined,
       imageUrls: finalImageUrls.length > 0 ? finalImageUrls : undefined,
+      thumbnailUrl: finalThumbnailUrls[0] || goalThumbnailUrl || finalImageUrls[0] || undefined,
+      thumbnailUrls: finalThumbnailUrls.length > 0 ? finalThumbnailUrls : (finalImageUrls.length > 0 ? finalImageUrls : undefined),
       quote: goalQuote.trim() || undefined
     });
     setGoalTitle('');
     setGoalDesc('');
     setGoalImageUrl('');
+    setGoalThumbnailUrl('');
     setGoalImageUrls([]);
+    setGoalThumbnailUrls([]);
     setGoalQuote('');
     setUrlInput('');
     setShowGoalForm(false);
@@ -185,6 +236,8 @@ export default function GoalsAndMilestones({
     setEditDesc(goal.description);
     setEditImageUrl(goal.imageUrl || '');
     setEditImageUrls(goal.imageUrls || (goal.imageUrl ? [goal.imageUrl] : []));
+    setEditThumbnailUrl(goal.thumbnailUrl || goal.imageUrl || '');
+    setEditThumbnailUrls(goal.thumbnailUrls || (goal.thumbnailUrl ? [goal.thumbnailUrl] : (goal.imageUrls || (goal.imageUrl ? [goal.imageUrl] : []))));
     setEditQuote(goal.quote || '');
     setIsEditingGoal(true);
   };
@@ -196,6 +249,10 @@ export default function GoalsAndMilestones({
     if (editImageUrl.trim() && !finalImageUrls.includes(editImageUrl.trim())) {
       finalImageUrls.unshift(editImageUrl.trim());
     }
+    const finalThumbnailUrls = [...editThumbnailUrls];
+    if (editThumbnailUrl.trim() && !finalThumbnailUrls.includes(editThumbnailUrl.trim())) {
+      finalThumbnailUrls.unshift(editThumbnailUrl.trim());
+    }
     updateGoal(selectedGoalId, {
       title: editTitle,
       category: editCategory,
@@ -203,9 +260,13 @@ export default function GoalsAndMilestones({
       description: editDesc,
       imageUrl: finalImageUrls[0] || undefined,
       imageUrls: finalImageUrls.length > 0 ? finalImageUrls : undefined,
+      thumbnailUrl: finalThumbnailUrls[0] || editThumbnailUrl || finalImageUrls[0] || undefined,
+      thumbnailUrls: finalThumbnailUrls.length > 0 ? finalThumbnailUrls : (finalImageUrls.length > 0 ? finalImageUrls : undefined),
       quote: editQuote.trim() || undefined
     });
     setEditUrlInput('');
+    setEditThumbnailUrl('');
+    setEditThumbnailUrls([]);
     setIsEditingGoal(false);
   };
 
@@ -760,7 +821,8 @@ export default function GoalsAndMilestones({
                   {((currentGoal.imageUrls && currentGoal.imageUrls.length > 0) || currentGoal.imageUrl) && (
                     <div className="w-full h-44 rounded-2xl overflow-hidden border border-slate-200 dark:border-white/5 relative group">
                       <SwipeableImageCarousel 
-                        images={currentGoal.imageUrls && currentGoal.imageUrls.length > 0 ? currentGoal.imageUrls : [currentGoal.imageUrl!]} 
+                        images={currentGoal.thumbnailUrls && currentGoal.thumbnailUrls.length > 0 ? currentGoal.thumbnailUrls : (currentGoal.thumbnailUrl ? [currentGoal.thumbnailUrl] : (currentGoal.imageUrls && currentGoal.imageUrls.length > 0 ? currentGoal.imageUrls : [currentGoal.imageUrl!]))} 
+                        fullImages={currentGoal.imageUrls && currentGoal.imageUrls.length > 0 ? currentGoal.imageUrls : [currentGoal.imageUrl!]}
                         alt={currentGoal.title} 
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-slate-950 via-transparent pointer-events-none" />
