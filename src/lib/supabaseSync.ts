@@ -89,7 +89,7 @@ const keyToLocalStorageMap: Record<string, string> = {
 const debounceTimeouts: Record<string, any> = {};
 
 // Save a specific key's data to Supabase (and cache locally)
-export async function saveUserDataToCloud(userId: string, key: string, data: any) {
+export async function saveUserDataToCloud(userId: string, key: string, data: any, immediate: boolean = false) {
   if (!userId) return;
 
   // Always write locally first to guarantee high performance and offline-first availability
@@ -108,40 +108,47 @@ export async function saveUserDataToCloud(userId: string, key: string, data: any
     clearTimeout(debounceTimeouts[key]);
   }
 
-  return new Promise<void>((resolve) => {
-    debounceTimeouts[key] = setTimeout(async () => {
-      try {
-        // Attempt upsert to Supabase
-        const { error } = await supabase
-          .from('user_data')
-          .upsert({
-            user_id: userId,
-            key: key,
-            payload: data,
-            updated_at: new Date().toISOString()
-          }, {
-            onConflict: 'user_id,key'
-          });
+  const performSave = async () => {
+    try {
+      // Attempt upsert to Supabase
+      const { error } = await supabase
+        .from('user_data')
+        .upsert({
+          user_id: userId,
+          key: key,
+          payload: data,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id,key'
+        });
 
-        if (error) {
-          throw error;
-        }
-
-        // Successfully saved! Remove from pending queue
-        removeFromPendingQueue(key);
-        
-        // Broadcast local storage update event for any listening tabs
-        window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: localStorageKey, value: data } }));
-        resolve();
-      } catch (error) {
-        console.warn(`[SupabaseSync] Offline/failed saving ${key} to Supabase. Storing in queue.`, error);
-        addToPendingQueue(key);
-        resolve();
-      } finally {
-        delete debounceTimeouts[key];
+      if (error) {
+        throw error;
       }
-    }, 1500); // Debounce delay of 1.5 seconds
-  });
+
+      // Successfully saved! Remove from pending queue
+      removeFromPendingQueue(key);
+      
+      // Broadcast local storage update event for any listening tabs
+      window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: localStorageKey, value: data } }));
+    } catch (error) {
+      console.warn(`[SupabaseSync] Offline/failed saving ${key} to Supabase. Storing in queue.`, error);
+      addToPendingQueue(key);
+    } finally {
+      delete debounceTimeouts[key];
+    }
+  };
+
+  if (immediate) {
+    await performSave();
+  } else {
+    return new Promise<void>((resolve) => {
+      debounceTimeouts[key] = setTimeout(async () => {
+        await performSave();
+        resolve();
+      }, 1500); // Debounce delay of 1.5 seconds
+    });
+  }
 }
 
 // Load all user data from Supabase

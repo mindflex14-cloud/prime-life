@@ -63,6 +63,7 @@ export default function App() {
   const [guestBypass, setGuestBypass] = useState<boolean>(() => localStorage.getItem('lifeos_guest_bypass') === 'true');
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
+  const [isSyncDelayed, setIsSyncDelayed] = useState<boolean>(false);
   
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem('lifeos_dark_mode');
@@ -189,19 +190,47 @@ export default function App() {
 
   // --- SUPABASE AUTH AND REAL-TIME SYNC ---
   useEffect(() => {
-    if (!supabase) return;
+    if (!supabase) {
+      setIsInitialLoading(false);
+      return;
+    }
+
+    let isFinished = false;
+    let unsubscribeSnapshot: (() => void) | null = null;
+    let syncTriggerListener: (() => void) | null = null;
+
+    const timeoutId = setTimeout(() => {
+      if (!isFinished) {
+        console.warn("[Sync Timeout] Supabase initial load exceeded timeout threshold. Falling back to offline data caches.");
+        setIsInitialLoading(false);
+        setIsSyncDelayed(true);
+      }
+    }, 8500);
 
     // Retrieve initial session and set user
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setUser(session.user);
       }
+    }).catch(err => {
+      console.error("[Auth] getSession error:", err);
     });
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       const sUser = session?.user || null;
       setUser(sUser);
+
+      // Clean up previous user snapshot subscription and listener if user changed
+      if (unsubscribeSnapshot) {
+        unsubscribeSnapshot();
+        unsubscribeSnapshot = null;
+      }
+      if (syncTriggerListener) {
+        window.removeEventListener('supabase-sync-trigger', syncTriggerListener);
+        syncTriggerListener = null;
+      }
+
       if (sUser) {
         setIsSyncing(true);
         try {
@@ -212,46 +241,54 @@ export default function App() {
           
           if (Object.keys(cloudData).length === 0) {
             // Seed cloud data with current local state
-            await saveUserDataToCloud(sUser.id, 'profile', profile);
-            await saveUserDataToCloud(sUser.id, 'visionCards', visionCards);
-            await saveUserDataToCloud(sUser.id, 'goals', goals);
-            await saveUserDataToCloud(sUser.id, 'milestones', milestones);
-            await saveUserDataToCloud(sUser.id, 'tasks', tasks);
-            await saveUserDataToCloud(sUser.id, 'habits', habits);
-            await saveUserDataToCloud(sUser.id, 'journalEntries', journalEntries);
-            await saveUserDataToCloud(sUser.id, 'financeRecords', financeRecords);
-            await saveUserDataToCloud(sUser.id, 'healthLogs', healthLogs);
-            await saveUserDataToCloud(sUser.id, 'lifeWheel', lifeWheel);
-            await saveUserDataToCloud(sUser.id, 'philosophicalEntries', philosophicalEntries);
-            await saveUserDataToCloud(sUser.id, 'bookWisdomEntries', bookWisdomEntries);
-            await saveUserDataToCloud(sUser.id, 'intuitionEntries', intuitionEntries);
+            const seedPromises = [
+              saveUserDataToCloud(sUser.id, 'profile', profile, true),
+              saveUserDataToCloud(sUser.id, 'visionCards', visionCards, true),
+              saveUserDataToCloud(sUser.id, 'goals', goals, true),
+              saveUserDataToCloud(sUser.id, 'milestones', milestones, true),
+              saveUserDataToCloud(sUser.id, 'tasks', tasks, true),
+              saveUserDataToCloud(sUser.id, 'habits', habits, true),
+              saveUserDataToCloud(sUser.id, 'journalEntries', journalEntries, true),
+              saveUserDataToCloud(sUser.id, 'financeRecords', financeRecords, true),
+              saveUserDataToCloud(sUser.id, 'healthLogs', healthLogs, true),
+              saveUserDataToCloud(sUser.id, 'lifeWheel', lifeWheel, true),
+              saveUserDataToCloud(sUser.id, 'philosophicalEntries', philosophicalEntries, true),
+              saveUserDataToCloud(sUser.id, 'bookWisdomEntries', bookWisdomEntries, true),
+              saveUserDataToCloud(sUser.id, 'intuitionEntries', intuitionEntries, true),
+            ];
             
             const savedPower = localStorage.getItem('lifeos_power_system');
-            if (savedPower) await saveUserDataToCloud(sUser.id, 'powerSystem', JSON.parse(savedPower));
+            if (savedPower) seedPromises.push(saveUserDataToCloud(sUser.id, 'powerSystem', JSON.parse(savedPower), true));
             const savedRules = localStorage.getItem('lifeos_exercise_rules');
-            if (savedRules) await saveUserDataToCloud(sUser.id, 'exerciseRules', JSON.parse(savedRules));
+            if (savedRules) seedPromises.push(saveUserDataToCloud(sUser.id, 'exerciseRules', JSON.parse(savedRules), true));
             const savedSecs = localStorage.getItem('lifeos_newme_sections');
-            if (savedSecs) await saveUserDataToCloud(sUser.id, 'newMeSections', JSON.parse(savedSecs));
+            if (savedSecs) seedPromises.push(saveUserDataToCloud(sUser.id, 'newMeSections', JSON.parse(savedSecs), true));
             const savedDrop = localStorage.getItem('lifeos_newme_datadrop');
-            if (savedDrop) await saveUserDataToCloud(sUser.id, 'newMeDataDrop', savedDrop);
+            if (savedDrop) seedPromises.push(saveUserDataToCloud(sUser.id, 'newMeDataDrop', savedDrop, true));
             const savedInts = localStorage.getItem('lifeos_newme_interventions');
-            if (savedInts) await saveUserDataToCloud(sUser.id, 'newMeInterventions', JSON.parse(savedInts));
+            if (savedInts) seedPromises.push(saveUserDataToCloud(sUser.id, 'newMeInterventions', JSON.parse(savedInts), true));
 
             const savedEarthTarget = localStorage.getItem('lifeos_earth_target');
-            if (savedEarthTarget) await saveUserDataToCloud(sUser.id, 'earthCountdownTarget', savedEarthTarget);
+            if (savedEarthTarget) seedPromises.push(saveUserDataToCloud(sUser.id, 'earthCountdownTarget', savedEarthTarget, true));
             const savedEarthTitle = localStorage.getItem('lifeos_earth_title');
-            if (savedEarthTitle) await saveUserDataToCloud(sUser.id, 'earthCountdownTitle', savedEarthTitle);
+            if (savedEarthTitle) seedPromises.push(saveUserDataToCloud(sUser.id, 'earthCountdownTitle', savedEarthTitle, true));
             const savedEarthImage = localStorage.getItem('lifeos_earth_image');
-            if (savedEarthImage) await saveUserDataToCloud(sUser.id, 'earthCountdownImage', savedEarthImage);
+            if (savedEarthImage) seedPromises.push(saveUserDataToCloud(sUser.id, 'earthCountdownImage', savedEarthImage, true));
             const savedEarthQuote = localStorage.getItem('lifeos_earth_quote');
-            if (savedEarthQuote) await saveUserDataToCloud(sUser.id, 'earthCountdownQuote', savedEarthQuote);
+            if (savedEarthQuote) seedPromises.push(saveUserDataToCloud(sUser.id, 'earthCountdownQuote', savedEarthQuote, true));
 
             const savedBusinessIdeas = localStorage.getItem('lifeos_business_ideas');
-            if (savedBusinessIdeas) await saveUserDataToCloud(sUser.id, 'businessIdeas', JSON.parse(savedBusinessIdeas));
+            if (savedBusinessIdeas) seedPromises.push(saveUserDataToCloud(sUser.id, 'businessIdeas', JSON.parse(savedBusinessIdeas), true));
             const savedDarkMode = localStorage.getItem('lifeos_dark_mode');
-            if (savedDarkMode) await saveUserDataToCloud(sUser.id, 'darkMode', savedDarkMode === 'true');
+            if (savedDarkMode) seedPromises.push(saveUserDataToCloud(sUser.id, 'darkMode', savedDarkMode === 'true', true));
             const savedNavItems = localStorage.getItem('lifeos_nav_items_v3');
-            if (savedNavItems) await saveUserDataToCloud(sUser.id, 'navItems', JSON.parse(savedNavItems));
+            if (savedNavItems) seedPromises.push(saveUserDataToCloud(sUser.id, 'navItems', JSON.parse(savedNavItems), true));
+
+            try {
+              await Promise.all(seedPromises);
+            } catch (seedErr) {
+              console.error("[Seeding] Error seeding user data to cloud:", seedErr);
+            }
           } else {
             // Apply downloaded cloud data to states if different
             if (cloudData.profile && JSON.stringify(cloudData.profile) !== JSON.stringify(profile)) {
@@ -340,164 +377,177 @@ export default function App() {
         } catch (err) {
           console.error("Error doing initial sync:", err);
         } finally {
+          isFinished = true;
+          clearTimeout(timeoutId);
           setIsSyncing(false);
           setIsInitialLoading(false);
         }
 
         // Start real-time Supabase listener
-        const unsubscribeSnapshot = subscribeToUserDataCloud(sUser.id, (key, data) => {
-          const stringified = JSON.stringify(data);
-          switch (key) {
-            case 'profile':
-              setProfile(prev => JSON.stringify(prev) !== stringified ? data : prev);
-              break;
-            case 'visionCards':
-              setVisionCards(prev => JSON.stringify(prev) !== stringified ? data : prev);
-              break;
-            case 'goals':
-              setGoals(prev => JSON.stringify(prev) !== stringified ? data : prev);
-              break;
-            case 'milestones':
-              setMilestones(prev => JSON.stringify(prev) !== stringified ? data : prev);
-              break;
-            case 'tasks':
-              setTasks(prev => JSON.stringify(prev) !== stringified ? data : prev);
-              break;
-            case 'habits':
-              setHabits(prev => JSON.stringify(prev) !== stringified ? data : prev);
-              break;
-            case 'journalEntries':
-              setJournalEntries(prev => JSON.stringify(prev) !== stringified ? data : prev);
-              break;
-            case 'financeRecords':
-              setFinanceRecords(prev => JSON.stringify(prev) !== stringified ? data : prev);
-              break;
-            case 'healthLogs':
-              setHealthLogs(prev => JSON.stringify(prev) !== stringified ? data : prev);
-              break;
-            case 'lifeWheel':
-              setLifeWheel(prev => JSON.stringify(prev) !== stringified ? data : prev);
-              break;
-            case 'philosophicalEntries':
-              setPhilosophicalEntries(prev => JSON.stringify(prev) !== stringified ? data : prev);
-              break;
-            case 'bookWisdomEntries':
-              setBookWisdomEntries(prev => JSON.stringify(prev) !== stringified ? data : prev);
-              break;
-            case 'intuitionEntries':
-              setIntuitionEntries(prev => JSON.stringify(prev) !== stringified ? data : prev);
-              break;
-            case 'powerSystem': {
-              const lsKey = 'lifeos_power_system';
-              if (localStorage.getItem(lsKey) !== stringified) {
-                localStorage.setItem(lsKey, stringified);
-                window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+        try {
+          unsubscribeSnapshot = subscribeToUserDataCloud(sUser.id, (key, data) => {
+            const stringified = JSON.stringify(data);
+            switch (key) {
+              case 'profile':
+                setProfile(prev => JSON.stringify(prev) !== stringified ? data : prev);
+                break;
+              case 'visionCards':
+                setVisionCards(prev => JSON.stringify(prev) !== stringified ? data : prev);
+                break;
+              case 'goals':
+                setGoals(prev => JSON.stringify(prev) !== stringified ? data : prev);
+                break;
+              case 'milestones':
+                setMilestones(prev => JSON.stringify(prev) !== stringified ? data : prev);
+                break;
+              case 'tasks':
+                setTasks(prev => JSON.stringify(prev) !== stringified ? data : prev);
+                break;
+              case 'habits':
+                setHabits(prev => JSON.stringify(prev) !== stringified ? data : prev);
+                break;
+              case 'journalEntries':
+                setJournalEntries(prev => JSON.stringify(prev) !== stringified ? data : prev);
+                break;
+              case 'financeRecords':
+                setFinanceRecords(prev => JSON.stringify(prev) !== stringified ? data : prev);
+                break;
+              case 'healthLogs':
+                setHealthLogs(prev => JSON.stringify(prev) !== stringified ? data : prev);
+                break;
+              case 'lifeWheel':
+                setLifeWheel(prev => JSON.stringify(prev) !== stringified ? data : prev);
+                break;
+              case 'philosophicalEntries':
+                setPhilosophicalEntries(prev => JSON.stringify(prev) !== stringified ? data : prev);
+                break;
+              case 'bookWisdomEntries':
+                setBookWisdomEntries(prev => JSON.stringify(prev) !== stringified ? data : prev);
+                break;
+              case 'intuitionEntries':
+                setIntuitionEntries(prev => JSON.stringify(prev) !== stringified ? data : prev);
+                break;
+              case 'powerSystem': {
+                const lsKey = 'lifeos_power_system';
+                if (localStorage.getItem(lsKey) !== stringified) {
+                  localStorage.setItem(lsKey, stringified);
+                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                }
+                break;
               }
-              break;
+              case 'exerciseRules': {
+                const lsKey = 'lifeos_exercise_rules';
+                if (localStorage.getItem(lsKey) !== stringified) {
+                  localStorage.setItem(lsKey, stringified);
+                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                }
+                break;
+              }
+              case 'newMeSections': {
+                const lsKey = 'lifeos_newme_sections';
+                if (localStorage.getItem(lsKey) !== stringified) {
+                  localStorage.setItem(lsKey, stringified);
+                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                }
+                break;
+              }
+              case 'newMeDataDrop': {
+                const lsKey = 'lifeos_newme_datadrop';
+                if (localStorage.getItem(lsKey) !== data) {
+                  localStorage.setItem(lsKey, data);
+                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                }
+                break;
+              }
+              case 'newMeInterventions': {
+                const lsKey = 'lifeos_newme_interventions';
+                if (localStorage.getItem(lsKey) !== stringified) {
+                  localStorage.setItem(lsKey, stringified);
+                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                }
+                break;
+              }
+              case 'earthCountdownTarget': {
+                const lsKey = 'lifeos_earth_target';
+                if (localStorage.getItem(lsKey) !== data) {
+                  localStorage.setItem(lsKey, data);
+                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                }
+                break;
+              }
+              case 'earthCountdownTitle': {
+                const lsKey = 'lifeos_earth_title';
+                if (localStorage.getItem(lsKey) !== data) {
+                  localStorage.setItem(lsKey, data);
+                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                }
+                break;
+              }
+              case 'earthCountdownImage': {
+                const lsKey = 'lifeos_earth_image';
+                if (localStorage.getItem(lsKey) !== data) {
+                  localStorage.setItem(lsKey, data);
+                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                }
+                break;
+              }
+              case 'earthCountdownQuote': {
+                const lsKey = 'lifeos_earth_quote';
+                if (localStorage.getItem(lsKey) !== data) {
+                  localStorage.setItem(lsKey, data);
+                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                }
+                break;
+              }
+              case 'businessIdeas': {
+                const lsKey = 'lifeos_business_ideas';
+                if (localStorage.getItem(lsKey) !== stringified) {
+                  localStorage.setItem(lsKey, stringified);
+                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                }
+                break;
+              }
+              case 'darkMode':
+                if (data !== isDarkMode) {
+                  setIsDarkMode(data);
+                }
+                break;
+              case 'navItems':
+                if (JSON.stringify(data) !== JSON.stringify(navItems)) {
+                  setNavItems(data);
+                }
+                break;
             }
-            case 'exerciseRules': {
-              const lsKey = 'lifeos_exercise_rules';
-              if (localStorage.getItem(lsKey) !== stringified) {
-                localStorage.setItem(lsKey, stringified);
-                window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
-              }
-              break;
-            }
-            case 'newMeSections': {
-              const lsKey = 'lifeos_newme_sections';
-              if (localStorage.getItem(lsKey) !== stringified) {
-                localStorage.setItem(lsKey, stringified);
-                window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
-              }
-              break;
-            }
-            case 'newMeDataDrop': {
-              const lsKey = 'lifeos_newme_datadrop';
-              if (localStorage.getItem(lsKey) !== data) {
-                localStorage.setItem(lsKey, data);
-                window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
-              }
-              break;
-            }
-            case 'newMeInterventions': {
-              const lsKey = 'lifeos_newme_interventions';
-              if (localStorage.getItem(lsKey) !== stringified) {
-                localStorage.setItem(lsKey, stringified);
-                window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
-              }
-              break;
-            }
-            case 'earthCountdownTarget': {
-              const lsKey = 'lifeos_earth_target';
-              if (localStorage.getItem(lsKey) !== data) {
-                localStorage.setItem(lsKey, data);
-                window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
-              }
-              break;
-            }
-            case 'earthCountdownTitle': {
-              const lsKey = 'lifeos_earth_title';
-              if (localStorage.getItem(lsKey) !== data) {
-                localStorage.setItem(lsKey, data);
-                window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
-              }
-              break;
-            }
-            case 'earthCountdownImage': {
-              const lsKey = 'lifeos_earth_image';
-              if (localStorage.getItem(lsKey) !== data) {
-                localStorage.setItem(lsKey, data);
-                window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
-              }
-              break;
-            }
-            case 'earthCountdownQuote': {
-              const lsKey = 'lifeos_earth_quote';
-              if (localStorage.getItem(lsKey) !== data) {
-                localStorage.setItem(lsKey, data);
-                window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
-              }
-              break;
-            }
-            case 'businessIdeas': {
-              const lsKey = 'lifeos_business_ideas';
-              if (localStorage.getItem(lsKey) !== stringified) {
-                localStorage.setItem(lsKey, stringified);
-                window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
-              }
-              break;
-            }
-            case 'darkMode':
-              if (data !== isDarkMode) {
-                setIsDarkMode(data);
-              }
-              break;
-            case 'navItems':
-              if (JSON.stringify(data) !== JSON.stringify(navItems)) {
-                setNavItems(data);
-              }
-              break;
-          }
-        });
+          });
+        } catch (subErr) {
+          console.error("Error setting up real-time subscription:", subErr);
+        }
 
         // Trigger sync of pending data when becoming online or trigger event is received
-        const handleSyncTrigger = () => {
-          syncPendingData(sUser.id);
+        syncTriggerListener = () => {
+          syncPendingData(sUser.id).catch(err => {
+            console.error("Error syncing pending data on trigger:", err);
+          });
         };
-        window.addEventListener('supabase-sync-trigger', handleSyncTrigger);
-
-        return () => {
-          unsubscribeSnapshot();
-          window.removeEventListener('supabase-sync-trigger', handleSyncTrigger);
-        };
+        window.addEventListener('supabase-sync-trigger', syncTriggerListener);
       } else {
+        isFinished = true;
+        clearTimeout(timeoutId);
         setIsSyncing(false);
         setIsInitialLoading(false);
       }
     });
 
     return () => {
+      isFinished = true;
+      clearTimeout(timeoutId);
       subscription.unsubscribe();
+      if (unsubscribeSnapshot) {
+        unsubscribeSnapshot();
+      }
+      if (syncTriggerListener) {
+        window.removeEventListener('supabase-sync-trigger', syncTriggerListener);
+      }
     };
   }, []);
 
@@ -1506,6 +1556,23 @@ export default function App() {
         
         {/* Render Active view */}
         <div className="flex-1 w-full max-w-7xl mx-auto pb-8">
+          {isSyncDelayed && (
+            <div className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-600 dark:text-amber-400 text-xs font-mono flex items-center justify-between gap-4 shadow-sm animate-fade-in">
+              <div className="flex items-center gap-2.5">
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                </span>
+                <span>Cloud data synchronization is delayed due to network conditions. Displaying cached local/offline logs securely. Updates will sync automatically.</span>
+              </div>
+              <button 
+                onClick={() => setIsSyncDelayed(false)} 
+                className="text-[10px] uppercase font-bold tracking-wider hover:opacity-80 border border-amber-500/30 px-2 py-1 rounded transition-all shrink-0"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
