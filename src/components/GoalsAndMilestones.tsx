@@ -472,6 +472,9 @@ export default function GoalsAndMilestones({
                             onClick={(e) => {
                               e.stopPropagation();
                               setGoalImageUrls(prev => prev.filter((_, i) => i !== idx));
+                              setGoalThumbnailUrls(prev => prev.filter((_, i) => i !== idx));
+                              setGoalImageUrl('');
+                              setGoalThumbnailUrl('');
                             }}
                             className="absolute top-0.5 right-0.5 p-0.5 bg-slate-950/80 hover:bg-rose-500 rounded-full text-white cursor-pointer z-10"
                           >
@@ -500,6 +503,7 @@ export default function GoalsAndMilestones({
                     onClick={() => {
                       if (urlInput.trim()) {
                         setGoalImageUrls(prev => [...prev, urlInput.trim()]);
+                        setGoalThumbnailUrls(prev => [...prev, urlInput.trim()]);
                         setUrlInput('');
                       }
                     }}
@@ -720,6 +724,9 @@ export default function GoalsAndMilestones({
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setEditImageUrls(prev => prev.filter((_, i) => i !== idx));
+                                  setEditThumbnailUrls(prev => prev.filter((_, i) => i !== idx));
+                                  setEditImageUrl('');
+                                  setEditThumbnailUrl('');
                                 }}
                                 className="absolute top-0.5 right-0.5 p-0.5 bg-slate-950/80 hover:bg-rose-500 rounded-full text-white cursor-pointer z-10"
                               >
@@ -748,6 +755,7 @@ export default function GoalsAndMilestones({
                         onClick={() => {
                           if (editUrlInput.trim()) {
                             setEditImageUrls(prev => [...prev, editUrlInput.trim()]);
+                            setEditThumbnailUrls(prev => [...prev, editUrlInput.trim()]);
                             setEditUrlInput('');
                           }
                         }}

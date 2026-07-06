@@ -1640,6 +1640,9 @@ export default function VisualizationView({
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       setTempImageUrls(prev => prev.filter((_, i) => i !== idx));
+                                      setTempThumbnailUrls(prev => prev.filter((_, i) => i !== idx));
+                                      setTempImageUrl('');
+                                      setTempThumbnailUrl('');
                                     }}
                                     className="absolute top-0.5 right-0.5 p-0.5 bg-slate-950/80 hover:bg-rose-500 rounded-full text-white cursor-pointer z-10"
                                   >
@@ -1670,6 +1673,7 @@ export default function VisualizationView({
                             onClick={() => {
                               if (editUrlInput.trim()) {
                                 setTempImageUrls(prev => [...prev, editUrlInput.trim()]);
+                                setTempThumbnailUrls(prev => [...prev, editUrlInput.trim()]);
                                 setEditUrlInput('');
                               }
                             }}

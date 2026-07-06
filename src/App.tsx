@@ -677,13 +677,18 @@ export default function App() {
         const updated = { ...g, ...updates };
         setVisionCards(vPrev => vPrev.map(c => {
           if (c.goalId === id) {
+            const vUpdates: Partial<VisionCard> = {};
+            if ('title' in updates) vUpdates.title = updates.title;
+            if ('category' in updates) vUpdates.category = updates.category;
+            if ('targetDate' in updates) vUpdates.targetDate = updates.targetDate;
+            if ('imageUrl' in updates) vUpdates.imageUrl = updates.imageUrl;
+            if ('imageUrls' in updates) vUpdates.imageUrls = updates.imageUrls;
+            if ('thumbnailUrl' in updates) vUpdates.thumbnailUrl = updates.thumbnailUrl;
+            if ('thumbnailUrls' in updates) vUpdates.thumbnailUrls = updates.thumbnailUrls;
+            
             return {
               ...c,
-              title: updated.title,
-              category: updated.category,
-              targetDate: updated.targetDate,
-              imageUrl: updated.imageUrl || c.imageUrl,
-              imageUrls: updated.imageUrls || c.imageUrls
+              ...vUpdates
             };
           }
           return c;
@@ -845,11 +850,13 @@ export default function App() {
           setGoals(gPrev => gPrev.map(g => {
             if (g.id === updated.goalId) {
               const gUpdates: Partial<Goal> = {};
-              if (updates.imageUrl !== undefined) gUpdates.imageUrl = updates.imageUrl;
-              if (updates.imageUrls !== undefined) gUpdates.imageUrls = updates.imageUrls;
-              if (updates.title !== undefined) gUpdates.title = updates.title;
-              if (updates.category !== undefined) gUpdates.category = updates.category;
-              if (updates.targetDate !== undefined) gUpdates.targetDate = updates.targetDate;
+              if ('imageUrl' in updates) gUpdates.imageUrl = updates.imageUrl;
+              if ('imageUrls' in updates) gUpdates.imageUrls = updates.imageUrls;
+              if ('thumbnailUrl' in updates) gUpdates.thumbnailUrl = updates.thumbnailUrl;
+              if ('thumbnailUrls' in updates) gUpdates.thumbnailUrls = updates.thumbnailUrls;
+              if ('title' in updates) gUpdates.title = updates.title;
+              if ('category' in updates) gUpdates.category = updates.category;
+              if ('targetDate' in updates) gUpdates.targetDate = updates.targetDate;
               return { ...g, ...gUpdates };
             }
             return g;
