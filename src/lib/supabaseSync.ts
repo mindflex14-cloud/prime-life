@@ -9,7 +9,9 @@ export async function signInWithGoogle() {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin + '/prime-life/'
+        redirectTo: window.location.hostname.includes('github.io')
+          ? window.location.origin + '/prime-life/' 
+          : window.location.origin
       }
     });
     if (error) throw error;
