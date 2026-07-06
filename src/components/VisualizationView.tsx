@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { VisionCard, Goal } from '../types';
 import { SwipeableImageCarousel } from './SwipeableImageCarousel';
+import { saveUserDataToCloud } from '../lib/supabaseSync';
 
 // High Precision Real-Time countdown subcomponent with BIG display typography
 function GoalCountdown({ targetDate, isDarkMode }: { targetDate: string; isDarkMode: boolean }) {
@@ -148,6 +149,7 @@ interface VisualizationViewProps {
   onUpdateCard: (id: string, updates: Partial<VisionCard>) => void;
   onDeleteCard: (id: string) => void;
   isDarkMode?: boolean;
+  userId?: string;
 }
 
 export default function VisualizationView({
@@ -156,7 +158,8 @@ export default function VisualizationView({
   onAddCard,
   onUpdateCard,
   onDeleteCard,
-  isDarkMode = true
+  isDarkMode = true,
+  userId
 }: VisualizationViewProps) {
   const [editingCardId, setEditingCardId] = useState<string | null>(null);
   const [tempTitle, setTempTitle] = useState('');
@@ -206,19 +209,52 @@ export default function VisualizationView({
   // Sync back on state change
   useEffect(() => {
     localStorage.setItem('lifeos_earth_target', earthCountdownTarget);
-  }, [earthCountdownTarget]);
+    if (userId) {
+      saveUserDataToCloud(userId, 'earthCountdownTarget', earthCountdownTarget);
+    }
+  }, [earthCountdownTarget, userId]);
 
   useEffect(() => {
     localStorage.setItem('lifeos_earth_title', earthCountdownTitle);
-  }, [earthCountdownTitle]);
+    if (userId) {
+      saveUserDataToCloud(userId, 'earthCountdownTitle', earthCountdownTitle);
+    }
+  }, [earthCountdownTitle, userId]);
 
   useEffect(() => {
     localStorage.setItem('lifeos_earth_image', earthCountdownImage);
-  }, [earthCountdownImage]);
+    if (userId) {
+      saveUserDataToCloud(userId, 'earthCountdownImage', earthCountdownImage);
+    }
+  }, [earthCountdownImage, userId]);
 
   useEffect(() => {
     localStorage.setItem('lifeos_earth_quote', earthCountdownQuote);
-  }, [earthCountdownQuote]);
+    if (userId) {
+      saveUserDataToCloud(userId, 'earthCountdownQuote', earthCountdownQuote);
+    }
+  }, [earthCountdownQuote, userId]);
+
+  // Sync listener across tabs and devices
+  useEffect(() => {
+    const handleSync = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail) {
+        const { key, value } = customEvent.detail;
+        if (key === 'lifeos_earth_target' && value !== earthCountdownTarget) {
+          setEarthCountdownTarget(value);
+        } else if (key === 'lifeos_earth_title' && value !== earthCountdownTitle) {
+          setEarthCountdownTitle(value);
+        } else if (key === 'lifeos_earth_image' && value !== earthCountdownImage) {
+          setEarthCountdownImage(value);
+        } else if (key === 'lifeos_earth_quote' && value !== earthCountdownQuote) {
+          setEarthCountdownQuote(value);
+        }
+      }
+    };
+    window.addEventListener('local-storage-sync', handleSync);
+    return () => window.removeEventListener('local-storage-sync', handleSync);
+  }, [earthCountdownTarget, earthCountdownTitle, earthCountdownImage, earthCountdownQuote]);
 
   // Live countdown state computed from target or from live edit target (for reactive live preview!)
   const [earthTimeLeft, setEarthTimeLeft] = useState<{
@@ -1378,8 +1414,8 @@ export default function VisualizationView({
               }`}
               id={`vision-card-${card.id}`}
             >
-              {/* Header / Image section with interactive upload trigger */}
-              <div className="relative h-64 overflow-hidden group">
+              {/* Header / Image section with interactive upload trigger (Height increased for stunning display) */}
+              <div className="relative h-80 sm:h-[400px] overflow-hidden group">
                 
                 {imageErrors[card.id] ? (
                   /* Elegant error placeholder with built-in upload click & drag-and-drop support */
@@ -1428,14 +1464,14 @@ export default function VisualizationView({
                   />
                 )}
                 
-                {/* Visual Glass gradient shade overlay */}
-                <div className={`absolute inset-0 pointer-events-none bg-gradient-to-t via-transparent to-black/45 ${
-                  isDarkMode ? 'from-[#0b0b12]' : 'from-white/10'
+                {/* Subtle dark bottom shade overlay for visual depth */}
+                <div className={`absolute inset-0 pointer-events-none bg-gradient-to-t via-transparent to-black/15 ${
+                  isDarkMode ? 'from-[#0b0b12]/35' : 'from-white/5'
                 }`} />
 
                 {/* Instant upload overlay triggers (shown on hover over a working image) */}
                 {!imageErrors[card.id] && (
-                  <div className="absolute inset-0 bg-slate-950/45 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-xs">
+                  <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-[2px]">
                     <button
                       onClick={() => triggerUploadClick(card.id)}
                       className="p-3 bg-cyan-500/90 hover:bg-cyan-400 hover:scale-105 text-slate-950 rounded-2xl font-bold text-xs font-mono flex items-center gap-2 shadow-lg transition-all cursor-pointer"
@@ -1444,56 +1480,6 @@ export default function VisualizationView({
                     </button>
                   </div>
                 )}
-
-                {/* Categories & Floating Actions */}
-                <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
-                  <div className="flex flex-col gap-1.5 items-start">
-                    <span className="px-3 py-1 bg-slate-950/85 backdrop-blur-md border border-white/10 text-cyan-400 text-[10px] font-mono font-semibold uppercase tracking-widest rounded-full">
-                      {card.category}
-                    </span>
-                    {card.targetDate && (
-                      <span className="flex items-center gap-1.5 text-[9px] font-mono text-white bg-slate-950/80 backdrop-blur-sm px-2.5 py-1 rounded-md border border-white/5">
-                        <Calendar className="w-3.5 h-3.5 text-cyan-400" /> Goal Target: {card.targetDate}
-                      </span>
-                    )}
-                    {linkedGoal && (
-                      <span className="flex items-center gap-1 text-[9px] font-mono text-emerald-400 bg-slate-950/85 backdrop-blur-sm px-2.5 py-1 rounded-md border border-emerald-500/10">
-                        <Link2 className="w-3 h-3 text-emerald-400" /> Linked to "{linkedGoal.title}"
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex gap-1.5">
-                    <button
-                      onClick={() => triggerUploadClick(card.id)}
-                      className="p-1.5 bg-slate-950/85 backdrop-blur-md hover:bg-emerald-500 hover:text-slate-950 text-slate-300 rounded-lg border border-white/10 transition-all cursor-pointer"
-                      title="Upload/Replace Goal Photo"
-                    >
-                      <Upload className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => handleStartEdit(card)}
-                      className="p-1.5 bg-slate-950/85 backdrop-blur-md hover:bg-cyan-500 hover:text-slate-950 text-slate-300 rounded-lg border border-white/10 transition-all cursor-pointer"
-                      title="Edit Card Configuration"
-                    >
-                      <Edit3 className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => onDeleteCard(card.id)}
-                      className="p-1.5 bg-slate-950/85 backdrop-blur-md hover:bg-rose-500 hover:text-white text-slate-300 rounded-lg border border-white/10 transition-all cursor-pointer"
-                      title="Remove Manifest Anchor"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Visual Overlay: Heading Text inside Image */}
-                <div className="absolute bottom-4 left-5 right-5 z-10">
-                  <h3 className="text-2xl font-bold text-white tracking-tight drop-shadow-md">
-                    {card.title}
-                  </h3>
-                </div>
               </div>
 
               {/* Editing Card Metadata Overlay */}
@@ -1673,7 +1659,83 @@ export default function VisualizationView({
               </AnimatePresence>
 
               {/* Countdown & Instructions panel - DIRECTLY EDITABLE TO ME */}
-              <div className="p-6 flex flex-col justify-between flex-1 space-y-4">
+              <div className="p-6 flex flex-col justify-between flex-1 space-y-5">
+                
+                {/* Clean non-overlay Metadata & Action controls panel */}
+                <div className="space-y-3">
+                  <div className="flex flex-wrap justify-between items-center gap-2">
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-1.5 items-center">
+                      <span className={`px-2.5 py-1 border text-[10px] font-mono font-semibold uppercase tracking-wider rounded-md ${
+                        isDarkMode 
+                          ? 'bg-cyan-500/10 border-cyan-500/25 text-cyan-400' 
+                          : 'bg-cyan-50 border-cyan-200 text-cyan-600'
+                      }`}>
+                        {card.category}
+                      </span>
+                      {card.targetDate && (
+                        <span className={`flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-md border ${
+                          isDarkMode ? 'bg-white/5 border-white/5 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-600'
+                        }`}>
+                          <Calendar className="w-3 h-3 text-cyan-400" /> Goal Target: {card.targetDate}
+                        </span>
+                      )}
+                      {linkedGoal && (
+                        <span className={`flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-md border ${
+                          isDarkMode 
+                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                            : 'bg-emerald-50 border-emerald-200 text-emerald-600'
+                        }`}>
+                          <Link2 className="w-3 h-3 text-emerald-400" /> Linked to "{linkedGoal.title}"
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Action buttons (Now beautifully separated from image) */}
+                    <div className="flex gap-1.5 shrink-0">
+                      <button
+                        onClick={() => triggerUploadClick(card.id)}
+                        className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                          isDarkMode 
+                            ? 'bg-white/5 hover:bg-emerald-500 hover:text-slate-950 text-slate-400 border-white/5' 
+                            : 'bg-slate-50 hover:bg-emerald-500 hover:text-white text-slate-500 border-slate-200'
+                        }`}
+                        title="Upload/Replace Goal Photo"
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleStartEdit(card)}
+                        className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                          isDarkMode 
+                            ? 'bg-white/5 hover:bg-cyan-500 hover:text-slate-950 text-slate-400 border-white/5' 
+                            : 'bg-slate-50 hover:bg-cyan-500 hover:text-white text-slate-500 border-slate-200'
+                        }`}
+                        title="Edit Card Configuration"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => onDeleteCard(card.id)}
+                        className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                          isDarkMode 
+                            ? 'bg-white/5 hover:bg-rose-500 hover:text-white text-slate-400 border-white/5' 
+                            : 'bg-slate-50 hover:bg-rose-500 hover:text-white text-slate-500 border-slate-200'
+                        }`}
+                        title="Remove Manifest Anchor"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Clean Prominent Title below the image */}
+                  <h3 className={`text-xl sm:text-2xl font-extrabold tracking-tight leading-snug ${
+                    isDarkMode ? 'text-white' : 'text-slate-900'
+                  }`}>
+                    {card.title}
+                  </h3>
+                </div>
                 
                 {/* BIG COUNTDOWN TIMER */}
                 {card.targetDate && (

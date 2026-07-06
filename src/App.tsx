@@ -232,6 +232,15 @@ export default function App() {
             if (savedDrop) await saveUserDataToCloud(sUser.id, 'newMeDataDrop', savedDrop);
             const savedInts = localStorage.getItem('lifeos_newme_interventions');
             if (savedInts) await saveUserDataToCloud(sUser.id, 'newMeInterventions', JSON.parse(savedInts));
+
+            const savedEarthTarget = localStorage.getItem('lifeos_earth_target');
+            if (savedEarthTarget) await saveUserDataToCloud(sUser.id, 'earthCountdownTarget', savedEarthTarget);
+            const savedEarthTitle = localStorage.getItem('lifeos_earth_title');
+            if (savedEarthTitle) await saveUserDataToCloud(sUser.id, 'earthCountdownTitle', savedEarthTitle);
+            const savedEarthImage = localStorage.getItem('lifeos_earth_image');
+            if (savedEarthImage) await saveUserDataToCloud(sUser.id, 'earthCountdownImage', savedEarthImage);
+            const savedEarthQuote = localStorage.getItem('lifeos_earth_quote');
+            if (savedEarthQuote) await saveUserDataToCloud(sUser.id, 'earthCountdownQuote', savedEarthQuote);
           } else {
             // Apply downloaded cloud data to states if different
             if (cloudData.profile && JSON.stringify(cloudData.profile) !== JSON.stringify(profile)) {
@@ -275,13 +284,27 @@ export default function App() {
             }
             
             // Sync extra component local keys
-            const extraKeys = ['powerSystem', 'exerciseRules', 'newMeSections', 'newMeDataDrop', 'newMeInterventions'];
+            const extraKeys = [
+              'powerSystem', 
+              'exerciseRules', 
+              'newMeSections', 
+              'newMeDataDrop', 
+              'newMeInterventions',
+              'earthCountdownTarget',
+              'earthCountdownTitle',
+              'earthCountdownImage',
+              'earthCountdownQuote'
+            ];
             const localStorageKeysMap: Record<string, string> = {
               powerSystem: 'lifeos_power_system',
               exerciseRules: 'lifeos_exercise_rules',
               newMeSections: 'lifeos_newme_sections',
               newMeDataDrop: 'lifeos_newme_datadrop',
-              newMeInterventions: 'lifeos_newme_interventions'
+              newMeInterventions: 'lifeos_newme_interventions',
+              earthCountdownTarget: 'lifeos_earth_target',
+              earthCountdownTitle: 'lifeos_earth_title',
+              earthCountdownImage: 'lifeos_earth_image',
+              earthCountdownQuote: 'lifeos_earth_quote'
             };
             
             extraKeys.forEach((key) => {
@@ -380,6 +403,38 @@ export default function App() {
               const lsKey = 'lifeos_newme_interventions';
               if (localStorage.getItem(lsKey) !== stringified) {
                 localStorage.setItem(lsKey, stringified);
+                window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+              }
+              break;
+            }
+            case 'earthCountdownTarget': {
+              const lsKey = 'lifeos_earth_target';
+              if (localStorage.getItem(lsKey) !== data) {
+                localStorage.setItem(lsKey, data);
+                window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+              }
+              break;
+            }
+            case 'earthCountdownTitle': {
+              const lsKey = 'lifeos_earth_title';
+              if (localStorage.getItem(lsKey) !== data) {
+                localStorage.setItem(lsKey, data);
+                window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+              }
+              break;
+            }
+            case 'earthCountdownImage': {
+              const lsKey = 'lifeos_earth_image';
+              if (localStorage.getItem(lsKey) !== data) {
+                localStorage.setItem(lsKey, data);
+                window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+              }
+              break;
+            }
+            case 'earthCountdownQuote': {
+              const lsKey = 'lifeos_earth_quote';
+              if (localStorage.getItem(lsKey) !== data) {
+                localStorage.setItem(lsKey, data);
                 window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
               }
               break;
@@ -885,6 +940,7 @@ export default function App() {
             onUpdateCard={updateVisionCard}
             onDeleteCard={deleteVisionCard}
             isDarkMode={isDarkMode}
+            userId={user?.id}
           />
         );
       case 'goals':

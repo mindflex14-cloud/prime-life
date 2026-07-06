@@ -9,7 +9,7 @@ export async function signInWithGoogle() {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin + '/prime-life/'
+        redirectTo: window.location.origin
       }
     });
     if (error) throw error;
@@ -77,7 +77,11 @@ const keyToLocalStorageMap: Record<string, string> = {
   newMeSections: 'lifeos_newme_sections',
   newMeDataDrop: 'lifeos_newme_datadrop',
   newMeInterventions: 'lifeos_newme_interventions',
-  businessIdeas: 'lifeos_business_ideas'
+  businessIdeas: 'lifeos_business_ideas',
+  earthCountdownTarget: 'lifeos_earth_target',
+  earthCountdownTitle: 'lifeos_earth_title',
+  earthCountdownImage: 'lifeos_earth_image',
+  earthCountdownQuote: 'lifeos_earth_quote'
 };
 
 // Save a specific key's data to Supabase (and cache locally)
