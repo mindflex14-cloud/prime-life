@@ -81,7 +81,9 @@ const keyToLocalStorageMap: Record<string, string> = {
   earthCountdownTarget: 'lifeos_earth_target',
   earthCountdownTitle: 'lifeos_earth_title',
   earthCountdownImage: 'lifeos_earth_image',
-  earthCountdownQuote: 'lifeos_earth_quote'
+  earthCountdownQuote: 'lifeos_earth_quote',
+  darkMode: 'lifeos_dark_mode',
+  navItems: 'lifeos_nav_items_v3'
 };
 
 // Save a specific key's data to Supabase (and cache locally)

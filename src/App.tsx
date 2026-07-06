@@ -70,6 +70,9 @@ export default function App() {
 
   useEffect(() => {
     localStorage.setItem('lifeos_dark_mode', String(isDarkMode));
+    if (user) {
+      saveUserDataToCloud(user.id, 'darkMode', isDarkMode);
+    }
     const root = document.getElementById('lifeos-application-root');
     if (root) {
       if (isDarkMode) {
@@ -80,7 +83,7 @@ export default function App() {
         root.classList.remove('dark');
       }
     }
-  }, [isDarkMode]);
+  }, [isDarkMode, user]);
 
   // --- STATE HOOKS INITIALIZED FROM LOCAL STORAGE OR DEFAULTS ---
   const [profile, setProfile] = useState<UserProfile>(() => {
@@ -241,6 +244,13 @@ export default function App() {
             if (savedEarthImage) await saveUserDataToCloud(sUser.id, 'earthCountdownImage', savedEarthImage);
             const savedEarthQuote = localStorage.getItem('lifeos_earth_quote');
             if (savedEarthQuote) await saveUserDataToCloud(sUser.id, 'earthCountdownQuote', savedEarthQuote);
+
+            const savedBusinessIdeas = localStorage.getItem('lifeos_business_ideas');
+            if (savedBusinessIdeas) await saveUserDataToCloud(sUser.id, 'businessIdeas', JSON.parse(savedBusinessIdeas));
+            const savedDarkMode = localStorage.getItem('lifeos_dark_mode');
+            if (savedDarkMode) await saveUserDataToCloud(sUser.id, 'darkMode', savedDarkMode === 'true');
+            const savedNavItems = localStorage.getItem('lifeos_nav_items_v3');
+            if (savedNavItems) await saveUserDataToCloud(sUser.id, 'navItems', JSON.parse(savedNavItems));
           } else {
             // Apply downloaded cloud data to states if different
             if (cloudData.profile && JSON.stringify(cloudData.profile) !== JSON.stringify(profile)) {
@@ -282,6 +292,12 @@ export default function App() {
             if (cloudData.intuitionEntries && JSON.stringify(cloudData.intuitionEntries) !== JSON.stringify(intuitionEntries)) {
               setIntuitionEntries(cloudData.intuitionEntries);
             }
+            if (cloudData.darkMode !== undefined && cloudData.darkMode !== isDarkMode) {
+              setIsDarkMode(cloudData.darkMode);
+            }
+            if (cloudData.navItems && JSON.stringify(cloudData.navItems) !== JSON.stringify(navItems)) {
+              setNavItems(cloudData.navItems);
+            }
             
             // Sync extra component local keys
             const extraKeys = [
@@ -293,7 +309,8 @@ export default function App() {
               'earthCountdownTarget',
               'earthCountdownTitle',
               'earthCountdownImage',
-              'earthCountdownQuote'
+              'earthCountdownQuote',
+              'businessIdeas'
             ];
             const localStorageKeysMap: Record<string, string> = {
               powerSystem: 'lifeos_power_system',
@@ -304,7 +321,8 @@ export default function App() {
               earthCountdownTarget: 'lifeos_earth_target',
               earthCountdownTitle: 'lifeos_earth_title',
               earthCountdownImage: 'lifeos_earth_image',
-              earthCountdownQuote: 'lifeos_earth_quote'
+              earthCountdownQuote: 'lifeos_earth_quote',
+              businessIdeas: 'lifeos_business_ideas'
             };
             
             extraKeys.forEach((key) => {
@@ -439,6 +457,24 @@ export default function App() {
               }
               break;
             }
+            case 'businessIdeas': {
+              const lsKey = 'lifeos_business_ideas';
+              if (localStorage.getItem(lsKey) !== stringified) {
+                localStorage.setItem(lsKey, stringified);
+                window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+              }
+              break;
+            }
+            case 'darkMode':
+              if (data !== isDarkMode) {
+                setIsDarkMode(data);
+              }
+              break;
+            case 'navItems':
+              if (JSON.stringify(data) !== JSON.stringify(navItems)) {
+                setNavItems(data);
+              }
+              break;
           }
         });
 
@@ -882,7 +918,10 @@ export default function App() {
 
   useEffect(() => {
     localStorage.setItem('lifeos_nav_items_v3', JSON.stringify(navItems));
-  }, [navItems]);
+    if (user) {
+      saveUserDataToCloud(user.id, 'navItems', navItems);
+    }
+  }, [navItems, user]);
 
   const getNavIcon = (id: string, className = "w-4 h-4") => {
     switch (id) {
