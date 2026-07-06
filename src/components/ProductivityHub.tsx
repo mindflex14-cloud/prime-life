@@ -892,7 +892,7 @@ export default function ProductivityHub({
     if (targetDateStr) {
       setPowerSystem(prev => {
         const dateTasks = prev.dateTasks || {};
-        const categories = getCategoriesForDate(targetDateStr);
+        const categories = dateTasks[targetDateStr] || [];
         
         let recurringTaskToSchedule: { task: any; categoryName: string } | null = null;
         
@@ -999,7 +999,7 @@ export default function ProductivityHub({
     if (targetDateStr) {
       setPowerSystem(prev => {
         const dateTasks = prev.dateTasks || {};
-        const categories = getCategoriesForDate(targetDateStr);
+        const categories = dateTasks[targetDateStr] || [];
         const updatedCategories = categories.map(cat => {
           if (cat.id !== categoryId) return cat;
           return {
@@ -1046,7 +1046,7 @@ export default function ProductivityHub({
     if (targetDateStr) {
       setPowerSystem(prev => {
         const dateTasks = prev.dateTasks || {};
-        const categories = getCategoriesForDate(targetDateStr);
+        const categories = dateTasks[targetDateStr] || [];
         const updatedCategories = categories.map(cat => {
           if (cat.id !== categoryId) return cat;
           return { ...cat, name: newName.toUpperCase() };
@@ -1090,7 +1090,7 @@ export default function ProductivityHub({
     if (targetDateStr) {
       setPowerSystem(prev => {
         const dateTasks = prev.dateTasks || {};
-        const categories = getCategoriesForDate(targetDateStr);
+        const categories = dateTasks[targetDateStr] || [];
         const updatedCategories = categories.map(cat => {
           if (cat.id !== categoryId) return cat;
           return {
@@ -1162,7 +1162,7 @@ export default function ProductivityHub({
           }
         }
         
-        const categories = getCategoriesForDate(targetDateStr);
+        const categories = dateTasks[targetDateStr] || [];
         const updatedCategories = categories.map(cat => {
           if (cat.id !== categoryId) return cat;
           return {
@@ -1203,7 +1203,7 @@ export default function ProductivityHub({
     if (targetDateStr) {
       setPowerSystem(prev => {
         const dateTasks = prev.dateTasks || {};
-        const categories = getCategoriesForDate(targetDateStr);
+        const categories = dateTasks[targetDateStr] || [];
         const updatedCategories = categories.map(cat => {
           if (cat.id !== categoryId) return cat;
           return { ...cat, isOpen: cat.isOpen === undefined ? true : !cat.isOpen };
@@ -1246,7 +1246,7 @@ export default function ProductivityHub({
     if (targetDateStr) {
       setPowerSystem(prev => {
         const dateTasks = prev.dateTasks || {};
-        const categories = getCategoriesForDate(targetDateStr);
+        const categories = dateTasks[targetDateStr] || [];
         return {
           ...prev,
           dateTasks: {
@@ -1275,7 +1275,7 @@ export default function ProductivityHub({
     if (targetDateStr) {
       setPowerSystem(prev => {
         const dateTasks = prev.dateTasks || {};
-        const categories = getCategoriesForDate(targetDateStr);
+        const categories = dateTasks[targetDateStr] || [];
         return {
           ...prev,
           dateTasks: {
@@ -1355,7 +1355,7 @@ export default function ProductivityHub({
     if (targetDateStr) {
       setPowerSystem(prev => {
         const dateTasks = prev.dateTasks || {};
-        const categories = getCategoriesForDate(targetDateStr);
+        const categories = dateTasks[targetDateStr] || [];
         
         const existingCat = categories.find(c => c.name.toUpperCase() === catName.toUpperCase());
         let updatedCategories;

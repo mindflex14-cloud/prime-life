@@ -97,8 +97,12 @@ export async function saveUserDataToCloud(userId: string, key: string, data: any
   // Always write locally first to guarantee high performance and offline-first availability
   const localStorageKey = keyToLocalStorageMap[key];
   if (localStorageKey) {
-    const serialized = typeof data === 'string' ? data : JSON.stringify(data);
-    localStorage.setItem(localStorageKey, serialized);
+    try {
+      const serialized = typeof data === 'string' ? data : JSON.stringify(data);
+      localStorage.setItem(localStorageKey, serialized);
+    } catch (e) {
+      console.warn(`[SupabaseSync] Failed to save ${key} to localStorage (QuotaExceeded). Will rely on cloud sync.`);
+    }
   }
 
   if (!isSupabaseConfigured || !supabase) {

@@ -506,9 +506,9 @@ export default function VisualizationView({
       
       const img = new Image();
       img.onload = () => {
-        // 1. Generate full-size image (max 1024x1024, quality 0.7)
-        const maxWidth = 1024;
-        const maxHeight = 1024;
+        // 1. Generate full-size image (max 1600x1600, quality 0.85)
+        const maxWidth = 1600;
+        const maxHeight = 1600;
         let width = img.width;
         let height = img.height;
 
@@ -533,14 +533,14 @@ export default function VisualizationView({
         if (ctx) {
           ctx.drawImage(img, 0, 0, width, height);
           try {
-            fullBase64 = canvas.toDataURL('image/jpeg', 0.7);
+            fullBase64 = canvas.toDataURL('image/jpeg', 0.85);
           } catch (e) {
             console.error("Full-size canvas compression failed", e);
           }
         }
 
-        // 2. Generate small thumbnail image (max 250x250, quality 0.5)
-        const thumbMax = 250;
+        // 2. Generate small thumbnail image (max 600x600, quality 0.8)
+        const thumbMax = 600;
         let thumbW = img.width;
         let thumbH = img.height;
         if (thumbW > thumbH) {
@@ -563,7 +563,7 @@ export default function VisualizationView({
         if (thumbCtx) {
           thumbCtx.drawImage(img, 0, 0, thumbW, thumbH);
           try {
-            thumbBase64 = thumbCanvas.toDataURL('image/jpeg', 0.5);
+            thumbBase64 = thumbCanvas.toDataURL('image/jpeg', 0.8);
           } catch (e) {
             console.error("Thumbnail canvas compression failed", e);
           }

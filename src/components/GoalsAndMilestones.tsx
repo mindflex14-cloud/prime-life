@@ -80,8 +80,8 @@ export default function GoalsAndMilestones({
       const img = new Image();
       img.onload = () => {
         // 1. Full image compression
-        const maxWidth = 1024;
-        const maxHeight = 1024;
+        const maxWidth = 1600;
+        const maxHeight = 1600;
         let width = img.width;
         let height = img.height;
 
@@ -106,14 +106,14 @@ export default function GoalsAndMilestones({
         if (ctx) {
           ctx.drawImage(img, 0, 0, width, height);
           try {
-            fullBase64 = canvas.toDataURL('image/jpeg', 0.7);
+            fullBase64 = canvas.toDataURL('image/jpeg', 0.85);
           } catch (e) {
             console.error("Canvas compression failed, falling back to original", e);
           }
         }
 
         // 2. Thumbnail compression
-        const thumbMax = 250;
+        const thumbMax = 600;
         let thumbW = img.width;
         let thumbH = img.height;
         if (thumbW > thumbH) {
@@ -136,7 +136,7 @@ export default function GoalsAndMilestones({
         if (thumbCtx) {
           thumbCtx.drawImage(img, 0, 0, thumbW, thumbH);
           try {
-            thumbBase64 = thumbCanvas.toDataURL('image/jpeg', 0.5);
+            thumbBase64 = thumbCanvas.toDataURL('image/jpeg', 0.8);
           } catch (e) {
             console.error("Thumbnail canvas compression failed", e);
           }
