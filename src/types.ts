@@ -69,6 +69,8 @@ export interface HealthLog {
   deepWorkHours?: number; // deep work hours
   executionRank?: 'S' | 'A' | 'B' | 'C' | 'D' | 'F'; // execution rank
   nutritionRating?: 'Clean' | 'Moderate' | 'Poor'; // nutrition rating
+  workoutCompleted?: boolean;
+  workoutType?: string;
 }
 
 export interface LearningNote {

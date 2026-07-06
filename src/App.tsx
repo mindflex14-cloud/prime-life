@@ -80,9 +80,11 @@ export default function App() {
       if (isDarkMode) {
         root.classList.add('dark');
         root.classList.remove('light');
+        document.documentElement.classList.add('dark');
       } else {
-        root.classList.add('light');
         root.classList.remove('dark');
+        root.classList.add('light');
+        document.documentElement.classList.remove('dark');
       }
     }
   }, [isDarkMode, user]);
@@ -1124,6 +1126,8 @@ export default function App() {
             philosophicalEntries={philosophicalEntries}
             bookWisdomEntries={bookWisdomEntries}
             intuitionEntries={intuitionEntries}
+            healthLogs={healthLogs}
+            updateHealthLog={updateHealthLog}
           />
         );
       case 'settings':

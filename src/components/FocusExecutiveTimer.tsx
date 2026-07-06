@@ -70,7 +70,7 @@ export default function FocusExecutiveTimer({
             <button 
               type="button"
               onClick={() => setIsSoundOn(!isSoundOn)}
-              className="p-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 border border-slate-200 dark:border-transparent rounded-lg transition-all cursor-pointer"
+              className="p-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-transparent rounded-lg transition-all cursor-pointer"
             >
               {isSoundOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
             </button>
@@ -90,7 +90,7 @@ export default function FocusExecutiveTimer({
             type="button"
             onClick={() => resetTimerMode('focus')}
             className={`px-4 py-1.5 rounded-lg text-xs font-mono transition-all cursor-pointer ${
-              timerMode === 'focus' ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+              timerMode === 'focus' ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20' : 'text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-800 dark:text-slate-200'
             }`}
           >
             Focus Session
@@ -99,7 +99,7 @@ export default function FocusExecutiveTimer({
             type="button"
             onClick={() => resetTimerMode('short')}
             className={`px-4 py-1.5 rounded-lg text-xs font-mono transition-all cursor-pointer ${
-              timerMode === 'short' ? 'bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+              timerMode === 'short' ? 'bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20' : 'text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-800 dark:text-slate-200'
             }`}
           >
             Short Break
@@ -108,7 +108,7 @@ export default function FocusExecutiveTimer({
             type="button"
             onClick={() => resetTimerMode('long')}
             className={`px-4 py-1.5 rounded-lg text-xs font-mono transition-all cursor-pointer ${
-              timerMode === 'long' ? 'bg-blue-500 text-slate-950 font-bold shadow-md shadow-blue-500/20' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+              timerMode === 'long' ? 'bg-blue-500 text-slate-950 font-bold shadow-md shadow-blue-500/20' : 'text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-800 dark:text-slate-200'
             }`}
           >
             Long Break
@@ -145,7 +145,7 @@ export default function FocusExecutiveTimer({
             <span className="text-4xl font-display font-bold font-mono tracking-tight text-slate-800 dark:text-slate-100">
               {formatTime(secondsLeft)}
             </span>
-            <span className="text-[9px] font-mono uppercase text-slate-500 mt-1 tracking-wider font-bold">
+            <span className="text-[9px] font-mono uppercase text-slate-500 dark:text-slate-500 dark:text-slate-500 mt-1 tracking-wider font-bold">
               {timerMode === 'focus' ? 'CONCENTRATION' : 'RECOVERY'}
             </span>
           </div>
@@ -156,7 +156,7 @@ export default function FocusExecutiveTimer({
           <button 
             type="button"
             onClick={() => resetTimerMode(timerMode)}
-            className="p-2.5 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 rounded-xl transition-all cursor-pointer"
+            className="p-2.5 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-800 dark:text-slate-200 rounded-xl transition-all cursor-pointer"
             title="Reset Timer"
           >
             <RotateCcw className="w-5 h-5" />
@@ -180,7 +180,7 @@ export default function FocusExecutiveTimer({
         <div className="w-full border-t border-slate-200 dark:border-slate-800/60 pt-4 text-center z-10">
           {selectedTaskForTimer ? (
             <div>
-              <span className="text-[9px] font-mono uppercase text-slate-500 font-bold">Currently Synchronized Focus Node</span>
+              <span className="text-[9px] font-mono uppercase text-slate-500 dark:text-slate-500 dark:text-slate-500 font-bold">Currently Synchronized Focus Node</span>
               <h4 className="text-sm font-display font-medium text-slate-800 dark:text-slate-200 mt-1 line-clamp-1">{selectedTaskForTimer.title}</h4>
               <p className="text-[10px] text-cyan-600 dark:text-cyan-400 font-mono mt-0.5">
                 Completed cycles: {selectedTaskForTimer.pomodorosCompleted} / {selectedTaskForTimer.pomodorosEstimated} Pomodoros
@@ -188,7 +188,7 @@ export default function FocusExecutiveTimer({
             </div>
           ) : (
             <div>
-              <span className="text-[9px] font-mono uppercase text-slate-500 font-bold">No synchronized focus task selected</span>
+              <span className="text-[9px] font-mono uppercase text-slate-500 dark:text-slate-500 dark:text-slate-500 font-bold">No synchronized focus task selected</span>
               <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">Select an active task from the list to update its Pomodoro cycle logs automatically.</p>
             </div>
           )}
@@ -205,14 +205,14 @@ export default function FocusExecutiveTimer({
                 MANUAL TIMER SETUP
               </h3>
             </div>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+            <p className="text-[11px] text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-400">
               Fine-tune your cognitive blocks. Adjust the duration manually or select a professional time preset.
             </p>
           </div>
 
           {/* Numeric Manual Input Control */}
           <div className="space-y-3">
-            <label className="text-[10px] font-mono text-slate-500 uppercase tracking-widest block font-bold">
+            <label className="text-[10px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase tracking-widest block font-bold">
               Custom Focus Period
             </label>
             
@@ -227,7 +227,7 @@ export default function FocusExecutiveTimer({
                     setCustomDuration(val * 60);
                   }
                 }}
-                className="w-8 h-8 rounded bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300 font-bold flex items-center justify-center transition-all text-sm select-none cursor-pointer"
+                className="w-8 h-8 rounded bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold flex items-center justify-center transition-all text-sm select-none cursor-pointer"
               >
                 -5
               </button>
@@ -249,7 +249,7 @@ export default function FocusExecutiveTimer({
                     }}
                     className="bg-transparent text-center font-mono text-3xl font-bold text-cyan-600 dark:text-cyan-400 w-16 focus:outline-none focus:ring-0"
                   />
-                  <span className="text-xs text-slate-500 font-mono">min</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-500 dark:text-slate-500 font-mono">min</span>
                 </div>
               </div>
 
@@ -263,7 +263,7 @@ export default function FocusExecutiveTimer({
                     setCustomDuration(val * 60);
                   }
                 }}
-                className="w-8 h-8 rounded bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300 font-bold flex items-center justify-center transition-all text-sm select-none cursor-pointer"
+                className="w-8 h-8 rounded bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold flex items-center justify-center transition-all text-sm select-none cursor-pointer"
               >
                 +5
               </button>
@@ -272,7 +272,7 @@ export default function FocusExecutiveTimer({
 
           {/* Visual Duration Slider */}
           <div className="space-y-1.5">
-            <div className="flex justify-between text-[10px] font-mono text-slate-500 font-bold">
+            <div className="flex justify-between text-[10px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500 font-bold">
               <span>1 Min</span>
               <span>180 Min</span>
             </div>
@@ -295,7 +295,7 @@ export default function FocusExecutiveTimer({
 
           {/* Professional Sprints Presets */}
           <div className="space-y-2 pt-1">
-            <label className="text-[10px] font-mono text-slate-500 uppercase tracking-widest block font-bold">
+            <label className="text-[10px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase tracking-widest block font-bold">
               Focus Block Presets
             </label>
             
@@ -309,11 +309,11 @@ export default function FocusExecutiveTimer({
                 className={`p-2 rounded-xl text-left border transition-all cursor-pointer ${
                   customMinutes === 25 && timerMode === 'focus'
                     ? 'bg-cyan-500/10 border-cyan-500 text-cyan-600 dark:text-cyan-400' 
-                    : 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300'
+                    : 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300'
                 }`}
               >
                 <div className="text-xs font-bold font-mono">25m Sprint</div>
-                <div className="text-[9px] text-slate-500 mt-0.5">Classic Pomodoro</div>
+                <div className="text-[9px] text-slate-500 dark:text-slate-500 dark:text-slate-500 mt-0.5">Classic Pomodoro</div>
               </button>
 
               <button
@@ -325,11 +325,11 @@ export default function FocusExecutiveTimer({
                 className={`p-2 rounded-xl text-left border transition-all cursor-pointer ${
                   customMinutes === 45 && timerMode === 'focus'
                     ? 'bg-cyan-500/10 border-cyan-500 text-cyan-600 dark:text-cyan-400' 
-                    : 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300'
+                    : 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300'
                 }`}
               >
                 <div className="text-xs font-bold font-mono">45m Block</div>
-                <div className="text-[9px] text-slate-500 mt-0.5">Standard Sizing</div>
+                <div className="text-[9px] text-slate-500 dark:text-slate-500 dark:text-slate-500 mt-0.5">Standard Sizing</div>
               </button>
 
               <button
@@ -341,11 +341,11 @@ export default function FocusExecutiveTimer({
                 className={`p-2 rounded-xl text-left border transition-all cursor-pointer ${
                   customMinutes === 60 && timerMode === 'focus'
                     ? 'bg-cyan-500/10 border-cyan-500 text-cyan-600 dark:text-cyan-400' 
-                    : 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300'
+                    : 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300'
                 }`}
               >
                 <div className="text-xs font-bold font-mono">60m Deep</div>
-                <div className="text-[9px] text-slate-500 mt-0.5">Extended Focus</div>
+                <div className="text-[9px] text-slate-500 dark:text-slate-500 dark:text-slate-500 mt-0.5">Extended Focus</div>
               </button>
 
               <button
@@ -357,11 +357,11 @@ export default function FocusExecutiveTimer({
                 className={`p-2 rounded-xl text-left border transition-all cursor-pointer ${
                   customMinutes === 90 && timerMode === 'focus'
                     ? 'bg-cyan-500/10 border-cyan-500 text-cyan-600 dark:text-cyan-400' 
-                    : 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300'
+                    : 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300'
                 }`}
               >
                 <div className="text-xs font-bold font-mono">90m Flow</div>
-                <div className="text-[9px] text-slate-500 mt-0.5">Elite Level Block</div>
+                <div className="text-[9px] text-slate-500 dark:text-slate-500 dark:text-slate-500 mt-0.5">Elite Level Block</div>
               </button>
             </div>
           </div>
@@ -371,7 +371,7 @@ export default function FocusExecutiveTimer({
           <p className="text-[10px] font-mono text-cyan-600 dark:text-cyan-400 uppercase tracking-wider mb-1 font-bold">
             💡 EXECUTIVE TIP
           </p>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+          <p className="text-[11px] text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-400 leading-relaxed">
             Deep focus requires custom block sizing. Pick your duration, set your phone to Do Not Disturb, and execute single-mindedly.
           </p>
         </div>

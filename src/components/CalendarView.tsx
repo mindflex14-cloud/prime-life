@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, CheckCircle, Clock, Target, Flame, Lightbulb, BookOpen, ShieldAlert } from 'lucide-react';
-import { Task, Goal, Habit, PhilosophicalEntry, BookWisdomEntry, IntuitionEntry } from '../types';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Target, Flame, Lightbulb, BookOpen, ShieldAlert, Dumbbell, Activity, Edit2, Check } from 'lucide-react';
+import { Task, Goal, Habit, PhilosophicalEntry, BookWisdomEntry, IntuitionEntry, HealthLog } from '../types';
 
 interface CalendarViewProps {
   tasks: Task[];
@@ -9,16 +9,22 @@ interface CalendarViewProps {
   philosophicalEntries?: PhilosophicalEntry[];
   bookWisdomEntries?: BookWisdomEntry[];
   intuitionEntries?: IntuitionEntry[];
+  healthLogs?: Record<string, HealthLog>;
+  updateHealthLog?: (date: string, log: Partial<HealthLog>) => void;
 }
 
 export default function CalendarView({ 
   tasks, 
   goals, 
-  habits,
-  philosophicalEntries = [],
-  bookWisdomEntries = [],
-  intuitionEntries = []
+  habits, 
+  philosophicalEntries = [], 
+  bookWisdomEntries = [], 
+  intuitionEntries = [],
+  healthLogs = {},
+  updateHealthLog
 }: CalendarViewProps) {
+  const [isEditingActivity, setIsEditingActivity] = useState(false);
+  const [editWorkoutType, setEditWorkoutType] = useState('');
   const [currentDate, setCurrentDate] = useState(new Date(2026, 6, 2)); // July 2, 2026
   const [selectedDateStr, setSelectedDateStr] = useState('2026-07-02');
 
@@ -234,6 +240,108 @@ export default function CalendarView({
                 ))}
               </div>
             )}
+
+            
+            {/* Physical Activity Tracker */}
+            <div className="space-y-1.5 mt-4">
+              <span className="text-[9px] font-mono uppercase text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-bold">
+                <Dumbbell className="w-3 h-3" /> PHYSICAL ACTIVITY & WORKOUT
+              </span>
+              
+              <div className="p-3 bg-emerald-50 dark:bg-emerald-950/10 border border-emerald-200 dark:border-emerald-900/50 rounded-xl space-y-2">
+                {isEditingActivity ? (
+                  <div className="flex flex-col gap-2">
+                    <input 
+                      type="text" 
+                      placeholder="e.g. 5K Run, Weightlifting, Yoga" 
+                      value={editWorkoutType}
+                      onChange={(e) => setEditWorkoutType(e.target.value)}
+                      className="text-xs p-2 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                      autoFocus
+                    />
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => {
+                          if (updateHealthLog) {
+                            updateHealthLog(selectedDateStr, { 
+                              workoutCompleted: true, 
+                              workoutType: editWorkoutType 
+                            });
+                          }
+                          setIsEditingActivity(false);
+                        }}
+                        className="flex-1 bg-emerald-500 text-white py-1 rounded text-xs font-medium hover:bg-emerald-600 transition-colors flex items-center justify-center gap-1"
+                      >
+                        <Check className="w-3 h-3" /> Save
+                      </button>
+                      <button 
+                        onClick={() => setIsEditingActivity(false)}
+                        className="flex-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 py-1 rounded text-xs font-medium hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <div className="flex flex-col">
+                      <span className="text-xs text-slate-800 dark:text-slate-200 font-medium">
+                        {healthLogs[selectedDateStr]?.workoutCompleted 
+                          ? (healthLogs[selectedDateStr]?.workoutType || 'Workout Completed')
+                          : 'No workout logged'}
+                      </span>
+                      {healthLogs[selectedDateStr]?.steps > 0 && (
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">
+                          {(healthLogs[selectedDateStr]?.steps / 1000).toFixed(1)}k steps
+                        </span>
+                      )}
+                    </div>
+                    <button 
+                      onClick={() => {
+                        setEditWorkoutType(healthLogs[selectedDateStr]?.workoutType || '');
+                        setIsEditingActivity(true);
+                      }}
+                      className="p-1.5 bg-white/50 dark:bg-slate-900/50 hover:bg-white dark:hover:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-emerald-600 transition-colors"
+                    >
+                      <Edit2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+
+              <div className="p-3 bg-indigo-50 dark:bg-indigo-950/10 border border-indigo-200 dark:border-indigo-900/50 rounded-xl space-y-2 mt-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-indigo-700 dark:text-indigo-400 font-medium text-xs">
+                     <Activity className="w-3.5 h-3.5" /> Sleep & Recovery
+                  </div>
+                </div>
+                <div className="flex gap-2 text-xs">
+                  <div className="flex-1">
+                    <label className="text-[9px] uppercase tracking-wider text-slate-500 block mb-1 font-mono">Sleep (hrs)</label>
+                    <input 
+                      type="number" 
+                      min="0"
+                      max="24"
+                      value={healthLogs[selectedDateStr]?.sleepHours || 0}
+                      onChange={(e) => updateHealthLog?.(selectedDateStr, { sleepHours: Number(e.target.value) })}
+                      className="w-full p-1.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="text-[9px] uppercase tracking-wider text-slate-500 block mb-1 font-mono">Water (ml)</label>
+                    <input 
+                      type="number" 
+                      step="100"
+                      min="0"
+                      value={healthLogs[selectedDateStr]?.waterIntake || 0}
+                      onChange={(e) => updateHealthLog?.(selectedDateStr, { waterIntake: Number(e.target.value) })}
+                      className="w-full p-1.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
 
             {/* Actions list */}
             <div className="space-y-1.5">

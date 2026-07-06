@@ -1622,7 +1622,7 @@ export default function ProductivityHub({
           className={`px-4 py-3 text-[11px] font-mono font-bold tracking-wider flex items-center gap-2 border-b-2 whitespace-nowrap transition-all cursor-pointer ${
             activeSubTab === 'power' 
               ? 'border-red-500 text-red-600 dark:text-red-400' 
-              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+              : 'border-transparent text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-800 dark:text-slate-200'
           }`}
         >
           <Target className="w-3.5 h-3.5 text-red-500 dark:text-red-400" /> 🎯 POWER SYSTEM
@@ -1633,7 +1633,7 @@ export default function ProductivityHub({
           className={`px-4 py-3 text-[11px] font-mono font-bold tracking-wider flex items-center gap-2 border-b-2 whitespace-nowrap transition-all cursor-pointer ${
             activeSubTab === 'ai_assistant' 
               ? 'border-purple-500 text-purple-600 dark:text-purple-400' 
-              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+              : 'border-transparent text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-800 dark:text-slate-200'
           }`}
         >
           <BrainCircuit className="w-3.5 h-3.5 text-purple-500 dark:text-purple-400 animate-pulse" /> 🔮 AI ASSISTANT
@@ -1644,7 +1644,7 @@ export default function ProductivityHub({
           className={`px-4 py-3 text-[11px] font-mono font-bold tracking-wider flex items-center gap-2 border-b-2 whitespace-nowrap transition-all cursor-pointer ${
             activeSubTab === 'focus' 
               ? 'border-cyan-500 text-cyan-600 dark:text-cyan-400' 
-              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+              : 'border-transparent text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-800 dark:text-slate-200'
           }`}
         >
           <Clock className="w-3.5 h-3.5 text-cyan-500 dark:text-cyan-400" /> ⏱️ FOCUS WORK TIMER
@@ -1667,7 +1667,7 @@ export default function ProductivityHub({
               <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none glow-bg-1" />
               <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none glow-bg-2" />
 
-              <div className="w-full flex justify-between items-center border-b border-slate-800/60 pb-3 z-10">
+              <div className="w-full flex justify-between items-center border-b border-slate-200 dark:border-slate-800/60 pb-3 z-10">
                 <span className="text-xs font-mono uppercase text-cyan-400 flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5 animate-pulse" /> FOCUS EXECUTIVE TIMER
                 </span>
@@ -1675,7 +1675,7 @@ export default function ProductivityHub({
                 <div className="flex items-center gap-2">
                   <button 
                     onClick={() => setIsSoundOn(!isSoundOn)}
-                    className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 rounded-lg transition-all"
+                    className="p-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:text-slate-200 rounded-lg transition-all"
                   >
                     {isSoundOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
                   </button>
@@ -1689,11 +1689,11 @@ export default function ProductivityHub({
               </div>
 
               {/* Modes Selection */}
-              <div className="flex gap-2.5 my-4 bg-slate-950/40 p-1 rounded-xl border border-slate-800 z-10">
+              <div className="flex gap-2.5 my-4 bg-slate-50 dark:bg-slate-950/40 p-1 rounded-xl border border-slate-300 dark:border-slate-800 z-10">
                 <button 
                   onClick={() => resetTimerMode('focus')}
                   className={`px-4 py-1.5 rounded-lg text-xs font-mono transition-all ${
-                    timerMode === 'focus' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-slate-200'
+                    timerMode === 'focus' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:text-slate-200'
                   }`}
                 >
                   Focus Session
@@ -1701,7 +1701,7 @@ export default function ProductivityHub({
                 <button 
                   onClick={() => resetTimerMode('short')}
                   className={`px-4 py-1.5 rounded-lg text-xs font-mono transition-all ${
-                    timerMode === 'short' ? 'bg-emerald-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-slate-200'
+                    timerMode === 'short' ? 'bg-emerald-500 text-slate-950 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:text-slate-200'
                   }`}
                 >
                   Short Break
@@ -1709,7 +1709,7 @@ export default function ProductivityHub({
                 <button 
                   onClick={() => resetTimerMode('long')}
                   className={`px-4 py-1.5 rounded-lg text-xs font-mono transition-all ${
-                    timerMode === 'long' ? 'bg-blue-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-slate-200'
+                    timerMode === 'long' ? 'bg-blue-500 text-slate-950 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:text-slate-200'
                   }`}
                 >
                   Long Break
@@ -1746,7 +1746,7 @@ export default function ProductivityHub({
                   <span className="text-4xl font-display font-bold font-mono tracking-tight text-slate-100">
                     {formatTime(secondsLeft)}
                   </span>
-                  <span className="text-[9px] font-mono uppercase text-slate-500 mt-1 tracking-wider">
+                  <span className="text-[9px] font-mono uppercase text-slate-500 dark:text-slate-500 dark:text-slate-500 mt-1 tracking-wider">
                     {timerMode === 'focus' ? 'CONCENTRATION' : 'RECOVERY'}
                   </span>
                 </div>
@@ -1756,7 +1756,7 @@ export default function ProductivityHub({
               <div className="flex items-center gap-4 z-10 my-2">
                 <button 
                   onClick={() => resetTimerMode(timerMode)}
-                  className="p-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-slate-200 rounded-xl transition-all"
+                  className="p-2.5 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-800 hover:border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:text-slate-200 rounded-xl transition-all"
                   title="Reset Timer"
                 >
                   <RotateCcw className="w-5 h-5" />
@@ -1776,19 +1776,19 @@ export default function ProductivityHub({
               </div>
 
               {/* Associated active Task details */}
-              <div className="w-full border-t border-slate-800/60 pt-4 text-center z-10">
+              <div className="w-full border-t border-slate-200 dark:border-slate-800/60 pt-4 text-center z-10">
                 {selectedTaskForTimer ? (
                   <div>
-                    <span className="text-[9px] font-mono uppercase text-slate-500">Currently Synchronized Focus Node</span>
-                    <h4 className="text-sm font-display font-medium text-slate-200 mt-1 line-clamp-1">{selectedTaskForTimer.title}</h4>
+                    <span className="text-[9px] font-mono uppercase text-slate-500 dark:text-slate-500 dark:text-slate-500">Currently Synchronized Focus Node</span>
+                    <h4 className="text-sm font-display font-medium text-slate-800 dark:text-slate-200 mt-1 line-clamp-1">{selectedTaskForTimer.title}</h4>
                     <p className="text-[10px] text-cyan-400 font-mono mt-0.5">
                       Completed cycles: {selectedTaskForTimer.pomodorosCompleted} / {selectedTaskForTimer.pomodorosEstimated} Pomodoros
                     </p>
                   </div>
                 ) : (
                   <div>
-                    <span className="text-[9px] font-mono uppercase text-slate-500">No synchronized focus task selected</span>
-                    <p className="text-xs text-slate-400 mt-1">Select an active task from the list to update its Pomodoro cycle logs automatically.</p>
+                    <span className="text-[9px] font-mono uppercase text-slate-500 dark:text-slate-500 dark:text-slate-500">No synchronized focus task selected</span>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">Select an active task from the list to update its Pomodoro cycle logs automatically.</p>
                   </div>
                 )}
               </div>
@@ -1804,18 +1804,18 @@ export default function ProductivityHub({
                       MANUAL TIMER SETUP
                     </h3>
                   </div>
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400">
                     Fine-tune your cognitive blocks. Adjust the duration manually or select a professional time preset.
                   </p>
                 </div>
 
                 {/* Numeric Manual Input Control */}
                 <div className="space-y-3">
-                  <label className="text-[10px] font-mono text-slate-500 uppercase tracking-widest block">
+                  <label className="text-[10px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase tracking-widest block">
                     Custom Focus Period
                   </label>
                   
-                  <div className="flex items-center justify-between gap-3 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
+                  <div className="flex items-center justify-between gap-3 bg-slate-50 dark:bg-slate-950/60 p-4 rounded-xl border border-slate-300 dark:border-slate-800/80">
                     <button 
                       type="button"
                       onClick={() => {
@@ -1826,7 +1826,7 @@ export default function ProductivityHub({
                           setCustomDuration(val * 60);
                         }
                       }}
-                      className="w-8 h-8 rounded bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 font-bold flex items-center justify-center transition-all text-sm select-none"
+                      className="w-8 h-8 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 hover:border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold flex items-center justify-center transition-all text-sm select-none"
                     >
                       -5
                     </button>
@@ -1848,7 +1848,7 @@ export default function ProductivityHub({
                           }}
                           className="bg-transparent text-center font-mono text-3xl font-bold text-cyan-400 w-16 focus:outline-none focus:ring-0"
                         />
-                        <span className="text-xs text-slate-500 font-mono">min</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-500 dark:text-slate-500 font-mono">min</span>
                       </div>
                     </div>
 
@@ -1862,7 +1862,7 @@ export default function ProductivityHub({
                           setCustomDuration(val * 60);
                         }
                       }}
-                      className="w-8 h-8 rounded bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 font-bold flex items-center justify-center transition-all text-sm select-none"
+                      className="w-8 h-8 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 hover:border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold flex items-center justify-center transition-all text-sm select-none"
                     >
                       +5
                     </button>
@@ -1871,7 +1871,7 @@ export default function ProductivityHub({
 
                 {/* Visual Duration Slider */}
                 <div className="space-y-1.5">
-                  <div className="flex justify-between text-[10px] font-mono text-slate-500">
+                  <div className="flex justify-between text-[10px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500">
                     <span>1 Min</span>
                     <span>180 Min</span>
                   </div>
@@ -1888,13 +1888,13 @@ export default function ProductivityHub({
                         setCustomDuration(val * 60);
                       }
                     }}
-                    className="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                    className="w-full h-1.5 bg-slate-50 dark:bg-slate-950 rounded-lg appearance-none cursor-pointer accent-cyan-500"
                   />
                 </div>
 
                 {/* Professional Sprints Presets */}
                 <div className="space-y-2 pt-1">
-                  <label className="text-[10px] font-mono text-slate-500 uppercase tracking-widest block">
+                  <label className="text-[10px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase tracking-widest block">
                     Focus Block Presets
                   </label>
                   
@@ -1907,11 +1907,11 @@ export default function ProductivityHub({
                       className={`p-2 rounded-xl text-left border transition-all ${
                         customMinutes === 25 && timerMode === 'focus'
                           ? 'bg-cyan-500/10 border-cyan-500 text-cyan-400' 
-                          : 'bg-slate-900/40 border-slate-800 hover:border-slate-700 text-slate-300'
+                          : 'bg-white/40 dark:bg-slate-900/40 border-slate-300 dark:border-slate-800 hover:border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300'
                       }`}
                     >
                       <div className="text-xs font-semibold font-mono">25m Sprint</div>
-                      <div className="text-[9px] text-slate-500 mt-0.5">Classic Pomodoro</div>
+                      <div className="text-[9px] text-slate-500 dark:text-slate-500 dark:text-slate-500 mt-0.5">Classic Pomodoro</div>
                     </button>
 
                     <button
@@ -1922,11 +1922,11 @@ export default function ProductivityHub({
                       className={`p-2 rounded-xl text-left border transition-all ${
                         customMinutes === 45 && timerMode === 'focus'
                           ? 'bg-cyan-500/10 border-cyan-500 text-cyan-400' 
-                          : 'bg-slate-900/40 border-slate-800 hover:border-slate-700 text-slate-300'
+                          : 'bg-white/40 dark:bg-slate-900/40 border-slate-300 dark:border-slate-800 hover:border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300'
                       }`}
                     >
                       <div className="text-xs font-semibold font-mono">45m Block</div>
-                      <div className="text-[9px] text-slate-500 mt-0.5">Standard Sizing</div>
+                      <div className="text-[9px] text-slate-500 dark:text-slate-500 dark:text-slate-500 mt-0.5">Standard Sizing</div>
                     </button>
 
                     <button
@@ -1937,11 +1937,11 @@ export default function ProductivityHub({
                       className={`p-2 rounded-xl text-left border transition-all ${
                         customMinutes === 60 && timerMode === 'focus'
                           ? 'bg-cyan-500/10 border-cyan-500 text-cyan-400' 
-                          : 'bg-slate-900/40 border-slate-800 hover:border-slate-700 text-slate-300'
+                          : 'bg-white/40 dark:bg-slate-900/40 border-slate-300 dark:border-slate-800 hover:border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300'
                       }`}
                     >
                       <div className="text-xs font-semibold font-mono">60m Deep</div>
-                      <div className="text-[9px] text-slate-500 mt-0.5">Extended Focus</div>
+                      <div className="text-[9px] text-slate-500 dark:text-slate-500 dark:text-slate-500 mt-0.5">Extended Focus</div>
                     </button>
 
                     <button
@@ -1952,21 +1952,21 @@ export default function ProductivityHub({
                       className={`p-2 rounded-xl text-left border transition-all ${
                         customMinutes === 90 && timerMode === 'focus'
                           ? 'bg-cyan-500/10 border-cyan-500 text-cyan-400' 
-                          : 'bg-slate-900/40 border-slate-800 hover:border-slate-700 text-slate-300'
+                          : 'bg-white/40 dark:bg-slate-900/40 border-slate-300 dark:border-slate-800 hover:border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300'
                       }`}
                     >
                       <div className="text-xs font-semibold font-mono">90m Flow</div>
-                      <div className="text-[9px] text-slate-500 mt-0.5">Elite Level Block</div>
+                      <div className="text-[9px] text-slate-500 dark:text-slate-500 dark:text-slate-500 mt-0.5">Elite Level Block</div>
                     </button>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-slate-950/40 border border-slate-800/80 p-3 rounded-xl mt-4">
+              <div className="bg-slate-50 dark:bg-slate-950/40 border border-slate-300 dark:border-slate-800/80 p-3 rounded-xl mt-4">
                 <p className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider mb-1">
                   💡 EXECUTIVE TIP
                 </p>
-                <p className="text-[11px] text-slate-400 leading-relaxed">
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
                   Deep focus requires custom block sizing. Pick your duration, set your phone to Do Not Disturb, and execute single-mindedly.
                 </p>
               </div>
@@ -2039,13 +2039,13 @@ export default function ProductivityHub({
               className="space-y-6 text-left"
             >
               {/* iOS Styled Premium Header Banner */}
-              <div className="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl relative overflow-hidden shadow-sm">
+              <div className="bg-white/60 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-800/80 p-5 rounded-2xl relative overflow-hidden shadow-sm">
                 <div className="absolute top-0 right-0 w-48 h-48 bg-red-500/5 rounded-full blur-3xl pointer-events-none" />
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
                     <div className="flex items-center gap-2 mb-1.5">
                       <span className="px-2 py-0.5 rounded bg-red-500/10 text-red-400 font-mono text-[9px] tracking-widest font-bold uppercase">Executive Engine</span>
-                      <span className="text-slate-500 text-xs font-mono">• 4. Power System</span>
+                      <span className="text-slate-500 dark:text-slate-500 dark:text-slate-500 text-xs font-mono">• 4. Power System</span>
                     </div>
                     <h2 className="text-lg font-display font-semibold text-slate-100 tracking-tight flex items-center gap-2">
                       🎯 DAILY POWER PLANNER
@@ -2053,17 +2053,17 @@ export default function ProductivityHub({
                     <p className="text-red-400 font-mono text-xs font-bold uppercase tracking-wider mt-1.5">
                       FOR THE FIRST TIME IN YOUR LIFE, USE POWER.
                     </p>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
                       Rule of thumb: Plan tomorrow tonight. Commit to your execution checklist and log your results every evening. Maintain a 50% weekly floor.
                     </p>
                   </div>
 
                   {/* Overall Stats summary */}
-                  <div className="bg-slate-950/50 border border-slate-800/80 p-3 rounded-xl flex items-center gap-3">
+                  <div className="bg-slate-50 dark:bg-slate-950/50 border border-slate-300 dark:border-slate-800/80 p-3 rounded-xl flex items-center gap-3">
                     <Award className="w-8 h-8 text-amber-400" />
                     <div>
-                      <p className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Weekly Floor Target</p>
-                      <p className="text-sm font-mono font-bold text-slate-200">
+                      <p className="text-[10px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase tracking-wider">Weekly Floor Target</p>
+                      <p className="text-sm font-mono font-bold text-slate-800 dark:text-slate-200">
                         &gt; 50% Completion
                       </p>
                       <p className="text-[9px] text-emerald-400 font-mono mt-0.5">Rule of Executive Momentum</p>
@@ -2073,12 +2073,12 @@ export default function ProductivityHub({
               </div>
 
               {/* Premium segmented workspace view switcher */}
-              <div className="flex bg-slate-950/60 p-1 rounded-xl border border-slate-800/80 max-w-xl">
+              <div className="flex bg-slate-50 dark:bg-slate-950/60 p-1 rounded-xl border border-slate-300 dark:border-slate-800/80 max-w-xl">
                 <button 
                   type="button"
                   onClick={() => setPowerPlanView('today')}
                   className={`flex-1 py-2 text-xs font-mono rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-                    powerPlanView === 'today' ? 'bg-red-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-slate-200'
+                    powerPlanView === 'today' ? 'bg-red-500 text-slate-950 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:text-slate-200'
                   }`}
                 >
                   <Flame className="w-3.5 h-3.5" /> TODAY'S WORKSPACE
@@ -2087,7 +2087,7 @@ export default function ProductivityHub({
                   type="button"
                   onClick={() => setPowerPlanView('tomorrow')}
                   className={`flex-1 py-2 text-xs font-mono rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-                    powerPlanView === 'tomorrow' ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-slate-200'
+                    powerPlanView === 'tomorrow' ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:text-slate-200'
                   }`}
                 >
                   <Calendar className="w-3.5 h-3.5" /> PLAN TOMORROW
@@ -2096,7 +2096,7 @@ export default function ProductivityHub({
                   type="button"
                   onClick={() => setPowerPlanView('full')}
                   className={`flex-1 py-2 text-xs font-mono rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-                    powerPlanView === 'full' ? 'bg-blue-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-slate-200'
+                    powerPlanView === 'full' ? 'bg-blue-500 text-slate-950 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:text-slate-200'
                   }`}
                 >
                   <TrendingUp className="w-3.5 h-3.5" /> WEEKLY BLUEPRINTS
@@ -2118,10 +2118,10 @@ export default function ProductivityHub({
                 const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
 
                 return (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-slate-900/10 border border-slate-850 p-4 rounded-2xl">
-                    <div className="bg-slate-950/20 p-3 rounded-xl border border-slate-900/60 flex flex-col justify-center">
-                      <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-bold">Selected Date</div>
-                      <div className="text-sm font-semibold text-slate-200 mt-1 font-mono">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-white dark:bg-slate-900/10 border border-slate-850 p-4 rounded-2xl">
+                    <div className="bg-slate-50/20 dark:bg-slate-950/20 p-3 rounded-xl border border-slate-900/60 flex flex-col justify-center">
+                      <div className="text-[10px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase tracking-widest font-bold">Selected Date</div>
+                      <div className="text-sm font-semibold text-slate-800 dark:text-slate-200 mt-1 font-mono">
                         {(() => {
                           const [y, m, d] = powerDate.split('-').map(Number);
                           const locD = new Date(y, m - 1, d);
@@ -2130,28 +2130,28 @@ export default function ProductivityHub({
                       </div>
                     </div>
                     
-                    <div className="bg-slate-950/20 p-3 rounded-xl border border-slate-900/60 flex items-center justify-between">
+                    <div className="bg-slate-50/20 dark:bg-slate-950/20 p-3 rounded-xl border border-slate-900/60 flex items-center justify-between">
                       <div>
                         <div className="text-[10px] font-mono text-emerald-400 uppercase tracking-widest font-bold">Completed Tasks</div>
                         <div className="text-2xl font-bold font-mono text-slate-100 mt-0.5">{completed}</div>
                       </div>
-                      <div className="text-[10px] font-mono text-slate-500 bg-slate-950/40 px-2 py-1 rounded-md border border-slate-900/50">Done</div>
+                      <div className="text-[10px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500 bg-slate-50 dark:bg-slate-950/40 px-2 py-1 rounded-md border border-slate-900/50">Done</div>
                     </div>
 
-                    <div className="bg-slate-950/20 p-3 rounded-xl border border-slate-900/60 flex items-center justify-between">
+                    <div className="bg-slate-50/20 dark:bg-slate-950/20 p-3 rounded-xl border border-slate-900/60 flex items-center justify-between">
                       <div>
                         <div className="text-[10px] font-mono text-red-400 uppercase tracking-widest font-bold">Pending Tasks</div>
                         <div className="text-2xl font-bold font-mono text-slate-100 mt-0.5">{pending}</div>
                       </div>
-                      <div className="text-[10px] font-mono text-slate-500 bg-slate-950/40 px-2 py-1 rounded-md border border-slate-900/50">To-Do</div>
+                      <div className="text-[10px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500 bg-slate-50 dark:bg-slate-950/40 px-2 py-1 rounded-md border border-slate-900/50">To-Do</div>
                     </div>
 
-                    <div className="bg-slate-950/20 p-3 rounded-xl border border-slate-900/60 space-y-2 flex flex-col justify-center">
+                    <div className="bg-slate-50/20 dark:bg-slate-950/20 p-3 rounded-xl border border-slate-900/60 space-y-2 flex flex-col justify-center">
                       <div className="flex justify-between items-center">
                         <div className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest font-bold">Day Efficiency</div>
-                        <div className="text-xs font-mono font-bold text-slate-200">{percent}%</div>
+                        <div className="text-xs font-mono font-bold text-slate-800 dark:text-slate-200">{percent}%</div>
                       </div>
-                      <div className="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden border border-slate-900">
+                      <div className="w-full bg-slate-50 dark:bg-slate-950 rounded-full h-1.5 overflow-hidden border border-slate-900">
                         <div 
                           className={`h-full rounded-full transition-all duration-500 ${percent >= 50 ? 'bg-emerald-500' : 'bg-red-500'}`}
                           style={{ width: `${percent}%` }}
@@ -2167,7 +2167,7 @@ export default function ProductivityHub({
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   {/* Left 2 Columns: Today's Tasks & Execution Checklist */}
                   <div className="lg:col-span-2 glass-panel p-6 rounded-2xl space-y-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-3 gap-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-300 dark:border-slate-800 pb-3 gap-3">
                       <div className="flex items-center gap-2">
                         <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
                         <h3 className="text-base font-display font-bold text-slate-100 uppercase tracking-wide">
@@ -2178,8 +2178,8 @@ export default function ProductivityHub({
                           })()})
                         </h3>
                       </div>
-                      <div className="flex items-center gap-2 bg-slate-900/60 px-3 py-1.5 rounded-xl border border-slate-800/60 shadow-sm">
-                        <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Select Date:</span>
+                      <div className="flex items-center gap-2 bg-white/60 dark:bg-slate-900/60 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800/60 shadow-sm">
+                        <span className="text-[10px] font-mono text-slate-600 dark:text-slate-400 uppercase tracking-wider">Select Date:</span>
                         <input 
                           type="date"
                           value={powerDate}
@@ -2190,8 +2190,8 @@ export default function ProductivityHub({
                     </div>
 
                     {/* Add action step form */}
-                    <form onSubmit={(e) => { e.preventDefault(); addGoalLinkedPowerTask(getTodayDayObject().id, powerTaskCategory === 'CUSTOM', powerDate); }} style={{ width: '653.328125px', maxWidth: '100%' }} className="space-y-3 bg-slate-950/40 border border-slate-800 p-4 rounded-xl">
-                      <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-bold">Add Action to Today's Blueprint</div>
+                    <form onSubmit={(e) => { e.preventDefault(); addGoalLinkedPowerTask(getTodayDayObject().id, powerTaskCategory === 'CUSTOM', powerDate); }} style={{ width: '653.328125px', maxWidth: '100%' }} className="space-y-3 bg-slate-50 dark:bg-slate-950/40 border border-slate-300 dark:border-slate-800 p-4 rounded-xl">
+                      <div className="text-[10px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase tracking-widest font-bold">Add Action to Today's Blueprint</div>
                       
                       <div className="flex flex-col sm:flex-row gap-2.5">
                         <div className="relative flex-1 flex items-center">
@@ -2200,7 +2200,7 @@ export default function ProductivityHub({
                             placeholder="Define next action step..."
                             value={powerTaskTitle}
                             onChange={(e) => setPowerTaskTitle(e.target.value)}
-                            className="bg-slate-900 border border-slate-800 hover:border-slate-700 focus:border-red-500 rounded-xl pl-3 pr-10 py-2 text-xs text-slate-100 placeholder-slate-600 focus:outline-none w-full transition-all"
+                            className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 hover:border-slate-300 dark:border-slate-700 focus:border-red-500 rounded-xl pl-3 pr-10 py-2 text-xs text-slate-100 placeholder-slate-600 focus:outline-none w-full transition-all"
                           />
                           <button
                             type="button"
@@ -2218,7 +2218,7 @@ export default function ProductivityHub({
                               setIsRecurrenceModalOpen(true);
                             }}
                             className={`absolute right-2.5 p-1 rounded-md transition-all cursor-pointer ${
-                              recurrenceConfig ? 'text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20' : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/60'
+                              recurrenceConfig ? 'text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20' : 'text-slate-500 dark:text-slate-500 dark:text-slate-500 hover:text-slate-700 dark:text-slate-300 hover:bg-slate-100/60 dark:bg-slate-800/60'
                             }`}
                             title={recurrenceConfig ? `Repeat Configured: ${recurrenceConfig.frequency.toUpperCase()}` : "Configure Recurrence/Repeat Frequency"}
                           >
@@ -2227,20 +2227,20 @@ export default function ProductivityHub({
                         </div>
                         
                         <div className="flex gap-2">
-                          <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs text-slate-300">
-                            <Clock className="w-3.5 h-3.5 text-slate-500" />
+                          <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl px-2.5 py-1.5 text-xs text-slate-700 dark:text-slate-300">
+                            <Clock className="w-3.5 h-3.5 text-slate-500 dark:text-slate-500 dark:text-slate-500" />
                             <input 
                               type="time"
                               value={powerTaskTime}
                               onChange={(e) => setPowerTaskTime(e.target.value)}
-                              className="bg-transparent text-xs text-slate-200 font-mono focus:outline-none border-none p-0 cursor-pointer"
+                              className="bg-transparent text-xs text-slate-800 dark:text-slate-200 font-mono focus:outline-none border-none p-0 cursor-pointer"
                             />
                           </div>
 
                           <select 
                             value={powerTaskGoalId}
                             onChange={(e) => setPowerTaskGoalId(e.target.value)}
-                            className="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none transition-all sm:max-w-[180px]"
+                            className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 hover:border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-700 dark:text-slate-300 focus:outline-none transition-all sm:max-w-[180px]"
                           >
                             <option value="">🔗 Link to Goal...</option>
                             {goals.map(g => (
@@ -2252,7 +2252,7 @@ export default function ProductivityHub({
                         <select 
                           value={powerTaskCategory}
                           onChange={(e) => setPowerTaskCategory(e.target.value)}
-                          className="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none transition-all sm:max-w-[160px]"
+                          className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 hover:border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-700 dark:text-slate-300 focus:outline-none transition-all sm:max-w-[160px]"
                         >
                           <option value="WEALTH CREATION">Wealth Creation</option>
                           <option value="BECOME INCREDIBLY MUSCULAR">Physical Muscle</option>
@@ -2268,7 +2268,7 @@ export default function ProductivityHub({
                           placeholder="Type custom category name..."
                           value={powerCustomCategory}
                           onChange={(e) => setPowerCustomCategory(e.target.value)}
-                          className="w-full bg-slate-900 border border-slate-800 hover:border-slate-700 focus:border-red-500 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none transition-all"
+                          className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 hover:border-slate-300 dark:border-slate-700 focus:border-red-500 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none transition-all"
                         />
                       )}
 
@@ -2285,7 +2285,7 @@ export default function ProductivityHub({
                           <button
                             type="button"
                             onClick={() => setRecurrenceConfig(null)}
-                            className="ml-auto text-slate-500 hover:text-red-400 text-[9px] font-bold uppercase transition-all"
+                            className="ml-auto text-slate-500 dark:text-slate-500 dark:text-slate-500 hover:text-red-400 text-[9px] font-bold uppercase transition-all"
                           >
                             Remove
                           </button>
@@ -2303,9 +2303,9 @@ export default function ProductivityHub({
                     {/* Active List */}
                     <div className="space-y-4">
                       {todayCategories.length === 0 || todayCategories.every(c => c.tasks.length === 0) ? (
-                        <div className="text-center py-10 text-slate-500 text-xs space-y-3.5">
+                        <div className="text-center py-10 text-slate-500 dark:text-slate-500 dark:text-slate-500 text-xs space-y-3.5">
                           <Flame className="w-8 h-8 text-slate-600 mx-auto mb-1 animate-pulse" />
-                          <p className="text-slate-400">No active blueprint steps exist for this date.</p>
+                          <p className="text-slate-600 dark:text-slate-400">No active blueprint steps exist for this date.</p>
                           <button
                             type="button"
                             onClick={() => importBlueprintToDate(powerDate)}
@@ -2322,7 +2322,7 @@ export default function ProductivityHub({
                         todayCategories.map(category => (
                           <div key={category.id} className="border-l-2 border-red-500/60 pl-3 py-1 space-y-2">
                             <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">{category.name}</span>
+                              <span className="text-[10px] font-mono text-slate-600 dark:text-slate-400 uppercase tracking-wider">{category.name}</span>
                               <button 
                                 type="button"
                                 onClick={() => deletePowerCategory(getTodayDayObject().id, category.id, powerDate)}
@@ -2342,7 +2342,7 @@ export default function ProductivityHub({
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -10 }}
                                     transition={{ duration: 0.2 }}
-                                    className="flex items-center justify-between gap-3 bg-slate-950/20 p-2.5 rounded-lg border border-slate-900/60 group hover:border-slate-800/80 transition-all"
+                                    className="flex items-center justify-between gap-3 bg-slate-50/20 dark:bg-slate-950/20 p-2.5 rounded-lg border border-slate-900/60 group hover:border-slate-300 dark:border-slate-800/80 transition-all"
                                   >
                                     <div className="flex items-center gap-2.5 flex-1">
                                       <button
@@ -2354,7 +2354,7 @@ export default function ProductivityHub({
                                         <div className={`w-4 h-4 rounded-md border flex items-center justify-center transition-all ${
                                           task.completed 
                                             ? 'bg-red-500 border-red-500 text-slate-950 shadow-sm' 
-                                            : 'border-slate-700 bg-slate-900/50 hover:border-slate-600'
+                                            : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900/50 hover:border-slate-600'
                                         }`}>
                                           {task.completed && <Check className="w-3 h-3 stroke-[3]" />}
                                         </div>
@@ -2365,8 +2365,8 @@ export default function ProductivityHub({
                                           type="text"
                                           value={task.title}
                                           onChange={(e) => updatePowerTaskTitle(getTodayDayObject().id, category.id, task.id, e.target.value, powerDate)}
-                                          className={`bg-transparent border-b border-transparent hover:border-slate-800 focus:border-red-500/60 text-xs py-0.5 focus:outline-none transition-all w-full focus:bg-slate-900/40 rounded px-1 ${
-                                            task.completed ? 'text-slate-500 line-through' : 'text-slate-200 focus:text-slate-100'
+                                          className={`bg-transparent border-b border-transparent hover:border-slate-300 dark:border-slate-800 focus:border-red-500/60 text-xs py-0.5 focus:outline-none transition-all w-full focus:bg-white/40 dark:bg-slate-900/40 rounded px-1 ${
+                                            task.completed ? 'text-slate-500 dark:text-slate-500 dark:text-slate-500 line-through' : 'text-slate-800 dark:text-slate-200 focus:text-slate-100'
                                           }`}
                                         />
                                         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
@@ -2395,7 +2395,7 @@ export default function ProductivityHub({
                                     <button 
                                       type="button"
                                       onClick={() => deletePowerTask(getTodayDayObject().id, category.id, task.id, powerDate)}
-                                      className="opacity-70 hover:opacity-100 p-1 text-slate-400 hover:text-red-500 transition-all cursor-pointer"
+                                      className="opacity-70 hover:opacity-100 p-1 text-slate-600 dark:text-slate-400 hover:text-red-500 transition-all cursor-pointer"
                                       title="Delete task"
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />
@@ -2420,14 +2420,14 @@ export default function ProductivityHub({
                             🌙 EVENING RECKONING
                           </h3>
                         </div>
-                        <p className="text-[11px] text-slate-400">
+                        <p className="text-[11px] text-slate-600 dark:text-slate-400">
                           At evening time, reflect on your execution blocks, record achievements, and publish your permanent report.
                         </p>
                       </div>
 
                       {/* Reflection input */}
                       <div className="space-y-2">
-                        <label className="text-[10px] font-mono text-slate-500 uppercase tracking-widest block font-bold">
+                        <label className="text-[10px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase tracking-widest block font-bold">
                           Evening Reflection Notes
                         </label>
                         <textarea 
@@ -2435,14 +2435,14 @@ export default function ProductivityHub({
                           placeholder="Reflect on your executions, blockers, mental state, and lessons learned..."
                           value={eveningNotes}
                           onChange={(e) => setEveningNotes(e.target.value)}
-                          className="w-full bg-slate-950/60 border border-slate-800 focus:border-red-500 rounded-xl p-3 text-xs text-slate-200 placeholder-slate-600 focus:outline-none transition-all resize-none"
+                          className="w-full bg-slate-50 dark:bg-slate-950/60 border border-slate-300 dark:border-slate-800 focus:border-red-500 rounded-xl p-3 text-xs text-slate-800 dark:text-slate-200 placeholder-slate-600 focus:outline-none transition-all resize-none"
                         />
                       </div>
 
                       {/* Progress rating */}
-                      <div className="space-y-2 bg-slate-950/40 p-3.5 border border-slate-800 rounded-xl">
+                      <div className="space-y-2 bg-slate-50 dark:bg-slate-950/40 p-3.5 border border-slate-300 dark:border-slate-800 rounded-xl">
                         <div className="flex justify-between items-center text-xs">
-                          <span className="text-slate-400 font-mono">Today's Progress</span>
+                          <span className="text-slate-600 dark:text-slate-400 font-mono">Today's Progress</span>
                           <span className={`font-mono font-bold ${
                             (() => {
                               let total = 0; let done = 0;
@@ -2461,7 +2461,7 @@ export default function ProductivityHub({
                         </div>
 
                         {/* iOS styled progress bar */}
-                        <div className="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-800">
+                        <div className="w-full bg-white dark:bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-300 dark:border-slate-800">
                           {(() => {
                             let total = 0; let done = 0;
                             todayCategories.forEach(c => c.tasks.forEach(t => { total++; if (t.completed) done++; }));
@@ -2474,7 +2474,7 @@ export default function ProductivityHub({
                             );
                           })()}
                         </div>
-                        <p className="text-[9px] text-slate-500 leading-normal">
+                        <p className="text-[9px] text-slate-500 dark:text-slate-500 dark:text-slate-500 leading-normal">
                           *Keep completion above 50% to maintain a highly professional executive standard.
                         </p>
                       </div>
@@ -2495,7 +2495,7 @@ export default function ProductivityHub({
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   {/* Left 2 Columns: Tomorrow's Planner */}
                   <div className="lg:col-span-2 glass-panel p-6 rounded-2xl space-y-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-3 gap-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-300 dark:border-slate-800 pb-3 gap-3">
                       <div className="flex items-center gap-2">
                         <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
                         <h3 className="text-base font-display font-bold text-slate-100 uppercase tracking-wide">
@@ -2506,14 +2506,14 @@ export default function ProductivityHub({
                           })()})
                         </h3>
                       </div>
-                      <span className="text-xs text-slate-400 font-mono bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg">
+                      <span className="text-xs text-slate-600 dark:text-slate-400 font-mono bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 px-2.5 py-1 rounded-lg">
                         Date: {tomorrowDateStr}
                       </span>
                     </div>
 
                     {/* Add action step form for tomorrow */}
-                    <form onSubmit={(e) => { e.preventDefault(); addGoalLinkedPowerTask(getTomorrowDayObject().id, powerTaskCategory === 'CUSTOM', tomorrowDateStr); }} className="space-y-3 bg-slate-950/40 border border-slate-800 p-4 rounded-xl">
-                      <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-bold">Add Action to Tomorrow's Blueprint</div>
+                    <form onSubmit={(e) => { e.preventDefault(); addGoalLinkedPowerTask(getTomorrowDayObject().id, powerTaskCategory === 'CUSTOM', tomorrowDateStr); }} className="space-y-3 bg-slate-50 dark:bg-slate-950/40 border border-slate-300 dark:border-slate-800 p-4 rounded-xl">
+                      <div className="text-[10px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase tracking-widest font-bold">Add Action to Tomorrow's Blueprint</div>
                       
                       <div className="flex flex-col sm:flex-row gap-2.5">
                         <input 
@@ -2521,24 +2521,24 @@ export default function ProductivityHub({
                           placeholder="Plan action step for tomorrow..."
                           value={powerTaskTitle}
                           onChange={(e) => setPowerTaskTitle(e.target.value)}
-                          className="bg-slate-900 border border-slate-800 hover:border-slate-700 focus:border-amber-500 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder-slate-600 focus:outline-none flex-1 transition-all"
+                          className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 hover:border-slate-300 dark:border-slate-700 focus:border-amber-500 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder-slate-600 focus:outline-none flex-1 transition-all"
                         />
                         
                         <div className="flex gap-2">
-                          <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs text-slate-300">
-                            <Clock className="w-3.5 h-3.5 text-slate-500" />
+                          <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl px-2.5 py-1.5 text-xs text-slate-700 dark:text-slate-300">
+                            <Clock className="w-3.5 h-3.5 text-slate-500 dark:text-slate-500 dark:text-slate-500" />
                             <input 
                               type="time"
                               value={powerTaskTime}
                               onChange={(e) => setPowerTaskTime(e.target.value)}
-                              className="bg-transparent text-xs text-slate-200 font-mono focus:outline-none border-none p-0 cursor-pointer"
+                              className="bg-transparent text-xs text-slate-800 dark:text-slate-200 font-mono focus:outline-none border-none p-0 cursor-pointer"
                             />
                           </div>
 
                           <select 
                             value={powerTaskGoalId}
                             onChange={(e) => setPowerTaskGoalId(e.target.value)}
-                            className="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none transition-all sm:max-w-[180px]"
+                            className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 hover:border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-700 dark:text-slate-300 focus:outline-none transition-all sm:max-w-[180px]"
                           >
                             <option value="">🔗 Link to Goal...</option>
                             {goals.map(g => (
@@ -2550,7 +2550,7 @@ export default function ProductivityHub({
                         <select 
                           value={powerTaskCategory}
                           onChange={(e) => setPowerTaskCategory(e.target.value)}
-                          className="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none transition-all sm:max-w-[160px]"
+                          className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 hover:border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-700 dark:text-slate-300 focus:outline-none transition-all sm:max-w-[160px]"
                         >
                           <option value="WEALTH CREATION">Wealth Creation</option>
                           <option value="BECOME INCREDIBLY MUSCULAR">Physical Muscle</option>
@@ -2566,7 +2566,7 @@ export default function ProductivityHub({
                           placeholder="Type custom category name..."
                           value={powerCustomCategory}
                           onChange={(e) => setPowerCustomCategory(e.target.value)}
-                          className="w-full bg-slate-900 border border-slate-800 hover:border-slate-700 focus:border-amber-500 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none transition-all"
+                          className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 hover:border-slate-300 dark:border-slate-700 focus:border-amber-500 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none transition-all"
                         />
                       )}
 
@@ -2581,7 +2581,7 @@ export default function ProductivityHub({
                     {/* Tomorrow's List */}
                     <div className="space-y-4">
                       {tomorrowCategories.length === 0 || tomorrowCategories.every(c => c.tasks.length === 0) ? (
-                        <div className="text-center py-8 text-slate-500 text-xs">
+                        <div className="text-center py-8 text-slate-500 dark:text-slate-500 dark:text-slate-500 text-xs">
                           <Calendar className="w-8 h-8 text-slate-600 mx-auto mb-2" />
                           No action steps defined for tomorrow. Plan ahead to eliminate tomorrow's decision fatigue.
                         </div>
@@ -2589,7 +2589,7 @@ export default function ProductivityHub({
                         tomorrowCategories.map(category => (
                           <div key={category.id} className="border-l-2 border-amber-500/60 pl-3 py-1 space-y-2">
                             <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">{category.name}</span>
+                              <span className="text-[10px] font-mono text-slate-600 dark:text-slate-400 uppercase tracking-wider">{category.name}</span>
                               <button 
                                 type="button"
                                 onClick={() => deletePowerCategory(getTomorrowDayObject().id, category.id, tomorrowDateStr)}
@@ -2601,11 +2601,11 @@ export default function ProductivityHub({
 
                             <div className="space-y-1.5">
                               {category.tasks.map(task => (
-                                <div key={task.id} className="flex items-center justify-between gap-3 bg-slate-950/20 p-2.5 rounded-lg border border-slate-900/60 group hover:border-slate-850 transition-all">
+                                <div key={task.id} className="flex items-center justify-between gap-3 bg-slate-50/20 dark:bg-slate-950/20 p-2.5 rounded-lg border border-slate-900/60 group hover:border-slate-850 transition-all">
                                   <div className="flex items-center gap-2.5 flex-1 text-slate-450">
-                                    <div className="w-4 h-4 rounded-md border border-slate-800 bg-slate-950 flex items-center justify-center" />
+                                    <div className="w-4 h-4 rounded-md border border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex items-center justify-center" />
                                     <div className="flex-1 flex flex-col text-left">
-                                      <span className="text-xs text-slate-300">
+                                      <span className="text-xs text-slate-700 dark:text-slate-300">
                                         {task.title}
                                       </span>
                                       <div className="flex items-center gap-2 mt-0.5 flex-wrap">
@@ -2626,7 +2626,7 @@ export default function ProductivityHub({
                                   <button 
                                     type="button"
                                     onClick={() => deletePowerTask(getTomorrowDayObject().id, category.id, task.id, tomorrowDateStr)}
-                                    className="opacity-70 hover:opacity-100 p-1 text-slate-400 hover:text-red-500 transition-all cursor-pointer"
+                                    className="opacity-70 hover:opacity-100 p-1 text-slate-600 dark:text-slate-400 hover:text-red-500 transition-all cursor-pointer"
                                     title="Delete task"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
@@ -2650,7 +2650,7 @@ export default function ProductivityHub({
                         </h3>
                       </div>
                       
-                      <div className="bg-slate-950/40 border border-slate-800/80 p-4 rounded-xl space-y-3.5 text-xs text-slate-300 leading-relaxed">
+                      <div className="bg-slate-50 dark:bg-slate-950/40 border border-slate-300 dark:border-slate-800/80 p-4 rounded-xl space-y-3.5 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
                         <p>
                           Planning tomorrow's focus steps tonight prepares your brain to execute with immediate speed.
                         </p>
@@ -2663,9 +2663,9 @@ export default function ProductivityHub({
                       </div>
                     </div>
 
-                    <div className="bg-slate-900/40 border border-slate-800 p-3.5 rounded-xl">
-                      <p className="text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">PRO-TIP</p>
-                      <p className="text-[11px] text-slate-400 leading-relaxed">
+                    <div className="bg-white/40 dark:bg-slate-900/40 border border-slate-300 dark:border-slate-800 p-3.5 rounded-xl">
+                      <p className="text-[10px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase tracking-wider mb-1">PRO-TIP</p>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
                         Link every planned action to one of your Vision Goals. Unaligned tasks are visual noise.
                       </p>
                     </div>
@@ -2681,16 +2681,16 @@ export default function ProductivityHub({
                     const pct = total > 0 ? Math.round((done / total) * 100) : 0;
 
                     return (
-                      <div key={day.id} className="glass-panel p-5 rounded-2xl flex flex-col justify-between min-h-[440px] border border-slate-800/80 hover:border-slate-700/50 transition-all shadow-md">
+                      <div key={day.id} className="glass-panel p-5 rounded-2xl flex flex-col justify-between min-h-[440px] border border-slate-300 dark:border-slate-800/80 hover:border-slate-300 dark:border-slate-700/50 transition-all shadow-md">
                         <div className="space-y-4 flex-1 flex flex-col">
                           {/* Day Title bar */}
-                          <div className="flex justify-between items-center border-b border-slate-800/60 pb-2.5">
+                          <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800/60 pb-2.5">
                             <div className="flex items-center gap-1.5">
                               <span className="w-2.5 h-2.5 rounded bg-blue-500 animate-pulse" />
                               <h4 className="text-sm font-display font-bold text-slate-100 uppercase tracking-wide">{day.dayName}</h4>
                             </div>
                             <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
-                              pct >= 50 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-950/80 text-slate-500 border border-slate-800'
+                              pct >= 50 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-50 dark:bg-slate-950/80 text-slate-500 dark:text-slate-500 dark:text-slate-500 border border-slate-300 dark:border-slate-800'
                             }`}>
                               {pct}% done
                             </span>
@@ -2699,14 +2699,14 @@ export default function ProductivityHub({
                           {/* List of focus tasks & categories */}
                           <div className="space-y-4 max-h-[300px] overflow-y-auto pr-1 flex-1 scrollbar-thin">
                             {day.categories.map(category => (
-                              <div key={category.id} className="space-y-2 bg-slate-950/30 p-2.5 rounded-xl border border-slate-900/80 group/cat">
+                              <div key={category.id} className="space-y-2 bg-slate-50 dark:bg-slate-950/30 p-2.5 rounded-xl border border-slate-900/80 group/cat">
                                 {/* Category Header */}
                                 <div className="flex justify-between items-center">
                                   <input 
                                     type="text"
                                     value={category.name}
                                     onChange={(e) => updatePowerCategoryName(day.id, category.id, e.target.value)}
-                                    className="text-[9px] font-mono text-slate-400 focus:text-cyan-400 font-bold uppercase tracking-widest bg-transparent border-b border-transparent focus:border-cyan-500/40 focus:outline-none py-0.5 px-1 max-w-[150px] transition-all"
+                                    className="text-[9px] font-mono text-slate-600 dark:text-slate-400 focus:text-cyan-400 font-bold uppercase tracking-widest bg-transparent border-b border-transparent focus:border-cyan-500/40 focus:outline-none py-0.5 px-1 max-w-[150px] transition-all"
                                     title="Edit category name"
                                   />
                                   <button
@@ -2722,7 +2722,7 @@ export default function ProductivityHub({
                                 {/* Tasks under this category */}
                                 <div className="space-y-1.5 pl-1">
                                   {category.tasks.map(t => (
-                                    <div key={t.id} className="flex justify-between items-center gap-2 group/task bg-slate-950/20 px-2 py-1.5 rounded border border-slate-900/60 hover:border-slate-800/80 transition-all">
+                                    <div key={t.id} className="flex justify-between items-center gap-2 group/task bg-slate-50/20 dark:bg-slate-950/20 px-2 py-1.5 rounded border border-slate-900/60 hover:border-slate-300 dark:border-slate-800/80 transition-all">
                                       <div className="flex items-center gap-2 flex-1">
                                         <button
                                           type="button"
@@ -2732,7 +2732,7 @@ export default function ProductivityHub({
                                           <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center transition-all ${
                                             t.completed 
                                               ? 'bg-blue-500 border-blue-500 text-slate-950 shadow-sm' 
-                                              : 'border-slate-700 bg-slate-900/50 hover:border-slate-600'
+                                              : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900/50 hover:border-slate-600'
                                           }`}>
                                             {t.completed && <Check className="w-2.5 h-2.5 stroke-[3]" />}
                                           </div>
@@ -2743,8 +2743,8 @@ export default function ProductivityHub({
                                             type="text"
                                             value={t.title}
                                             onChange={(e) => updatePowerTaskTitle(day.id, category.id, t.id, e.target.value)}
-                                            className={`bg-transparent border-b border-transparent hover:border-slate-800 focus:border-blue-500/40 text-[11px] focus:outline-none transition-all w-full ${
-                                              t.completed ? 'text-slate-500 line-through' : 'text-slate-300 focus:text-slate-100'
+                                            className={`bg-transparent border-b border-transparent hover:border-slate-300 dark:border-slate-800 focus:border-blue-500/40 text-[11px] focus:outline-none transition-all w-full ${
+                                              t.completed ? 'text-slate-500 dark:text-slate-500 dark:text-slate-500 line-through' : 'text-slate-700 dark:text-slate-300 focus:text-slate-100'
                                             }`}
                                           />
                                           {t.goalTitle && (
@@ -2758,7 +2758,7 @@ export default function ProductivityHub({
                                       <button
                                         type="button"
                                         onClick={() => deletePowerTask(day.id, category.id, t.id)}
-                                        className="opacity-70 hover:opacity-100 p-0.5 text-slate-400 hover:text-red-500 transition-all cursor-pointer"
+                                        className="opacity-70 hover:opacity-100 p-0.5 text-slate-600 dark:text-slate-400 hover:text-red-500 transition-all cursor-pointer"
                                         title="Delete task"
                                       >
                                         <Trash2 className="w-3.5 h-3.5" />
@@ -2770,7 +2770,7 @@ export default function ProductivityHub({
                                   <input 
                                     type="text"
                                     placeholder="+ Add task to blueprint..."
-                                    className="w-full bg-slate-900/40 border border-slate-900 hover:border-slate-800 rounded px-2 py-1 text-[10px] text-slate-400 placeholder-slate-600 focus:outline-none focus:border-cyan-500/30 transition-all mt-1"
+                                    className="w-full bg-white/40 dark:bg-slate-900/40 border border-slate-900 hover:border-slate-300 dark:border-slate-800 rounded px-2 py-1 text-[10px] text-slate-600 dark:text-slate-400 placeholder-slate-600 focus:outline-none focus:border-cyan-500/30 transition-all mt-1"
                                     onKeyDown={(e) => {
                                       if (e.key === 'Enter' && e.currentTarget.value.trim()) {
                                         addPowerTask(day.id, category.id, e.currentTarget.value.trim());
@@ -2791,11 +2791,11 @@ export default function ProductivityHub({
                         </div>
 
                         {/* Add Category input */}
-                        <div className="pt-3 border-t border-slate-800/80 mt-2">
+                        <div className="pt-3 border-t border-slate-300 dark:border-slate-800/80 mt-2">
                           <input 
                             type="text"
                             placeholder="+ Create New Category Column (Press Enter)..."
-                            className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-3 py-1.5 text-[10px] text-slate-300 placeholder-slate-600 focus:outline-none focus:border-slate-700 transition-all"
+                            className="w-full bg-slate-50 dark:bg-slate-950/60 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-1.5 text-[10px] text-slate-700 dark:text-slate-300 placeholder-slate-600 focus:outline-none focus:border-slate-300 dark:border-slate-700 transition-all"
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
                                 addPowerCategory(day.id, e.currentTarget.value);
@@ -2843,11 +2843,11 @@ export default function ProductivityHub({
           <div className="max-w-md w-full flex flex-col items-center justify-between h-5/6 relative">
             
             {/* Header controls */}
-            <div className="w-full flex justify-between items-center text-xs font-mono text-slate-400">
+            <div className="w-full flex justify-between items-center text-xs font-mono text-slate-600 dark:text-slate-400">
               <span className="text-cyan-400 uppercase tracking-wider">FOCUS MODE STATE: ISOLATED</span>
               <button 
                 onClick={() => setIsFocusOverlayActive(false)}
-                className="px-3 py-1 bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-200 rounded-lg text-xs flex items-center gap-1.5 transition-all"
+                className="px-3 py-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 hover:border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-lg text-xs flex items-center gap-1.5 transition-all"
               >
                 <Minimize2 className="w-3.5 h-3.5" /> Close Isolation
               </button>
@@ -2855,14 +2855,14 @@ export default function ProductivityHub({
 
             {/* Glowing Big Timer */}
             <div className="flex flex-col items-center my-12">
-              <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 mb-3">CONCENTRATED TIMER</div>
+              <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 dark:text-slate-500 dark:text-slate-500 mb-3">CONCENTRATED TIMER</div>
               <h1 className="text-7xl font-display font-bold font-mono tracking-tight text-cyan-400 select-none neon-glow-blue px-6 py-2 rounded-2xl bg-cyan-500/5 border border-cyan-500/10">
                 {formatTime(secondsLeft)}
               </h1>
               
-              <div className="mt-4 text-xs text-slate-400 font-mono max-w-sm">
+              <div className="mt-4 text-xs text-slate-600 dark:text-slate-400 font-mono max-w-sm">
                 {selectedTaskForTimer ? (
-                  <p className="text-slate-300">Executing: <span className="text-cyan-400 font-semibold">{selectedTaskForTimer.title}</span></p>
+                  <p className="text-slate-700 dark:text-slate-300">Executing: <span className="text-cyan-400 font-semibold">{selectedTaskForTimer.title}</span></p>
                 ) : (
                   <p className="italic">Deep space focus. Clear your mind of all extraneous micro-tasks.</p>
                 )}
@@ -2885,22 +2885,22 @@ export default function ProductivityHub({
                 </button>
               </div>
 
-              <div className="flex gap-2.5 justify-center bg-slate-900/40 p-1.5 rounded-xl border border-slate-800 max-w-xs mx-auto">
+              <div className="flex gap-2.5 justify-center bg-white/40 dark:bg-slate-900/40 p-1.5 rounded-xl border border-slate-300 dark:border-slate-800 max-w-xs mx-auto">
                 <button 
                   onClick={() => resetTimerMode('focus', customMinutes)}
-                  className={`px-3 py-1 rounded text-[10px] font-mono ${timerMode === 'focus' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400'}`}
+                  className={`px-3 py-1 rounded text-[10px] font-mono ${timerMode === 'focus' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-600 dark:text-slate-400'}`}
                 >
                   Focus ({customMinutes}m)
                 </button>
                 <button 
                   onClick={() => resetTimerMode('short')}
-                  className={`px-3 py-1 rounded text-[10px] font-mono ${timerMode === 'short' ? 'bg-emerald-500 text-slate-950 font-bold' : 'text-slate-400'}`}
+                  className={`px-3 py-1 rounded text-[10px] font-mono ${timerMode === 'short' ? 'bg-emerald-500 text-slate-950 font-bold' : 'text-slate-600 dark:text-slate-400'}`}
                 >
                   Short (5m)
                 </button>
                 <button 
                   onClick={() => resetTimerMode('long')}
-                  className={`px-3 py-1 rounded text-[10px] font-mono ${timerMode === 'long' ? 'bg-blue-500 text-slate-950 font-bold' : 'text-slate-400'}`}
+                  className={`px-3 py-1 rounded text-[10px] font-mono ${timerMode === 'long' ? 'bg-blue-500 text-slate-950 font-bold' : 'text-slate-600 dark:text-slate-400'}`}
                 >
                   Long (15m)
                 </button>
@@ -2908,7 +2908,7 @@ export default function ProductivityHub({
             </div>
 
             {/* Small Footer Affirmation */}
-            <div className="text-[10px] font-mono text-slate-500 mt-6 italic">
+            <div className="text-[10px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500 mt-6 italic">
               "Focus is a matter of deciding what things you're not going to do."
             </div>
           </div>
@@ -2917,9 +2917,9 @@ export default function ProductivityHub({
 
       {/* RECURRENCE CONFIGURATION MODAL */}
       {isRecurrenceModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-sm p-4 text-left">
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-lg shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-slate-800/60 pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-50 dark:bg-slate-950/85 backdrop-blur-sm p-4 text-left">
+          <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 p-6 rounded-2xl w-full max-w-lg shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800/60 pb-3">
               <div className="flex items-center gap-2 text-cyan-400">
                 <Repeat className="w-5 h-5 stroke-[2]" />
                 <h3 className="font-display font-bold text-slate-100 text-base uppercase tracking-wider">Configure Task Recurrence</h3>
@@ -2927,7 +2927,7 @@ export default function ProductivityHub({
               <button 
                 type="button" 
                 onClick={() => setIsRecurrenceModalOpen(false)}
-                className="text-slate-500 hover:text-slate-300 transition-all p-1 hover:bg-slate-800/50 rounded-lg cursor-pointer"
+                className="text-slate-500 dark:text-slate-500 dark:text-slate-500 hover:text-slate-700 dark:text-slate-300 transition-all p-1 hover:bg-slate-100 dark:bg-slate-800/50 rounded-lg cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2936,7 +2936,7 @@ export default function ProductivityHub({
             <div className="space-y-4">
               {/* Frequency Type Selector */}
               <div className="space-y-2">
-                <label className="text-[10px] font-mono text-slate-400 uppercase tracking-widest block font-bold">Frequency Type</label>
+                <label className="text-[10px] font-mono text-slate-600 dark:text-slate-400 uppercase tracking-widest block font-bold">Frequency Type</label>
                 <div className="grid grid-cols-3 gap-2">
                   {(['daily', 'weekly', 'monthly'] as const).map((type) => (
                     <button
@@ -2946,7 +2946,7 @@ export default function ProductivityHub({
                       className={`py-2 px-3 text-xs font-mono font-bold uppercase rounded-xl border transition-all cursor-pointer ${
                         modalFreqType === type
                           ? 'bg-cyan-500/15 border-cyan-500 text-cyan-400 shadow-sm font-bold'
-                          : 'bg-slate-950/40 border-slate-800 text-slate-500 hover:border-slate-700 hover:text-slate-300'
+                          : 'bg-slate-50 dark:bg-slate-950/40 border-slate-300 dark:border-slate-800 text-slate-500 dark:text-slate-500 dark:text-slate-500 hover:border-slate-300 dark:border-slate-700 hover:text-slate-700 dark:text-slate-300'
                       }`}
                     >
                       {type}
@@ -2957,8 +2957,8 @@ export default function ProductivityHub({
 
               {/* Weekly Configuration */}
               {modalFreqType === 'weekly' && (
-                <div className="space-y-2 bg-slate-950/30 p-3 rounded-xl border border-slate-850">
-                  <label className="text-[10px] font-mono text-slate-400 uppercase tracking-widest block font-bold">Select Active Days</label>
+                <div className="space-y-2 bg-slate-50 dark:bg-slate-950/30 p-3 rounded-xl border border-slate-850">
+                  <label className="text-[10px] font-mono text-slate-600 dark:text-slate-400 uppercase tracking-widest block font-bold">Select Active Days</label>
                   <div className="flex flex-wrap gap-1.5 justify-between">
                     {['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'].map((day) => {
                       const isSelected = modalWeeklyDays.includes(day);
@@ -2976,7 +2976,7 @@ export default function ProductivityHub({
                           className={`w-9 h-9 text-xs font-mono font-bold rounded-lg border flex items-center justify-center transition-all cursor-pointer ${
                             isSelected
                               ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400 shadow-sm'
-                              : 'bg-slate-900 border-slate-800/80 text-slate-500 hover:border-slate-700 hover:text-slate-300'
+                              : 'bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-800/80 text-slate-500 dark:text-slate-500 dark:text-slate-500 hover:border-slate-300 dark:border-slate-700 hover:text-slate-700 dark:text-slate-300'
                           }`}
                         >
                           {day.substring(0, 1).toUpperCase()}
@@ -2989,8 +2989,8 @@ export default function ProductivityHub({
 
               {/* Monthly Configuration */}
               {modalFreqType === 'monthly' && (
-                <div className="space-y-3 bg-slate-950/30 p-3.5 rounded-xl border border-slate-850">
-                  <label className="text-[10px] font-mono text-slate-400 uppercase tracking-widest block font-bold">Monthly Strategy</label>
+                <div className="space-y-3 bg-slate-50 dark:bg-slate-950/30 p-3.5 rounded-xl border border-slate-850">
+                  <label className="text-[10px] font-mono text-slate-600 dark:text-slate-400 uppercase tracking-widest block font-bold">Monthly Strategy</label>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
@@ -2998,7 +2998,7 @@ export default function ProductivityHub({
                       className={`py-1.5 px-3 text-xs font-mono rounded-lg border transition-all cursor-pointer ${
                         modalMonthlyType === 'specific_date'
                           ? 'bg-cyan-500/10 border-cyan-500/40 text-cyan-400 font-bold'
-                          : 'bg-slate-900 border-slate-800 text-slate-500 hover:text-slate-400'
+                          : 'bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-800 text-slate-500 dark:text-slate-500 dark:text-slate-500 hover:text-slate-600 dark:text-slate-400'
                       }`}
                     >
                       Specific Date
@@ -3009,7 +3009,7 @@ export default function ProductivityHub({
                       className={`py-1.5 px-3 text-xs font-mono rounded-lg border transition-all cursor-pointer ${
                         modalMonthlyType === 'relative_day'
                           ? 'bg-cyan-500/10 border-cyan-500/40 text-cyan-400 font-bold'
-                          : 'bg-slate-900 border-slate-800 text-slate-500 hover:text-slate-400'
+                          : 'bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-800 text-slate-500 dark:text-slate-500 dark:text-slate-500 hover:text-slate-600 dark:text-slate-400'
                       }`}
                     >
                       Relative Day
@@ -3018,7 +3018,7 @@ export default function ProductivityHub({
 
                   {modalMonthlyType === 'specific_date' ? (
                     <div className="space-y-1.5 pt-1.5">
-                      <label className="text-[9px] font-mono text-slate-500 uppercase tracking-wider block">Day of the Month</label>
+                      <label className="text-[9px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase tracking-wider block">Day of the Month</label>
                       <div className="flex items-center gap-2">
                         <input
                           type="number"
@@ -3026,19 +3026,19 @@ export default function ProductivityHub({
                           max="31"
                           value={modalMonthlySpecificDate}
                           onChange={(e) => setModalMonthlySpecificDate(Math.max(1, Math.min(31, parseInt(e.target.value) || 1)))}
-                          className="w-16 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono text-center focus:outline-none focus:border-cyan-500"
+                          className="w-16 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 dark:text-slate-200 font-mono text-center focus:outline-none focus:border-cyan-500"
                         />
-                        <span className="text-xs text-slate-400 font-mono">day of every month (e.g. 1st, 15th)</span>
+                        <span className="text-xs text-slate-600 dark:text-slate-400 font-mono">day of every month (e.g. 1st, 15th)</span>
                       </div>
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-3 pt-1.5">
                       <div className="space-y-1">
-                        <label className="text-[9px] font-mono text-slate-500 uppercase tracking-wider block">Occurrence</label>
+                        <label className="text-[9px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase tracking-wider block">Occurrence</label>
                         <select
                           value={modalMonthlyRelativeWeek}
                           onChange={(e) => setModalMonthlyRelativeWeek(parseInt(e.target.value))}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 cursor-pointer animate-none"
+                          className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-2 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-cyan-500 cursor-pointer animate-none"
                         >
                           <option value="1">1st</option>
                           <option value="2">2nd</option>
@@ -3048,11 +3048,11 @@ export default function ProductivityHub({
                         </select>
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[9px] font-mono text-slate-500 uppercase tracking-wider block">Weekday</label>
+                        <label className="text-[9px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase tracking-wider block">Weekday</label>
                         <select
                           value={modalMonthlyRelativeDay}
                           onChange={(e) => setModalMonthlyRelativeDay(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono cursor-pointer animate-none"
+                          className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-2 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-cyan-500 font-mono cursor-pointer animate-none"
                         >
                           <option value="mon">Monday</option>
                           <option value="tue">Tuesday</option>
@@ -3069,10 +3069,10 @@ export default function ProductivityHub({
               )}
 
               {/* End Conditions */}
-              <div className="space-y-2.5 bg-slate-950/20 p-3.5 rounded-xl border border-slate-850">
-                <label className="text-[10px] font-mono text-slate-400 uppercase tracking-widest block font-bold">End Condition</label>
+              <div className="space-y-2.5 bg-slate-50/20 dark:bg-slate-950/20 p-3.5 rounded-xl border border-slate-850">
+                <label className="text-[10px] font-mono text-slate-600 dark:text-slate-400 uppercase tracking-widest block font-bold">End Condition</label>
                 <div className="flex gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-700 dark:text-slate-300">
                     <input
                       type="radio"
                       name="endCondition"
@@ -3082,7 +3082,7 @@ export default function ProductivityHub({
                     />
                     Repeat Forever
                   </label>
-                  <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-700 dark:text-slate-300">
                     <input
                       type="radio"
                       name="endCondition"
@@ -3100,14 +3100,14 @@ export default function ProductivityHub({
                       type="date"
                       value={modalUntilDate}
                       onChange={(e) => setModalUntilDate(e.target.value)}
-                      className="bg-slate-950 border border-slate-800 focus:border-cyan-500 rounded-lg px-3 py-1.5 text-xs text-slate-200 font-mono focus:outline-none"
+                      className="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 focus:border-cyan-500 rounded-lg px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 font-mono focus:outline-none"
                     />
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="flex justify-between items-center border-t border-slate-800/60 pt-4">
+            <div className="flex justify-between items-center border-t border-slate-200 dark:border-slate-800/60 pt-4">
               <button
                 type="button"
                 onClick={() => {
@@ -3123,7 +3123,7 @@ export default function ProductivityHub({
                 <button
                   type="button"
                   onClick={() => setIsRecurrenceModalOpen(false)}
-                  className="px-4 py-2 bg-slate-950 border border-slate-800 hover:bg-slate-800/50 text-slate-400 font-mono text-xs rounded-xl transition-all cursor-pointer"
+                  className="px-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 hover:bg-slate-100 dark:bg-slate-800/50 text-slate-600 dark:text-slate-400 font-mono text-xs rounded-xl transition-all cursor-pointer"
                 >
                   Cancel
                 </button>

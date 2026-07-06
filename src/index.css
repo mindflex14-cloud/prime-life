@@ -1,5 +1,7 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
@@ -7,13 +9,13 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
   /* Typography Upgrade: Increase base size by 15-20% across sections */
-  --text-xs: 0.85rem;      /* ~13.6px instead of 12px (+15%) */
-  --text-sm: 1.05rem;      /* ~16.8px instead of 14px (+20%) */
-  --text-base: 1.2rem;     /* ~19.2px instead of 16px (+20%) */
-  --text-lg: 1.38rem;      /* ~22px instead of 18px (+22%) */
-  --text-xl: 1.5rem;       /* ~24px instead of 20px (+20%) */
-  --text-2xl: 1.8rem;      /* ~28.8px instead of 24px (+20%) */
-  --text-3xl: 2.25rem;     /* ~36px instead of 30px (+20%) */
+  --text-xs: 0.85rem;
+  --text-sm: 1.05rem;
+  --text-base: 1.2rem;
+  --text-lg: 1.38rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 1.8rem;
+  --text-3xl: 2.25rem;
 
   /* Semantic Theme Mappings */
   --color-bg-primary: var(--bg-primary);
@@ -22,7 +24,6 @@
   --color-text-main: var(--text-main);
   --color-container-border: var(--container-border);
 }
-
 :root {
   /* High-fidelity Light Mode Theme variables conforming to User specifications */
   --bg-primary: #FFFFFF; /* Pure white background */

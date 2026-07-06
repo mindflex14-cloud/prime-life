@@ -1238,10 +1238,10 @@ export default function ExecutionCore({
             <div className="flex-1 min-w-0">
               <div className="flex justify-between items-baseline">
                 <span className="text-[10px] font-mono font-bold uppercase text-cyan-400 dark:text-red-400">AETHER.OS ALERTS</span>
-                <span className="text-[9px] font-mono text-slate-400">{activeNotification.time}</span>
+                <span className="text-[9px] font-mono text-slate-600 dark:text-slate-400">{activeNotification.time}</span>
               </div>
               <h5 className="text-xs font-sans font-semibold text-slate-800 dark:text-slate-100 mt-1">{activeNotification.title}</h5>
-              <p className="text-[9.5px] text-slate-400 dark:text-slate-500 mt-0.5">High-leverage milestone execution is due now.</p>
+              <p className="text-[9.5px] text-slate-600 dark:text-slate-400 dark:text-slate-500 mt-0.5">High-leverage milestone execution is due now.</p>
             </div>
           </motion.div>
         )}
@@ -1288,13 +1288,13 @@ export default function ExecutionCore({
 
           {/* Text Focus Details */}
           <div className="space-y-1">
-            <span className="text-[9px] font-mono font-bold uppercase text-slate-400 dark:text-slate-500 tracking-wider">
+            <span className="text-[9px] font-mono font-bold uppercase text-slate-600 dark:text-slate-400 dark:text-slate-500 tracking-wider">
               Today's Focus
             </span>
             <h3 className="text-xs font-bold text-slate-800 dark:text-slate-100 leading-tight">
               {allLedgerTasks.filter(t => t.dateStr === powerDate && t.priority === 'high' && !t.completed)[0]?.title || "Dominate Your Blueprint"}
             </h3>
-            <p className="text-[10px] text-slate-500">
+            <p className="text-[10px] text-slate-500 dark:text-slate-500 dark:text-slate-500">
               High-productivity execution window
             </p>
           </div>
@@ -1303,7 +1303,7 @@ export default function ExecutionCore({
         {/* Completed and Focus hours */}
         <div className="md:col-span-2 grid grid-cols-2 gap-4 border-b md:border-b-0 md:border-r border-slate-200/50 dark:border-slate-800/85 pb-4 md:pb-0 md:px-6">
           <div>
-            <span className="text-[9px] font-mono font-bold uppercase text-slate-400 dark:text-slate-500 tracking-wider">
+            <span className="text-[9px] font-mono font-bold uppercase text-slate-600 dark:text-slate-400 dark:text-slate-500 tracking-wider">
               Objectives Done
             </span>
             <div className="flex items-baseline gap-1 mt-0.5">
@@ -1314,13 +1314,13 @@ export default function ExecutionCore({
                 /{totalTasks}
               </span>
             </div>
-            <p className="text-[9px] text-slate-500 mt-0.5">
+            <p className="text-[9px] text-slate-500 dark:text-slate-500 dark:text-slate-500 mt-0.5">
               {totalTasks - completedTasks} remaining blocks
             </p>
           </div>
 
           <div>
-            <span className="text-[9px] font-mono font-bold uppercase text-slate-400 dark:text-slate-500 tracking-wider">
+            <span className="text-[9px] font-mono font-bold uppercase text-slate-600 dark:text-slate-400 dark:text-slate-500 tracking-wider">
               Focus hours
             </span>
             <div className="flex items-baseline gap-1 mt-0.5">
@@ -1336,7 +1336,7 @@ export default function ExecutionCore({
                 hrs
               </span>
             </div>
-            <p className="text-[9px] text-slate-500 mt-0.5">
+            <p className="text-[9px] text-slate-500 dark:text-slate-500 dark:text-slate-500 mt-0.5">
               Based on active durations
             </p>
           </div>
@@ -1345,7 +1345,7 @@ export default function ExecutionCore({
         {/* Active Streak */}
         <div className="md:col-span-2 flex items-center justify-between md:pl-6">
           <div>
-            <span className="text-[9px] font-mono font-bold uppercase text-slate-400 dark:text-slate-500 tracking-wider">
+            <span className="text-[9px] font-mono font-bold uppercase text-slate-600 dark:text-slate-400 dark:text-slate-500 tracking-wider">
               AETHER STREAK
             </span>
             <div className="flex items-center gap-2 mt-1">
@@ -1418,7 +1418,7 @@ export default function ExecutionCore({
             {/* Apple Activity Ring */}
             <div className="flex items-center gap-3.5 bg-white/70 dark:bg-slate-900/60 p-3 rounded-2xl border border-slate-200/50 dark:border-slate-800/80 shadow-sm">
               <div className="text-right">
-                <span className="text-[9px] font-mono text-slate-500 uppercase block font-bold">Ring Status</span>
+                <span className="text-[9px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase block font-bold">Ring Status</span>
                 <span className="text-xs font-mono font-bold text-slate-800 dark:text-slate-200">
                   {completedTasks}/{totalTasks} DONE ({completionPercent}%)
                 </span>
@@ -1450,11 +1450,11 @@ export default function ExecutionCore({
           {/* Active Tasks list rendering */}
           <div className="space-y-4">
             {filteredTasks.length === 0 ? (
-              <div className="text-center py-16 text-slate-500 space-y-4 border border-dashed border-slate-200 dark:border-slate-800/80 rounded-3xl bg-white/30 dark:bg-slate-950/10">
+              <div className="text-center py-16 text-slate-500 dark:text-slate-500 dark:text-slate-500 space-y-4 border border-dashed border-slate-200 dark:border-slate-800/80 rounded-3xl bg-white/30 dark:bg-slate-950/10">
                 <Flame className="w-10 h-10 text-slate-350 dark:text-slate-700 mx-auto animate-pulse" />
                 <div className="space-y-1">
                   <p className="text-slate-700 dark:text-slate-300 font-semibold text-xs">No active agenda blocks matching active filters.</p>
-                  <p className="text-[11px] text-slate-400">Open the slide sheet or trigger AI recommendations to generate.</p>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400">Open the slide sheet or trigger AI recommendations to generate.</p>
                 </div>
                 
                 <button
@@ -1509,11 +1509,11 @@ export default function ExecutionCore({
                             </button>
 
                             <div className="flex-1 min-w-0">
-                              <span className="text-[8px] font-mono uppercase bg-slate-100 dark:bg-slate-900 text-slate-500 px-1.5 py-0.5 rounded font-bold mr-1.5">
+                              <span className="text-[8px] font-mono uppercase bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-500 dark:text-slate-500 px-1.5 py-0.5 rounded font-bold mr-1.5">
                                 {task.categoryName}
                               </span>
                               <h4 className={`text-xs font-semibold leading-relaxed break-words ${
-                                task.completed ? 'text-slate-400 dark:text-slate-500 line-through' : 'text-slate-855 dark:text-slate-100'
+                                task.completed ? 'text-slate-600 dark:text-slate-400 dark:text-slate-500 line-through' : 'text-slate-855 dark:text-slate-100'
                               }`}>
                                 {task.title}
                               </h4>
@@ -1525,7 +1525,7 @@ export default function ExecutionCore({
                             <button
                               type="button"
                               onClick={() => setExpandedTaskId(isExpanded ? null : task.id)}
-                              className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-900 text-slate-400 hover:text-slate-700 dark:hover:text-slate-350 transition-all cursor-pointer"
+                              className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-350 transition-all cursor-pointer"
                               title="Toggle Details Drawer"
                             >
                               {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -1533,7 +1533,7 @@ export default function ExecutionCore({
                             <button
                               type="button"
                               onClick={() => deletePowerTask(getWeekdayIdFromDate(powerDate), task.categoryId, task.id, powerDate)}
-                              className="p-1.5 rounded-lg hover:bg-rose-500/10 text-slate-400 hover:text-red-500 transition-all cursor-pointer opacity-70 hover:opacity-100"
+                              className="p-1.5 rounded-lg hover:bg-rose-500/10 text-slate-600 dark:text-slate-400 hover:text-red-500 transition-all cursor-pointer opacity-70 hover:opacity-100"
                               title="Delete Objective"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -1547,12 +1547,12 @@ export default function ExecutionCore({
                             
                             {/* Task Info & Timing Settings */}
                             <div className="bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/50 dark:border-slate-800/80 p-3.5 rounded-2xl space-y-3">
-                              <div className="text-[10px] font-mono font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest pb-1.5 border-b border-slate-200/40 dark:border-slate-800/40">
+                              <div className="text-[10px] font-mono font-bold text-slate-600 dark:text-slate-400 dark:text-slate-500 uppercase tracking-widest pb-1.5 border-b border-slate-200/40 dark:border-slate-800/40">
                                 Modify Objective Core Properties
                               </div>
 
                               <div className="space-y-1.5">
-                                <label className="text-[9px] font-mono uppercase font-bold text-slate-500 block">Objective Title</label>
+                                <label className="text-[9px] font-mono uppercase font-bold text-slate-500 dark:text-slate-500 dark:text-slate-500 block">Objective Title</label>
                                 <input
                                   type="text"
                                   value={task.title || ''}
@@ -1564,7 +1564,7 @@ export default function ExecutionCore({
 
                               <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1.5">
-                                  <label className="text-[9px] font-mono uppercase font-bold text-slate-500 block">Scheduled Time</label>
+                                  <label className="text-[9px] font-mono uppercase font-bold text-slate-500 dark:text-slate-500 dark:text-slate-500 block">Scheduled Time</label>
                                   <input
                                     type="text"
                                     value={task.time || ''}
@@ -1575,7 +1575,7 @@ export default function ExecutionCore({
                                 </div>
 
                                 <div className="space-y-1.5">
-                                  <label className="text-[9px] font-mono uppercase font-bold text-slate-500 block">Priority Level</label>
+                                  <label className="text-[9px] font-mono uppercase font-bold text-slate-500 dark:text-slate-500 dark:text-slate-500 block">Priority Level</label>
                                   <select
                                     value={task.priority || 'none'}
                                     onChange={(e) => updateTaskField(task.categoryId, task.id, 'priority', e.target.value)}
@@ -1591,7 +1591,7 @@ export default function ExecutionCore({
 
                               <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1.5">
-                                  <label className="text-[9px] font-mono uppercase font-bold text-slate-500 block">Strategic Goal</label>
+                                  <label className="text-[9px] font-mono uppercase font-bold text-slate-500 dark:text-slate-500 dark:text-slate-500 block">Strategic Goal</label>
                                   <select
                                     value={goals.find(g => g.title === task.goalTitle)?.id || ''}
                                     onChange={(e) => {
@@ -1608,7 +1608,7 @@ export default function ExecutionCore({
                                 </div>
 
                                 <div className="space-y-1.5">
-                                  <label className="text-[9px] font-mono uppercase font-bold text-slate-500 block">Recurrence / Repeat</label>
+                                  <label className="text-[9px] font-mono uppercase font-bold text-slate-500 dark:text-slate-500 dark:text-slate-500 block">Recurrence / Repeat</label>
                                   <select
                                     value={task.recurrence ? task.recurrence.frequency : 'never'}
                                     onChange={(e) => {
@@ -1632,7 +1632,7 @@ export default function ExecutionCore({
 
                             {/* Notes Box */}
                             <div className="space-y-1.5">
-                              <label className="text-[9px] font-mono uppercase font-bold text-slate-500 block">Notes & Insights</label>
+                              <label className="text-[9px] font-mono uppercase font-bold text-slate-500 dark:text-slate-500 dark:text-slate-500 block">Notes & Insights</label>
                               <textarea
                                 value={task.notes}
                                 placeholder="Log custom reminders, details, or operational instructions..."
@@ -1645,7 +1645,7 @@ export default function ExecutionCore({
                             {/* Subtasks checklists */}
                             <div className="space-y-2">
                               <div className="flex justify-between items-center">
-                                <label className="text-[9px] font-mono uppercase font-bold text-slate-500">Interactive Subtasks</label>
+                                <label className="text-[9px] font-mono uppercase font-bold text-slate-500 dark:text-slate-500 dark:text-slate-500">Interactive Subtasks</label>
                                 <span className="text-[9px] font-mono text-cyan-500">
                                   {task.subtasks?.filter((st: any) => st.completed).length || 0}/
                                   {task.subtasks?.length || 0} Complete
@@ -1680,7 +1680,7 @@ export default function ExecutionCore({
                                       >
                                         {st.completed && <Check className="w-2.5 h-2.5 text-emerald-500 stroke-[4]" />}
                                       </button>
-                                      <span className={`text-[10.5px] leading-tight truncate ${st.completed ? 'text-slate-400 line-through' : 'text-slate-700 dark:text-slate-300'}`}>
+                                      <span className={`text-[10.5px] leading-tight truncate ${st.completed ? 'text-slate-600 dark:text-slate-400 line-through' : 'text-slate-700 dark:text-slate-300'}`}>
                                         {st.title}
                                       </span>
                                     </div>
@@ -1735,7 +1735,7 @@ export default function ExecutionCore({
 
                             {/* Attachments Section */}
                             <div className="space-y-2">
-                              <label className="text-[9px] font-mono uppercase font-bold text-slate-500 block">Linked Attachments</label>
+                              <label className="text-[9px] font-mono uppercase font-bold text-slate-500 dark:text-slate-500 dark:text-slate-500 block">Linked Attachments</label>
                               <div className="grid grid-cols-2 gap-2">
                                 {task.attachments?.map((at: any, i: number) => (
                                   <div key={i} className="p-2 bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/50 dark:border-slate-800/80 rounded-xl flex items-center justify-between text-[10px] min-w-0">
@@ -1743,7 +1743,7 @@ export default function ExecutionCore({
                                       <FileText className="w-4 h-4 text-cyan-400 shrink-0" />
                                       <div className="truncate text-left">
                                         <p className="font-semibold truncate text-slate-750 dark:text-slate-250">{at.name}</p>
-                                        <p className="text-[8.5px] text-slate-400 font-mono mt-0.5">{at.size}</p>
+                                        <p className="text-[8.5px] text-slate-600 dark:text-slate-400 font-mono mt-0.5">{at.size}</p>
                                       </div>
                                     </div>
                                     <button
@@ -1752,7 +1752,7 @@ export default function ExecutionCore({
                                         const updated = task.attachments.filter((_: any, idx: number) => idx !== i);
                                         updateTaskField(task.categoryId, task.id, 'attachments', updated);
                                       }}
-                                      className="text-slate-400 hover:text-red-500 shrink-0"
+                                      className="text-slate-600 dark:text-slate-400 hover:text-red-500 shrink-0"
                                     >
                                       <X className="w-3.5 h-3.5" />
                                     </button>
@@ -1774,7 +1774,7 @@ export default function ExecutionCore({
                                     const updated = [...(task.attachments || []), pick];
                                     updateTaskField(task.categoryId, task.id, 'attachments', updated);
                                   }}
-                                  className="px-3 py-1.5 text-[9.5px] font-mono font-bold bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 rounded-xl flex items-center gap-1.5 cursor-pointer"
+                                  className="px-3 py-1.5 text-[9.5px] font-mono font-bold bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-500 dark:text-slate-500 rounded-xl flex items-center gap-1.5 cursor-pointer"
                                 >
                                   <Paperclip className="w-3.5 h-3.5" /> Attach Document
                                 </button>
@@ -1784,7 +1784,7 @@ export default function ExecutionCore({
                             {/* Inline Fields Grid */}
                             <div className="grid grid-cols-2 gap-3.5 pt-3.5 border-t border-slate-100 dark:border-slate-900/60 text-[10.5px]">
                               <div className="space-y-1">
-                                <span className="font-mono text-[8.5px] text-slate-500 uppercase block font-bold">Estimated Duration</span>
+                                <span className="font-mono text-[8.5px] text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase block font-bold">Estimated Duration</span>
                                 <select
                                   value={task.estimatedDuration}
                                   onChange={(e) => updateTaskField(task.categoryId, task.id, 'estimatedDuration', e.target.value)}
@@ -1800,7 +1800,7 @@ export default function ExecutionCore({
                               </div>
 
                               <div className="space-y-1">
-                                <span className="font-mono text-[8.5px] text-slate-500 uppercase block font-bold">Schedule Reminder</span>
+                                <span className="font-mono text-[8.5px] text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase block font-bold">Schedule Reminder</span>
                                 <select
                                   value={task.reminderLeadTime}
                                   onChange={(e) => updateTaskField(task.categoryId, task.id, 'reminderLeadTime', parseInt(e.target.value))}
@@ -1862,7 +1862,7 @@ export default function ExecutionCore({
                     🌙 Evening Reflections
                   </h4>
                 </div>
-                <span className="text-[9px] font-mono text-slate-500">
+                <span className="text-[9px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500">
                   Submit ledger reports
                 </span>
               </div>
@@ -1890,10 +1890,10 @@ export default function ExecutionCore({
           {/* Sound Controls & Permissions banner */}
           <div className="bg-slate-50/60 dark:bg-slate-950/30 border border-slate-200/50 dark:border-slate-800/60 p-4 rounded-2xl text-left flex items-center justify-between gap-3">
             <div className="space-y-0.5">
-              <p className="text-[10px] font-mono text-slate-400 uppercase tracking-wider font-bold">
+              <p className="text-[10px] font-mono text-slate-600 dark:text-slate-400 uppercase tracking-wider font-bold">
                 ALERT PARAMETERS
               </p>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-slate-500 dark:text-slate-500 dark:text-slate-500">
                 Trigger real-time iOS push sound loops.
               </p>
             </div>
@@ -1902,7 +1902,7 @@ export default function ExecutionCore({
               <button
                 type="button"
                 onClick={requestNotificationPermission}
-                className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200/60 dark:border-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-all cursor-pointer"
+                className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-100 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-800 text-slate-500 dark:text-slate-500 dark:text-slate-500 hover:text-slate-800 dark:hover:text-slate-800 dark:text-slate-200 transition-all cursor-pointer"
                 title="Enable Push Notifications"
               >
                 <Bell className="w-4 h-4" />
@@ -1913,7 +1913,7 @@ export default function ExecutionCore({
                 className={`p-2 rounded-xl border transition-all cursor-pointer ${
                   hasSound
                     ? 'bg-cyan-500/10 border-cyan-500 text-cyan-500'
-                    : 'bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400'
+                    : 'bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
                 }`}
                 title="Toggle Bell Sound Alert"
               >
@@ -1931,7 +1931,7 @@ export default function ExecutionCore({
       {/* --- iOS-STYLE SLIDING BOTTOM ACTION SHEET (QUICK ADD FORM) --- */}
       <AnimatePresence>
         {isQuickAddOpen && (
-          <div className="fixed inset-0 z-50 flex items-end justify-center p-0 bg-slate-950/80 backdrop-blur-sm select-none">
+          <div className="fixed inset-0 z-50 flex items-end justify-center p-0 bg-slate-50 dark:bg-slate-950/80 backdrop-blur-sm select-none">
             {/* Backdrop Dismiss Trigger */}
             <div className="absolute inset-0" onClick={() => setIsQuickAddOpen(false)} />
 
@@ -1956,7 +1956,7 @@ export default function ExecutionCore({
                 <button
                   type="button"
                   onClick={() => setIsQuickAddOpen(false)}
-                  className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-slate-800 dark:hover:text-slate-250 cursor-pointer"
+                  className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-250 cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1967,7 +1967,7 @@ export default function ExecutionCore({
                 
                 {/* Title */}
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-mono text-slate-500 uppercase tracking-wider block font-bold">
+                  <label className="text-[9px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase tracking-wider block font-bold">
                     Raw Input (Supports Natural Language Parsing)
                   </label>
                   <input
@@ -1998,7 +1998,7 @@ export default function ExecutionCore({
 
                 {/* Subtask additions inside creation flow */}
                 <div className="space-y-2">
-                  <label className="text-[9px] font-mono text-slate-500 uppercase tracking-wider block font-bold">
+                  <label className="text-[9px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase tracking-wider block font-bold">
                     Define Task Sub-Checkpoints
                   </label>
                   
@@ -2010,7 +2010,7 @@ export default function ExecutionCore({
                           <button
                             type="button"
                             onClick={() => setSubtasksInput(prev => prev.filter((_, idx) => idx !== i))}
-                            className="text-slate-400 hover:text-red-500 shrink-0"
+                            className="text-slate-600 dark:text-slate-400 hover:text-red-500 shrink-0"
                           >
                             <X className="w-3.5 h-3.5" />
                           </button>
@@ -2051,13 +2051,13 @@ export default function ExecutionCore({
 
                 {/* iOS Bottom Sheet Time Wheel Picker Trigger */}
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-mono text-slate-500 uppercase tracking-wider block font-bold">
+                  <label className="text-[9px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase tracking-wider block font-bold">
                     Objective Time Target
                   </label>
                   <button
                     type="button"
                     onClick={() => setIsTimePickerSheetOpen(true)}
-                    className="w-full flex items-center justify-between bg-slate-50 dark:bg-slate-950/60 border border-slate-250/50 dark:border-slate-800/80 px-4 py-3 rounded-2xl hover:border-slate-400 dark:hover:border-slate-700 transition-all text-left cursor-pointer"
+                    className="w-full flex items-center justify-between bg-slate-50 dark:bg-slate-950/60 border border-slate-250/50 dark:border-slate-800/80 px-4 py-3 rounded-2xl hover:border-slate-400 dark:hover:border-slate-300 dark:border-slate-700 transition-all text-left cursor-pointer"
                   >
                     <span className="text-xs font-mono font-bold text-slate-800 dark:text-slate-250">
                       🕒 {taskTime || '09:00 AM'}
@@ -2073,7 +2073,7 @@ export default function ExecutionCore({
                   
                   {/* Category Selection */}
                   <div className="space-y-1">
-                    <label className="text-[9px] font-mono text-slate-500 uppercase block font-bold">Agenda Category</label>
+                    <label className="text-[9px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase block font-bold">Agenda Category</label>
                     <select
                       value={taskCategory}
                       onChange={(e) => setTaskCategory(e.target.value)}
@@ -2089,7 +2089,7 @@ export default function ExecutionCore({
 
                   {/* Goal Connection */}
                   <div className="space-y-1">
-                    <label className="text-[9px] font-mono text-slate-500 uppercase block font-bold">Linked Goal</label>
+                    <label className="text-[9px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase block font-bold">Linked Goal</label>
                     <select
                       value={taskGoalId}
                       onChange={(e) => setTaskGoalId(e.target.value)}
@@ -2104,7 +2104,7 @@ export default function ExecutionCore({
 
                   {/* Priorities */}
                   <div className="space-y-1">
-                    <label className="text-[9px] font-mono text-slate-500 uppercase block font-bold">Priority Badge</label>
+                    <label className="text-[9px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase block font-bold">Priority Badge</label>
                     <select
                       value={priorityInput}
                       onChange={(e) => setPriorityInput(e.target.value as any)}
@@ -2122,7 +2122,7 @@ export default function ExecutionCore({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {/* Reminder Type Selection */}
                   <div className="space-y-1">
-                    <label className="text-[9px] font-mono text-slate-500 uppercase block font-bold flex items-center gap-1">
+                    <label className="text-[9px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase block font-bold flex items-center gap-1">
                       <Bell className="w-3 h-3 text-cyan-500" /> Reminder System
                     </label>
                     <select
@@ -2138,7 +2138,7 @@ export default function ExecutionCore({
 
                   {/* Recurrence Selection */}
                   <div className="space-y-1">
-                    <label className="text-[9px] font-mono text-slate-500 uppercase block font-bold flex items-center gap-1">
+                    <label className="text-[9px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase block font-bold flex items-center gap-1">
                       <Repeat className="w-3 h-3 text-[#f43f5e]" /> Recurrence (Repeat)
                     </label>
                     <select
@@ -2172,9 +2172,9 @@ export default function ExecutionCore({
 
                 {/* Custom Recurrence Config Sub-Form */}
                 {isRecurrenceOpen && recurrenceConfig && (
-                  <div className="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-4 space-y-4 text-left">
+                  <div className="bg-white dark:bg-slate-900/50 border border-slate-300 dark:border-slate-800/80 rounded-2xl p-4 space-y-4 text-left">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider">
+                      <span className="text-[10px] font-mono font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
                         Custom Repeat Options
                       </span>
                       <button
@@ -2188,11 +2188,11 @@ export default function ExecutionCore({
 
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
-                        <label className="text-[9px] font-mono text-slate-500">Frequency</label>
+                        <label className="text-[9px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500">Frequency</label>
                         <select
                           value={recurrenceConfig.frequency}
                           onChange={(e) => setLocalRecurrenceConfig(prev => prev ? { ...prev, frequency: e.target.value as any } : null)}
-                          className="w-full bg-slate-950 border border-slate-850 px-2.5 py-1.5 text-xs text-slate-300 rounded-xl focus:outline-none"
+                          className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-850 px-2.5 py-1.5 text-xs text-slate-700 dark:text-slate-300 rounded-xl focus:outline-none"
                         >
                           <option value="daily">Daily</option>
                           <option value="weekly">Weekly</option>
@@ -2201,11 +2201,11 @@ export default function ExecutionCore({
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-[9px] font-mono text-slate-500">End Condition</label>
+                        <label className="text-[9px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500">End Condition</label>
                         <select
                           value={recurrenceConfig.endCondition}
                           onChange={(e) => setLocalRecurrenceConfig(prev => prev ? { ...prev, endCondition: e.target.value as any } : null)}
-                          className="w-full bg-slate-950 border border-slate-850 px-2.5 py-1.5 text-xs text-slate-300 rounded-xl focus:outline-none"
+                          className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-850 px-2.5 py-1.5 text-xs text-slate-700 dark:text-slate-300 rounded-xl focus:outline-none"
                         >
                           <option value="forever">Forever</option>
                           <option value="until_date">Until Specific Date</option>
@@ -2215,12 +2215,12 @@ export default function ExecutionCore({
 
                     {recurrenceConfig.endCondition === 'until_date' && (
                       <div className="space-y-1">
-                        <label className="text-[9px] font-mono text-slate-500">End Date (YYYY-MM-DD)</label>
+                        <label className="text-[9px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500">End Date (YYYY-MM-DD)</label>
                         <input
                           type="date"
                           value={recurrenceConfig.untilDate || ''}
                           onChange={(e) => setLocalRecurrenceConfig(prev => prev ? { ...prev, untilDate: e.target.value } : null)}
-                          className="w-full bg-slate-950 border border-slate-850 px-3 py-2 text-xs text-slate-300 rounded-xl focus:outline-none font-mono"
+                          className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-850 px-3 py-2 text-xs text-slate-700 dark:text-slate-300 rounded-xl focus:outline-none font-mono"
                         />
                       </div>
                     )}
@@ -2229,7 +2229,7 @@ export default function ExecutionCore({
 
                 {/* Drag and Drop Attachments input box */}
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-mono text-slate-500 uppercase tracking-wider block font-bold">
+                  <label className="text-[9px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase tracking-wider block font-bold">
                     Objective Assets Attachments
                   </label>
                   
@@ -2241,11 +2241,11 @@ export default function ExecutionCore({
                     className={`border-2 border-dashed rounded-2xl p-4 text-center cursor-pointer transition-all select-none ${
                       isDraggingFile 
                         ? 'border-cyan-500 bg-cyan-500/10' 
-                        : 'border-slate-250 hover:border-slate-400 dark:border-slate-800 dark:hover:border-slate-700 bg-slate-50/50 dark:bg-slate-950/30'
+                        : 'border-slate-250 hover:border-slate-400 dark:border-slate-800 dark:hover:border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-950/30'
                     }`}
                   >
-                    <Paperclip className="w-5 h-5 text-slate-400 mx-auto mb-1 animate-pulse" />
-                    <p className="text-[10px] text-slate-500">Drag & Drop specification files or click to simulate upload</p>
+                    <Paperclip className="w-5 h-5 text-slate-600 dark:text-slate-400 mx-auto mb-1 animate-pulse" />
+                    <p className="text-[10px] text-slate-500 dark:text-slate-500 dark:text-slate-500">Drag & Drop specification files or click to simulate upload</p>
                     {attachmentsInput.length > 0 && (
                       <p className="text-[9px] font-mono text-cyan-500 mt-1.5 font-bold">
                         {attachmentsInput.length} Files Ready To Attach
@@ -2267,7 +2267,7 @@ export default function ExecutionCore({
 
                 {/* Tags manager */}
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-mono text-slate-500 uppercase tracking-wider block font-bold">
+                  <label className="text-[9px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-500 uppercase tracking-wider block font-bold">
                     Objective Category Tags
                   </label>
                   <div className="flex flex-wrap gap-1.5 bg-slate-50 dark:bg-slate-950/60 p-2.5 rounded-xl border border-slate-250/50 dark:border-slate-800/80 min-h-[44px]">
@@ -2301,7 +2301,7 @@ export default function ExecutionCore({
                   <button
                     type="button"
                     onClick={() => setIsQuickAddOpen(false)}
-                    className="flex-1 py-3 text-xs font-mono font-bold text-slate-500 hover:text-slate-800 dark:hover:text-slate-300 border border-slate-200 dark:border-slate-800 rounded-2xl hover:bg-slate-50 transition-all uppercase tracking-wider cursor-pointer"
+                    className="flex-1 py-3 text-xs font-mono font-bold text-slate-500 dark:text-slate-500 dark:text-slate-500 hover:text-slate-800 dark:hover:text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 rounded-2xl hover:bg-slate-50 transition-all uppercase tracking-wider cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -2332,7 +2332,7 @@ export default function ExecutionCore({
       {/* --- FULL-SCREEN EXECUTIVE ALARM OVERLAY --- */}
       <AnimatePresence>
         {activeAlarmTask && (
-          <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-3xl z-[99] flex flex-col items-center justify-center p-6 text-center select-none pointer-events-auto">
+          <div className="fixed inset-0 bg-slate-50 dark:bg-slate-950/85 backdrop-blur-3xl z-[99] flex flex-col items-center justify-center p-6 text-center select-none pointer-events-auto">
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -2357,7 +2357,7 @@ export default function ExecutionCore({
                 <h2 className="text-xl font-sans font-black text-white tracking-tight break-words">
                   {activeAlarmTask.title}
                 </h2>
-                <p className="text-xs text-slate-400 font-mono">
+                <p className="text-xs text-slate-600 dark:text-slate-400 font-mono">
                   Target Time: {activeAlarmTask.time}
                 </p>
               </div>
@@ -2379,7 +2379,7 @@ export default function ExecutionCore({
                   <button
                     type="button"
                     onClick={() => snoozeAlarmTask(5)}
-                    className="py-3.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-200 font-mono font-bold text-[10px] rounded-2xl transition-all uppercase tracking-wider cursor-pointer"
+                    className="py-3.5 bg-white dark:bg-slate-900 hover:bg-slate-850 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-200 font-mono font-bold text-[10px] rounded-2xl transition-all uppercase tracking-wider cursor-pointer"
                   >
                     Snooze 5m
                   </button>
@@ -2389,7 +2389,7 @@ export default function ExecutionCore({
                       stopAlarmSound();
                       setActiveAlarmTask(null);
                     }}
-                    className="py-3.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-rose-500 font-mono font-bold text-[10px] rounded-2xl transition-all uppercase tracking-wider cursor-pointer"
+                    className="py-3.5 bg-white dark:bg-slate-900 hover:bg-slate-850 border border-slate-300 dark:border-slate-800 text-rose-500 font-mono font-bold text-[10px] rounded-2xl transition-all uppercase tracking-wider cursor-pointer"
                   >
                     Silence
                   </button>
@@ -2431,7 +2431,7 @@ export default function ExecutionCore({
                 <button
                   type="button"
                   onClick={() => setIsDetailSheetOpen(false)}
-                  className="p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-all cursor-pointer"
+                  className="p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-500 dark:text-slate-500 hover:text-slate-800 dark:hover:text-slate-800 dark:text-slate-200 transition-all cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -2439,7 +2439,7 @@ export default function ExecutionCore({
 
               {/* Title Edit */}
               <div className="space-y-1.5">
-                <label className="text-[9px] font-mono font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">
+                <label className="text-[9px] font-mono font-extrabold uppercase text-slate-600 dark:text-slate-400 dark:text-slate-500 tracking-wider">
                   Objective Name
                 </label>
                 <input
@@ -2454,7 +2454,7 @@ export default function ExecutionCore({
               {/* Grid: Time & Duration */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-mono font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">
+                  <label className="text-[9px] font-mono font-extrabold uppercase text-slate-600 dark:text-slate-400 dark:text-slate-500 tracking-wider">
                     Scheduled Time
                   </label>
                   <input
@@ -2467,7 +2467,7 @@ export default function ExecutionCore({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-mono font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">
+                  <label className="text-[9px] font-mono font-extrabold uppercase text-slate-600 dark:text-slate-400 dark:text-slate-500 tracking-wider">
                     Estimated Duration
                   </label>
                   <select
@@ -2489,7 +2489,7 @@ export default function ExecutionCore({
               {/* Grid: Reminder & Priority */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-mono font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">
+                  <label className="text-[9px] font-mono font-extrabold uppercase text-slate-600 dark:text-slate-400 dark:text-slate-500 tracking-wider">
                     Lead Reminder
                   </label>
                   <select
@@ -2504,7 +2504,7 @@ export default function ExecutionCore({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-mono font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">
+                  <label className="text-[9px] font-mono font-extrabold uppercase text-slate-600 dark:text-slate-400 dark:text-slate-500 tracking-wider">
                     Task Priority
                   </label>
                   <select
@@ -2522,7 +2522,7 @@ export default function ExecutionCore({
 
               {/* Goal Title Selector */}
               <div className="space-y-1.5">
-                <label className="text-[9px] font-mono font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">
+                <label className="text-[9px] font-mono font-extrabold uppercase text-slate-600 dark:text-slate-400 dark:text-slate-500 tracking-wider">
                   Associated Strategic Goal
                 </label>
                 <select
@@ -2539,7 +2539,7 @@ export default function ExecutionCore({
 
               {/* Recurrence Selection in Details Sheet */}
               <div className="space-y-1.5">
-                <label className="text-[9px] font-mono font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">
+                <label className="text-[9px] font-mono font-extrabold uppercase text-slate-600 dark:text-slate-400 dark:text-slate-500 tracking-wider">
                   Recurrence / Repeat (Every Day, etc.)
                 </label>
                 <select
@@ -2563,7 +2563,7 @@ export default function ExecutionCore({
 
               {/* Notes Area */}
               <div className="space-y-1.5">
-                <label className="text-[9px] font-mono font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">
+                <label className="text-[9px] font-mono font-extrabold uppercase text-slate-600 dark:text-slate-400 dark:text-slate-500 tracking-wider">
                   Strategic Execution Notes
                 </label>
                 <textarea
@@ -2669,7 +2669,7 @@ export default function ExecutionCore({
                 <h4 className="text-sm font-sans font-extrabold text-slate-850 dark:text-slate-100">
                   Delete Objective Blueprint?
                 </h4>
-                <p className="text-xs text-slate-500 leading-relaxed">
+                <p className="text-xs text-slate-500 dark:text-slate-500 dark:text-slate-500 leading-relaxed">
                   Are you absolutely sure you want to remove <span className="font-bold text-slate-800 dark:text-slate-300">"{deleteConfirmTask.title}"</span>? This action cannot be reversed.
                 </p>
               </div>
@@ -2745,10 +2745,10 @@ export default function ExecutionCore({
                   exit={{ opacity: 0, y: 10, scale: 0.9 }}
                   transition={{ delay: idx * 0.04, type: 'spring', stiffness: 260, damping: 20 }}
                   onClick={item.action}
-                  className="flex items-center gap-2.5 px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl shadow-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-slate-850 dark:text-slate-100 font-mono text-[10px] font-bold cursor-pointer uppercase tracking-wider"
+                  className="flex items-center gap-2.5 px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl shadow-xl hover:bg-slate-50 dark:hover:bg-slate-100 dark:bg-slate-800 transition-all text-slate-850 dark:text-slate-100 font-mono text-[10px] font-bold cursor-pointer uppercase tracking-wider"
                 >
                   <span>{item.label}</span>
-                  <div className="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-300">
+                  <div className="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-300">
                     <item.icon className="w-3.5 h-3.5" />
                   </div>
                 </motion.button>

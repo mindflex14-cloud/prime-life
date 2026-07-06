@@ -278,8 +278,8 @@ export default function TimelineView({
       return {
         bg: 'bg-slate-50 dark:bg-slate-900/10 hover:bg-slate-100/30',
         border: 'border-slate-200/50 dark:border-slate-800/50',
-        text: 'text-slate-400 dark:text-slate-500 line-through',
-        badge: 'bg-slate-100 text-slate-500 dark:bg-slate-800 text-slate-400',
+        text: 'text-slate-600 dark:text-slate-400 dark:text-slate-500 line-through',
+        badge: 'bg-slate-100 text-slate-500 dark:text-slate-500 dark:bg-slate-800 text-slate-600 dark:text-slate-400',
         stripColor: '#9CA3AF'
       };
     }
@@ -355,7 +355,7 @@ export default function TimelineView({
             return (
               <div 
                 key={idx} 
-                className={`flex-1 text-center font-sans text-xs md:text-sm font-bold transition-all cursor-pointer ${isToday ? 'text-cyan-500 dark:text-red-400 scale-105' : 'text-slate-400 dark:text-slate-500 hover:text-slate-200'}`}
+                className={`flex-1 text-center font-sans text-xs md:text-sm font-bold transition-all cursor-pointer ${isToday ? 'text-cyan-500 dark:text-red-400 scale-105' : 'text-slate-600 dark:text-slate-400 dark:text-slate-500 hover:text-slate-800 dark:text-slate-200'}`}
                 onClick={() => setActiveDate(dStr)}
               >
                 {formatDateHeader(dStr)}
@@ -390,7 +390,7 @@ export default function TimelineView({
               return (
                 <div 
                   key={hr}
-                  className="absolute left-0 w-full text-right pr-3 text-xs md:text-sm font-mono font-extrabold text-slate-500 dark:text-slate-400 uppercase select-none"
+                  className="absolute left-0 w-full text-right pr-3 text-xs md:text-sm font-mono font-extrabold text-slate-500 dark:text-slate-500 dark:text-slate-400 uppercase select-none"
                   style={{ top: `${topY - 6}px` }}
                 >
                   {hours12} {period}
@@ -489,7 +489,7 @@ export default function TimelineView({
                               <h5 className={`text-[11px] font-bold leading-tight truncate ${style.text} ${isDone ? 'line-through opacity-60' : ''}`}>
                                 {task.title}
                               </h5>
-                              <p className="text-[8.5px] font-mono font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
+                              <p className="text-[8.5px] font-mono font-semibold text-slate-500 dark:text-slate-500 dark:text-slate-400 mt-0.5">
                                 {task.time} - {task.endTime || formatMinutesToTimeStr(task.startMins + (task.duration || 60))}
                               </p>
                             </div>
@@ -506,12 +506,12 @@ export default function TimelineView({
                         {/* Middle metadata indicators (Priority, Reminder, Repeat) */}
                         <div className="flex flex-wrap items-center gap-1 mt-0.5">
                           {task.reminderType && task.reminderType !== 'none' && (
-                            <span className="text-[7.5px] font-mono bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-450 px-1 py-0.5 rounded flex items-center gap-0.5">
+                            <span className="text-[7.5px] font-mono bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-500 dark:text-slate-450 px-1 py-0.5 rounded flex items-center gap-0.5">
                               <Bell className="w-2 h-2" /> reminder
                             </span>
                           )}
                           {task.recurrence && (
-                            <span className="text-[7.5px] font-mono bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-450 px-1 py-0.5 rounded flex items-center gap-0.5">
+                            <span className="text-[7.5px] font-mono bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-500 dark:text-slate-450 px-1 py-0.5 rounded flex items-center gap-0.5">
                               <Repeat className="w-2 h-2 animate-spin-slow" /> {task.recurrence.frequency}
                             </span>
                           )}
@@ -652,12 +652,12 @@ export default function TimelineView({
                 onClick={() => day.isCurrentMonth && setActiveDate(day.dateStr)}
                 className={`min-h-[92px] p-3 border rounded-2xl transition-all cursor-pointer flex flex-col justify-between relative overflow-hidden select-none group/day ${
                   !day.isCurrentMonth 
-                    ? 'bg-transparent border-transparent text-slate-300 dark:text-slate-800 cursor-not-allowed pointer-events-none opacity-20' 
+                    ? 'bg-transparent border-transparent text-slate-700 dark:text-slate-300 dark:text-slate-800 cursor-not-allowed pointer-events-none opacity-20' 
                     : isSelected 
                       ? 'bg-cyan-500/[0.06] dark:bg-[#f43f5e]/15 border-cyan-500/80 dark:border-[#f43f5e]/80 shadow-md shadow-cyan-500/5 dark:shadow-[#f43f5e]/5' 
                       : isToday
                         ? 'bg-slate-100/80 dark:bg-slate-900 border-slate-350 dark:border-slate-750 shadow-sm'
-                        : 'bg-white dark:bg-slate-900/35 border-slate-200/60 dark:border-slate-800/80 hover:border-slate-350 dark:hover:border-slate-700 shadow-sm hover:shadow'
+                        : 'bg-white dark:bg-slate-900/35 border-slate-200/60 dark:border-slate-800/80 hover:border-slate-350 dark:hover:border-slate-300 dark:border-slate-700 shadow-sm hover:shadow'
                 }`}
               >
                 {/* Active Indicator Bar on Selection */}
@@ -728,7 +728,7 @@ export default function TimelineView({
 
     return (
       <div className="bg-white dark:bg-slate-900/40 rounded-3xl border border-slate-200/50 dark:border-slate-800/80 p-5 space-y-4 shadow-sm text-left max-h-[600px] overflow-y-auto no-scrollbar">
-        <h4 className="text-xs font-mono font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+        <h4 className="text-xs font-mono font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest flex items-center gap-2">
           <Calendar className="w-4 h-4 text-cyan-500" /> Agenda for {formatDateHeader(activeDateStr)}
         </h4>
 
@@ -741,7 +741,7 @@ export default function TimelineView({
               <h5 className="text-xs font-bold text-slate-800 dark:text-slate-100">
                 🎯 No tasks scheduled today
               </h5>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-[10px] text-slate-500 dark:text-slate-500 dark:text-slate-400 mt-1">
                 Plan your day using high-performance scheduling blocks.
               </p>
             </div>
@@ -793,7 +793,7 @@ export default function TimelineView({
                         {t.title}
                       </h5>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[9px] font-mono text-slate-400 flex items-center gap-1">
+                        <span className="text-[9px] font-mono text-slate-600 dark:text-slate-400 flex items-center gap-1">
                           <Clock className="w-3 h-3" /> {t.time} ({t.duration || 60}m)
                         </span>
                         {t.goalId && (
@@ -837,7 +837,7 @@ export default function TimelineView({
             <h3 className="text-xs font-mono font-bold text-[#f43f5e] uppercase tracking-widest">
               High-Performance Scheduler
             </h3>
-            <p className="text-[10px] text-slate-400 font-medium">
+            <p className="text-[10px] text-slate-600 dark:text-slate-400 font-medium">
               AETHER.OS Fluid 60FPS Drag & Drop Timeline View
             </p>
           </div>
@@ -849,7 +849,7 @@ export default function TimelineView({
             <button
               key={view}
               onClick={() => setCalendarView(view)}
-              className={`px-3 py-1.5 rounded-xl text-[10px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${calendarView === view ? 'bg-cyan-500 text-slate-950 dark:bg-[#f43f5e] dark:text-white shadow' : 'text-slate-400 hover:text-slate-200'}`}
+              className={`px-3 py-1.5 rounded-xl text-[10px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${calendarView === view ? 'bg-cyan-500 text-slate-950 dark:bg-[#f43f5e] dark:text-white shadow' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:text-slate-200'}`}
             >
               {view}
             </button>
@@ -863,7 +863,7 @@ export default function TimelineView({
       {/* --- FLOATING iOS-STYLE BOTTOM SHEET CONFLICT WARNING DIALOG --- */}
       <AnimatePresence>
         {conflictTask && (
-          <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-md z-50 flex items-end justify-center pointer-events-auto" onClick={() => setConflictTask(null)}>
+          <div className="fixed inset-0 bg-slate-50 dark:bg-slate-950/40 backdrop-blur-md z-50 flex items-end justify-center pointer-events-auto" onClick={() => setConflictTask(null)}>
             <motion.div
               initial={{ y: 300, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -883,7 +883,7 @@ export default function TimelineView({
                   <h4 className="text-sm font-display font-semibold text-slate-900 dark:text-white">
                     Objective Scheduling Conflict Detected
                   </h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <p className="text-xs text-slate-500 dark:text-slate-500 dark:text-slate-400">
                     You are trying to map an action block during an already committed timeline slot. How would you like to resolve?
                   </p>
                 </div>
@@ -892,19 +892,19 @@ export default function TimelineView({
               {/* Conflict details box */}
               <div className="p-4 bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800 rounded-2xl space-y-3.5">
                 <div className="flex justify-between items-center pb-2.5 border-b border-slate-200/60 dark:border-slate-800/60">
-                  <span className="text-[10px] font-mono text-slate-400 dark:text-slate-550 uppercase font-bold">Conflicting Blocks</span>
+                  <span className="text-[10px] font-mono text-slate-600 dark:text-slate-400 dark:text-slate-550 uppercase font-bold">Conflicting Blocks</span>
                   <span className="text-[10px] font-mono text-amber-500 uppercase font-bold">Overlap Alert</span>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1 border-r border-slate-200/60 dark:border-slate-800/60 pr-2">
                     <p className="text-[9px] font-mono text-cyan-500 dark:text-cyan-400 font-bold uppercase">Candidate Block</p>
                     <p className="text-xs font-semibold text-slate-800 dark:text-white truncate">{conflictTask.task1.title}</p>
-                    <p className="text-[10.5px] font-mono text-slate-500 dark:text-slate-400">{conflictTask.task1.time} ({conflictTask.task1.duration}m)</p>
+                    <p className="text-[10.5px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-400">{conflictTask.task1.time} ({conflictTask.task1.duration}m)</p>
                   </div>
                   <div className="space-y-1 pl-2">
                     <p className="text-[9px] font-mono text-slate-450 dark:text-slate-400 font-bold uppercase">Committed Block</p>
                     <p className="text-xs font-semibold text-slate-800 dark:text-white truncate">{conflictTask.task2.title}</p>
-                    <p className="text-[10.5px] font-mono text-slate-500 dark:text-slate-400">{conflictTask.task2.time} ({conflictTask.task2.duration}m)</p>
+                    <p className="text-[10.5px] font-mono text-slate-500 dark:text-slate-500 dark:text-slate-400">{conflictTask.task2.time} ({conflictTask.task2.duration}m)</p>
                   </div>
                 </div>
               </div>
@@ -924,7 +924,7 @@ export default function TimelineView({
                     });
                     setConflictTask(null);
                   }}
-                  className="px-4 py-3 text-[11px] font-mono uppercase font-bold bg-slate-850 hover:bg-slate-800 border border-slate-850 rounded-2xl text-slate-300 transition-all text-center cursor-pointer"
+                  className="px-4 py-3 text-[11px] font-mono uppercase font-bold bg-slate-850 hover:bg-slate-100 dark:bg-slate-800 border border-slate-850 rounded-2xl text-slate-700 dark:text-slate-300 transition-all text-center cursor-pointer"
                 >
                   Keep Both
                 </button>
@@ -952,7 +952,7 @@ export default function TimelineView({
                 <button
                   type="button"
                   onClick={() => setConflictTask(null)}
-                  className="px-4 py-3 text-[11px] font-mono uppercase font-bold bg-slate-800 hover:bg-slate-700 rounded-2xl text-white transition-all text-center cursor-pointer"
+                  className="px-4 py-3 text-[11px] font-mono uppercase font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-700 rounded-2xl text-white transition-all text-center cursor-pointer"
                 >
                   Cancel
                 </button>

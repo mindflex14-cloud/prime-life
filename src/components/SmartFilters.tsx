@@ -94,7 +94,7 @@ export default function SmartFilters({ activeFilter, setActiveFilter, counts }: 
             </div>
             
             <div className="mt-1">
-              <span className={`text-xs font-sans font-semibold tracking-tight ${isActive ? 'text-white dark:text-slate-950' : 'text-slate-500 dark:text-slate-400'}`}>
+              <span className={`text-xs font-sans font-semibold tracking-tight ${isActive ? 'text-white dark:text-slate-950' : 'text-slate-500 dark:text-slate-500 dark:text-slate-400'}`}>
                 {f.label}
               </span>
             </div>

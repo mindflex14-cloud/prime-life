@@ -92,7 +92,7 @@ export default function AIPredictions({ goals, categories, onAddSuggestedTask }:
             <h4 className="text-xs font-mono font-bold text-slate-800 dark:text-slate-100 uppercase tracking-widest">
               AETHER.AI ASSISTANT
             </h4>
-            <p className="text-[9.5px] text-slate-400">Contextual high-leverage execution advice</p>
+            <p className="text-[9.5px] text-slate-600 dark:text-slate-400">Contextual high-leverage execution advice</p>
           </div>
         </div>
 
@@ -103,7 +103,7 @@ export default function AIPredictions({ goals, categories, onAddSuggestedTask }:
             className={`px-3 py-1 text-[9px] font-mono font-bold rounded-lg transition-all cursor-pointer ${
               activeTab === 'agent' 
                 ? 'bg-[#f43f5e] text-white' 
-                : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-350'
+                : 'text-slate-500 dark:text-slate-500 dark:text-slate-500 hover:text-slate-800 dark:hover:text-slate-350'
             }`}
           >
             ACTIVE PILOT
@@ -115,7 +115,7 @@ export default function AIPredictions({ goals, categories, onAddSuggestedTask }:
               setAssistantPrompts(prev => prev.map(p => ({ ...p, ignored: false, scheduled: false })));
               setChatResponse("🔄 Pilot recommendations re-calibrated successfully.");
             }}
-            className="px-2 py-1 text-[9px] font-mono font-bold text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 rounded-lg cursor-pointer"
+            className="px-2 py-1 text-[9px] font-mono font-bold text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-700 dark:text-slate-300 rounded-lg cursor-pointer"
           >
             RESET
           </button>
@@ -137,7 +137,7 @@ export default function AIPredictions({ goals, categories, onAddSuggestedTask }:
                   </div>
                   <div>
                     <h5 className="text-xs font-bold text-slate-800 dark:text-slate-100">Scheduled Successfully</h5>
-                    <p className="text-[10px] text-slate-500">{p.title} locked in at {p.time}</p>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-500 dark:text-slate-500">{p.title} locked in at {p.time}</p>
                   </div>
                 </div>
               );
@@ -150,11 +150,11 @@ export default function AIPredictions({ goals, categories, onAddSuggestedTask }:
               >
                 {/* Micro Category Tag */}
                 <div className="flex items-center justify-between">
-                  <span className="text-[8px] font-mono font-extrabold uppercase bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded">
+                  <span className="text-[8px] font-mono font-extrabold uppercase bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded">
                     {p.category}
                   </span>
                   <div className="flex items-center gap-1.5 text-[9px] font-mono text-slate-450">
-                    <Clock className="w-3 h-3 text-slate-400" />
+                    <Clock className="w-3 h-3 text-slate-600 dark:text-slate-400" />
                     <span>{p.time} ({p.duration})</span>
                   </div>
                 </div>
@@ -195,7 +195,7 @@ export default function AIPredictions({ goals, categories, onAddSuggestedTask }:
           })}
         </div>
       ) : (
-        <div className="py-4 text-center text-slate-400 dark:text-slate-500 text-[11px] italic">
+        <div className="py-4 text-center text-slate-600 dark:text-slate-400 dark:text-slate-500 text-[11px] italic">
           ✨ All AI pilot recommendations completed or hidden for today.
         </div>
       )}
