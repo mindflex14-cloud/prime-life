@@ -62,6 +62,7 @@ interface ProductivityHubProps {
   deleteHabit: (id: string) => void;
   activeTimerTaskId: string | null;
   setActiveTimerTaskId: (id: string | null) => void;
+  isInitialLoading?: boolean;
 }
 
 export default function ProductivityHub({
@@ -76,8 +77,10 @@ export default function ProductivityHub({
   toggleHabitCompleted,
   deleteHabit,
   activeTimerTaskId,
-  setActiveTimerTaskId
+  setActiveTimerTaskId,
+  isInitialLoading = false
 }: ProductivityHubProps) {
+  const lastSyncValuesRef = useRef<Record<string, string>>({});
   const todayStr = new Date().toISOString().split('T')[0];
 
   // Section Toggle (Focus Mode vs Power System)
@@ -327,11 +330,16 @@ export default function ProductivityHub({
 
   // Sync states to local storage and Supabase Cloud
   useEffect(() => {
-    localStorage.setItem('lifeos_power_system', JSON.stringify(powerSystem));
-    if (userId) {
+    const serialized = JSON.stringify(powerSystem);
+    localStorage.setItem('lifeos_power_system', serialized);
+    if (userId && !isInitialLoading) {
+      if (lastSyncValuesRef.current['lifeos_power_system'] === serialized) {
+        return;
+      }
+      lastSyncValuesRef.current['lifeos_power_system'] = serialized;
       saveUserDataToCloud(userId, 'powerSystem', powerSystem);
     }
-  }, [powerSystem, userId]);
+  }, [powerSystem, userId, isInitialLoading]);
 
   // Real-time listener for cloud changes across tabs or devices
   useEffect(() => {
@@ -339,7 +347,9 @@ export default function ProductivityHub({
       const customEvent = e as CustomEvent;
       if (customEvent.detail && customEvent.detail.key === 'lifeos_power_system') {
         const cloudVal = customEvent.detail.value;
-        if (JSON.stringify(cloudVal) !== JSON.stringify(powerSystem)) {
+        const serialized = JSON.stringify(cloudVal);
+        if (serialized !== JSON.stringify(powerSystem)) {
+          lastSyncValuesRef.current['lifeos_power_system'] = serialized;
           setPowerSystem(cloudVal);
         }
       }

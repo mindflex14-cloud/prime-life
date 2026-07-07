@@ -53,22 +53,26 @@ function WheelColumn({ options, selected, onChange, label }: WheelColumnProps) {
 
   return (
     <div className="flex flex-col items-center flex-1">
-      <span className="text-[10px] font-mono font-extrabold text-slate-500 uppercase tracking-widest mb-2 select-none">
+      <span className="text-[10px] font-mono font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2.5 select-none">
         {label}
       </span>
-      <div className="h-[144px] w-full relative bg-slate-950/40 dark:bg-slate-950/70 rounded-2xl border border-slate-200/50 dark:border-slate-800/80 flex flex-col overflow-hidden select-none">
+      <div className="h-[144px] w-full relative bg-slate-950/50 dark:bg-slate-950/80 rounded-2xl border border-slate-800/80 dark:border-white/5 flex flex-col overflow-hidden select-none shadow-inner">
         
-        {/* Highlight Overlay bars for the centered active row (36px high, center is 54px from top) */}
-        <div className="absolute top-[54px] left-0 right-0 h-[36px] bg-cyan-500/10 dark:bg-[#f43f5e]/10 border-y border-cyan-500/20 dark:border-[#f43f5e]/20 pointer-events-none z-10" />
+        {/* iOS Cylindrical Gradient Fade Effects */}
+        <div className="absolute top-0 left-0 right-0 h-10 bg-gradient-to-b from-slate-900 dark:from-slate-950 to-transparent pointer-events-none z-10 opacity-90" />
+        <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-slate-900 dark:from-slate-950 to-transparent pointer-events-none z-10 opacity-90" />
+
+        {/* Highlight Overlay bar (perfectly centered, 36px high, at top-[54px]) */}
+        <div className="absolute top-[54px] left-0 right-0 h-[36px] bg-cyan-500/10 dark:bg-[#f43f5e]/15 border-y border-cyan-500/30 dark:border-[#f43f5e]/30 pointer-events-none z-10 shadow-[0_0_15px_rgba(34,211,238,0.05)] dark:shadow-[0_0_15px_rgba(244,63,94,0.05)]" />
         
-        {/* Scrollable list */}
+        {/* Scrollable list (removed pb-12 pt-12 to fix offset alignment) */}
         <div 
           ref={containerRef}
           onScroll={handleScroll}
-          className="h-full w-full overflow-y-auto no-scrollbar snap-y snap-mandatory scroll-smooth pb-12 pt-12"
+          className="h-full w-full overflow-y-auto no-scrollbar snap-y snap-mandatory scroll-smooth"
           style={{ scrollSnapType: 'y mandatory' }}
         >
-          {/* Top spacer padding (54px) */}
+          {/* Top spacer padding (exactly 54px to align the first option centered) */}
           <div className="h-[54px] shrink-0 pointer-events-none" />
 
           {options.map((opt) => {
@@ -76,30 +80,29 @@ function WheelColumn({ options, selected, onChange, label }: WheelColumnProps) {
             return (
               <div
                 key={opt}
-                className="h-[36px] shrink-0 w-full flex items-center justify-center snap-center"
+                onClick={() => {
+                  onChange(opt);
+                  const idx = options.indexOf(opt);
+                  if (containerRef.current) {
+                    containerRef.current.scrollTop = idx * 36;
+                  }
+                }}
+                className="h-[36px] shrink-0 w-full flex items-center justify-center snap-center cursor-pointer transition-all duration-150"
               >
-                <button
-                  type="button"
-                  onClick={() => {
-                    onChange(opt);
-                    const idx = options.indexOf(opt);
-                    if (containerRef.current) {
-                      containerRef.current.scrollTop = idx * 36;
-                    }
-                  }}
-                  className={`text-xs font-mono font-extrabold transition-all duration-150 py-1.5 px-3 rounded-lg cursor-pointer ${
+                <span
+                  className={`text-xs font-mono font-extrabold transition-all duration-200 px-3.5 py-1 rounded-lg select-none ${
                     isSelected 
-                      ? 'text-cyan-400 dark:text-[#f43f5e] text-sm scale-110 font-black' 
+                      ? 'text-cyan-400 dark:text-[#f43f5e] text-sm scale-110 font-black tracking-wide drop-shadow-[0_0_8px_currentColor]' 
                       : 'text-slate-500 hover:text-slate-350'
                   }`}
                 >
                   {opt}
-                </button>
+                </span>
               </div>
             );
           })}
 
-          {/* Bottom spacer padding (54px) */}
+          {/* Bottom spacer padding (exactly 54px to align the last option centered) */}
           <div className="h-[54px] shrink-0 pointer-events-none" />
         </div>
       </div>

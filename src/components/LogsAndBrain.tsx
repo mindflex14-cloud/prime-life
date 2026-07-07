@@ -175,45 +175,119 @@ export default function LogsAndBrain({
   // --- 4. MEDITATION & STILLNESS STATE & AUDIO ---
   // A. Box Breathing Tool
   const [isBreathing, setIsBreathing] = useState(false);
+  const [protocolKey, setProtocolKey] = useState<'box' | 'calming' | 'coherence'>('box');
   const [breathingPhase, setBreathingPhase] = useState<0 | 1 | 2 | 3>(0); // 0: Inhale, 1: Hold (Full), 2: Exhale, 3: Hold (Empty)
   const [breathCountdown, setBreathCountdown] = useState(4);
   const breathingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  const BREATHING_PROTOCOLS = {
+    box: {
+      name: "Box Breathing",
+      durations: [4, 4, 4, 4], // Inhale, Hold, Exhale, Hold Empty
+      labels: ["Inhale Deeply", "Hold Breath", "Exhale Slow", "Hold Empty"],
+      subs: [
+        "Fill your lungs with crisp life energy",
+        "Retain the clarity and stay absolute",
+        "Release all tension and cognitive noise",
+        "Abide in primordial silence and stillness"
+      ],
+      colors: [
+        "text-cyan-400 border-cyan-400/30 bg-cyan-500/5 dark:bg-cyan-500/10 shadow-[0_0_20px_rgba(34,211,238,0.25)]",
+        "text-purple-400 border-purple-400/30 bg-purple-500/5 dark:bg-purple-500/10 shadow-[0_0_20px_rgba(192,132,252,0.25)]",
+        "text-emerald-400 border-emerald-400/30 bg-emerald-500/5 dark:bg-emerald-500/10 shadow-[0_0_20px_rgba(52,211,153,0.25)]",
+        "text-amber-400 border-amber-400/30 bg-amber-500/5 dark:bg-amber-500/10 shadow-[0_0_20px_rgba(251,191,36,0.25)]"
+      ],
+      scales: [1.6, 1.6, 1.0, 1.0]
+    },
+    calming: {
+      name: "4-7-8 Calming",
+      durations: [4, 7, 8, 0], // Inhale, Hold, Exhale, Hold Empty
+      labels: ["Inhale Quietly", "Hold and Settle", "Exhale Slow", "Rest in Empty"],
+      subs: [
+        "Breathe in slowly through your nose",
+        "Allow the calm to saturate your system",
+        "Release with a deep, soothing whoosh",
+        "Rest in the absolute stillness"
+      ],
+      colors: [
+        "text-teal-400 border-teal-400/30 bg-teal-500/5 dark:bg-teal-500/10 shadow-[0_0_20px_rgba(45,212,191,0.25)]",
+        "text-indigo-400 border-indigo-400/30 bg-indigo-500/5 dark:bg-indigo-500/10 shadow-[0_0_20px_rgba(129,140,248,0.25)]",
+        "text-pink-400 border-pink-400/30 bg-pink-500/5 dark:bg-pink-500/10 shadow-[0_0_20px_rgba(244,114,182,0.25)]",
+        "text-slate-400 border-slate-400/30 bg-slate-500/5 dark:bg-slate-500/10 shadow-[0_0_20px_rgba(148,163,184,0.25)]"
+      ],
+      scales: [1.6, 1.6, 1.0, 1.0]
+    },
+    coherence: {
+      name: "Resonant Coherence",
+      durations: [5, 0, 5, 0], // Inhale, Hold, Exhale, Hold Empty
+      labels: ["Inhale Harmonic", "Hold Full", "Exhale Harmonic", "Hold Empty"],
+      subs: [
+        "Ascend smoothly in harmonic alignment",
+        "Keep the full connection active",
+        "Descend and release with total grace",
+        "Reset into empty silence"
+      ],
+      colors: [
+        "text-sky-400 border-sky-400/30 bg-sky-500/5 dark:bg-sky-500/10 shadow-[0_0_20px_rgba(56,189,248,0.25)]",
+        "text-indigo-400 border-indigo-400/30 bg-indigo-500/5 dark:bg-indigo-500/10 shadow-[0_0_20px_rgba(129,140,248,0.25)]",
+        "text-violet-400 border-violet-400/30 bg-violet-500/5 dark:bg-violet-500/10 shadow-[0_0_20px_rgba(167,139,250,0.25)]",
+        "text-slate-400 border-slate-400/30 bg-slate-500/5 dark:bg-slate-500/10 shadow-[0_0_20px_rgba(148,163,184,0.25)]"
+      ],
+      scales: [1.6, 1.6, 1.0, 1.0]
+    }
+  };
+
+  const currentProtocol = BREATHING_PROTOCOLS[protocolKey];
   const phaseDetails = [
-    { label: 'Inhale Deeply', sub: 'Fill your lungs with crisp life energy', color: 'text-cyan-500 border-cyan-500 shadow-cyan-500/25', scale: 1.6 },
-    { label: 'Hold Breath', sub: 'Retain the clarity and stay absolute', color: 'text-purple-500 border-purple-500 shadow-purple-500/25', scale: 1.6 },
-    { label: 'Exhale Slow', sub: 'Release all tension and cognitive noise', color: 'text-emerald-500 border-emerald-500 shadow-emerald-500/25', scale: 1.0 },
-    { label: 'Hold Empty', sub: 'Abide in primordial silence and stillness', color: 'text-amber-500 border-amber-500 shadow-amber-500/25', scale: 1.0 }
+    { label: currentProtocol.labels[0], sub: currentProtocol.subs[0], color: currentProtocol.colors[0], scale: currentProtocol.scales[0] },
+    { label: currentProtocol.labels[1], sub: currentProtocol.subs[1], color: currentProtocol.colors[1], scale: currentProtocol.scales[1] },
+    { label: currentProtocol.labels[2], sub: currentProtocol.subs[2], color: currentProtocol.colors[2], scale: currentProtocol.scales[2] },
+    { label: currentProtocol.labels[3], sub: currentProtocol.subs[3], color: currentProtocol.colors[3], scale: currentProtocol.scales[3] }
   ];
 
   useEffect(() => {
-    if (isBreathing) {
-      setBreathCountdown(4);
-      setBreathingPhase(0);
-
-      breathingIntervalRef.current = setInterval(() => {
-        setBreathCountdown(prev => {
-          if (prev <= 1) {
-            setBreathingPhase(currPhase => ((currPhase + 1) % 4) as any);
-            return 4;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else {
+    if (!isBreathing) {
       if (breathingIntervalRef.current) {
         clearInterval(breathingIntervalRef.current);
       }
-      setBreathCountdown(4);
       setBreathingPhase(0);
+      setBreathCountdown(BREATHING_PROTOCOLS[protocolKey].durations[0]);
+      return;
     }
+
+    const activeProtocol = BREATHING_PROTOCOLS[protocolKey];
+    let startPhase = 0;
+    while (startPhase < 4 && activeProtocol.durations[startPhase] === 0) {
+      startPhase++;
+    }
+    if (startPhase >= 4) startPhase = 0;
+
+    setBreathingPhase(startPhase as any);
+    setBreathCountdown(activeProtocol.durations[startPhase]);
+
+    let phase = startPhase;
+    let countdown = activeProtocol.durations[startPhase];
+
+    breathingIntervalRef.current = setInterval(() => {
+      countdown--;
+      if (countdown <= 0) {
+        let nextPhase = (phase + 1) % 4;
+        while (activeProtocol.durations[nextPhase] === 0) {
+          nextPhase = (nextPhase + 1) % 4;
+        }
+        phase = nextPhase;
+        countdown = activeProtocol.durations[nextPhase];
+        setBreathingPhase(nextPhase as any);
+      }
+      setBreathCountdown(countdown);
+    }, 1000);
 
     return () => {
       if (breathingIntervalRef.current) {
         clearInterval(breathingIntervalRef.current);
       }
     };
-  }, [isBreathing]);
+  }, [isBreathing, protocolKey]);
 
   // B. Soundscape Player (Web Audio API Synthesizer)
   const [soundType, setSoundType] = useState<'binaural' | 'hum' | 'drone' | 'waves'>('binaural');
@@ -950,39 +1024,105 @@ export default function LogsAndBrain({
       {activePillar === 'meditation' && (
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 text-left" id="pillar-meditation-pane">
           {/* Breathing Guide Panel (3 columns) */}
-          <div className="lg:col-span-3 bg-white dark:bg-slate-950/20 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl flex flex-col justify-between text-center min-h-[480px] relative overflow-hidden shadow-sm">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+          <div className="lg:col-span-3 bg-gradient-to-b from-slate-50/90 to-white/95 dark:from-slate-950/60 dark:to-slate-950/30 border border-slate-200/80 dark:border-white/10 p-6 rounded-3xl flex flex-col justify-between text-center min-h-[500px] relative overflow-hidden shadow-xl shadow-slate-100 dark:shadow-slate-950/40 backdrop-blur-md">
+            {/* Dynamic Ambient Glow overlay */}
+            <div className={`absolute -right-20 -top-20 w-80 h-80 rounded-full blur-[100px] pointer-events-none transition-all duration-1000 ${
+              isBreathing
+                ? [
+                    'bg-cyan-500/10 dark:bg-cyan-500/25',
+                    'bg-purple-500/10 dark:bg-purple-500/25',
+                    'bg-emerald-500/10 dark:bg-emerald-500/25',
+                    'bg-amber-500/10 dark:bg-amber-500/25'
+                  ][breathingPhase]
+                : 'bg-emerald-500/5'
+            }`} />
             
-            <div className="w-full flex justify-between items-center border-b border-slate-200 dark:border-slate-800/60 pb-3 z-10">
-              <span className="text-xs font-mono uppercase text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 font-bold">
-                <Wind className="w-3.5 h-3.5 animate-pulse" /> Box Breathing Protocol
-              </span>
-              <span className="text-[10px] font-mono text-slate-400">4s Cyclic Rhythm</span>
+            <div className="w-full flex flex-col sm:flex-row justify-between items-center gap-3 border-b border-slate-200/80 dark:border-slate-800/60 pb-4 z-10">
+              <div className="flex items-center gap-2">
+                <Wind className={`w-4 h-4 animate-pulse ${isBreathing ? 'text-cyan-500' : 'text-emerald-500'}`} />
+                <span className="text-xs font-mono uppercase tracking-widest text-slate-800 dark:text-slate-200 font-bold">
+                  {currentProtocol.name}
+                </span>
+              </div>
+              
+              {/* Dynamic Protocol Interactive Selector */}
+              <div className="flex bg-slate-100 dark:bg-slate-900/60 p-0.5 rounded-lg border border-slate-200/60 dark:border-slate-800/60 text-[10px] font-mono">
+                {(Object.keys(BREATHING_PROTOCOLS) as Array<keyof typeof BREATHING_PROTOCOLS>).map((key) => (
+                  <button
+                    key={key}
+                    onClick={() => {
+                      if (!isBreathing) {
+                        setProtocolKey(key);
+                      }
+                    }}
+                    disabled={isBreathing}
+                    className={`px-2.5 py-1 rounded-md font-semibold transition-all uppercase ${
+                      protocolKey === key
+                        ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm font-bold'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 disabled:opacity-40'
+                    }`}
+                    title={isBreathing ? "Stop breathing protocol to switch modes" : ""}
+                  >
+                    {key === 'box' ? 'Box' : key === 'calming' ? '4-7-8' : 'Resonant'}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Breathing Animation Canvas Area */}
             <div className="flex flex-col items-center justify-center py-8 relative z-10">
               <div className="relative w-64 h-64 flex items-center justify-center">
-                {/* Visual pulsating ring */}
+                {/* Visual pulsating ring (Selector 2) */}
                 <div 
-                  className={`absolute rounded-full border-4 flex items-center justify-center transition-all duration-[1000ms] ease-out shadow-2xl ${
+                  className={`absolute rounded-full border border-slate-200/60 dark:border-slate-800/60 flex items-center justify-center transition-all duration-[1000ms] ease-out shadow-2xl ${
                     phaseDetails[breathingPhase].color
                   }`}
                   style={{
-                    width: isBreathing ? `${phaseDetails[breathingPhase].scale * 120}px` : '120px',
-                    height: isBreathing ? `${phaseDetails[breathingPhase].scale * 120}px` : '120px'
+                    width: isBreathing ? `${phaseDetails[breathingPhase].scale * 130}px` : '130px',
+                    height: isBreathing ? `${phaseDetails[breathingPhase].scale * 130}px` : '130px'
                   }}
                 >
+                  {/* Outer pulsating echo ring */}
                   <div className="absolute inset-0 rounded-full border border-current opacity-10 scale-125 animate-ping" />
+                  
+                  {/* SVG Holographic Radial Progress */}
+                  <svg className="absolute inset-0 w-full h-full p-2" viewBox="0 0 100 100">
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="44"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeDasharray="276.4"
+                      strokeDashoffset={276.4 * (1 - (isBreathing ? (breathCountdown / currentProtocol.durations[breathingPhase]) : 1))}
+                      className="transition-all duration-1000 ease-linear -rotate-90 origin-center opacity-80"
+                    />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="0.5"
+                      strokeDasharray="4,4"
+                      className="opacity-20 animate-spin animate-duration-[20s]"
+                    />
+                  </svg>
                 </div>
 
-                {/* Inner countdown readout */}
-                <div className="z-20 text-center space-y-1">
-                  <div className="text-4xl font-mono font-black text-slate-800 dark:text-white select-none">
+                {/* Inner countdown readout container */}
+                <div className="z-20 text-center pointer-events-none flex flex-col items-center justify-center">
+                  {/* Countdown Number (Selector 1 is the first child div under parent!) */}
+                  <div className={`text-6xl font-mono font-extrabold tracking-tighter select-none transition-all duration-300 ${
+                    isBreathing ? phaseDetails[breathingPhase].color.split(' ')[0] : 'text-slate-800 dark:text-white'
+                  }`} style={{ textShadow: isBreathing ? '0 0 15px currentColor' : 'none' }}>
                     {isBreathing ? breathCountdown : '4'}
                   </div>
-                  <div className="text-xs font-mono uppercase tracking-widest text-slate-500 dark:text-slate-400 select-none">
-                    SECONDS
+                  
+                  {/* Micro phase description indicator */}
+                  <div className="text-[9px] font-mono uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 font-bold mt-1">
+                    {isBreathing ? phaseDetails[breathingPhase].label.split(' ')[0] : 'ALIGN'}
                   </div>
                 </div>
               </div>
@@ -993,13 +1133,13 @@ export default function LogsAndBrain({
                   {isBreathing ? phaseDetails[breathingPhase].label : 'Ready to Align'}
                 </h4>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-sans max-w-sm mx-auto">
-                  {isBreathing ? phaseDetails[breathingPhase].sub : 'Box breathing clears executive brain fog and optimizes HRV.'}
+                  {isBreathing ? phaseDetails[breathingPhase].sub : 'Protocol clears executive brain fog and optimizes HRV.'}
                 </p>
               </div>
             </div>
 
             {/* Breathing Controls */}
-            <div className="pt-4 border-t border-slate-200 dark:border-slate-800/60 z-10">
+            <div className="pt-4 border-t border-slate-200/80 dark:border-slate-800/60 z-10">
               <button
                 onClick={() => setIsBreathing(!isBreathing)}
                 className={`px-8 py-3 rounded-xl font-mono text-xs font-bold uppercase transition-all shadow flex items-center gap-2 mx-auto cursor-pointer ${

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   LayoutDashboard, 
@@ -57,6 +57,7 @@ import { Cloud, CloudLightning, LogOut } from 'lucide-react';
 import LoginView from './components/LoginView';
 
 export default function App() {
+  const lastReceivedFromCloud = useRef<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -73,6 +74,9 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('lifeos_dark_mode', String(isDarkMode));
     if (user) {
+      if (lastReceivedFromCloud.current['darkMode'] === String(isDarkMode)) {
+        return;
+      }
       saveUserDataToCloud(user.id, 'darkMode', isDarkMode);
     }
     const root = document.getElementById('lifeos-application-root');
@@ -389,6 +393,7 @@ export default function App() {
         try {
           unsubscribeSnapshot = subscribeToUserDataCloud(sUser.id, (key, data) => {
             const stringified = JSON.stringify(data);
+            lastReceivedFromCloud.current[key] = stringified;
             switch (key) {
               case 'profile':
                 setProfile(prev => JSON.stringify(prev) !== stringified ? data : prev);
@@ -565,6 +570,8 @@ export default function App() {
   useEffect(() => {
     safeSetItem('lifeos_profile', JSON.stringify(profile));
     if (user) {
+      const stringified = JSON.stringify(profile);
+      if (lastReceivedFromCloud.current['profile'] === stringified) return;
       saveUserDataToCloud(user.id, 'profile', profile);
     }
   }, [profile, user]);
@@ -572,6 +579,8 @@ export default function App() {
   useEffect(() => {
     safeSetItem('lifeos_vision_cards', JSON.stringify(visionCards));
     if (user) {
+      const stringified = JSON.stringify(visionCards);
+      if (lastReceivedFromCloud.current['visionCards'] === stringified) return;
       saveUserDataToCloud(user.id, 'visionCards', visionCards);
     }
   }, [visionCards, user]);
@@ -579,6 +588,8 @@ export default function App() {
   useEffect(() => {
     safeSetItem('lifeos_goals', JSON.stringify(goals));
     if (user) {
+      const stringified = JSON.stringify(goals);
+      if (lastReceivedFromCloud.current['goals'] === stringified) return;
       saveUserDataToCloud(user.id, 'goals', goals);
     }
   }, [goals, user]);
@@ -586,6 +597,8 @@ export default function App() {
   useEffect(() => {
     safeSetItem('lifeos_milestones', JSON.stringify(milestones));
     if (user) {
+      const stringified = JSON.stringify(milestones);
+      if (lastReceivedFromCloud.current['milestones'] === stringified) return;
       saveUserDataToCloud(user.id, 'milestones', milestones);
     }
   }, [milestones, user]);
@@ -593,6 +606,8 @@ export default function App() {
   useEffect(() => {
     safeSetItem('lifeos_tasks', JSON.stringify(tasks));
     if (user) {
+      const stringified = JSON.stringify(tasks);
+      if (lastReceivedFromCloud.current['tasks'] === stringified) return;
       saveUserDataToCloud(user.id, 'tasks', tasks);
     }
   }, [tasks, user]);
@@ -600,6 +615,8 @@ export default function App() {
   useEffect(() => {
     safeSetItem('lifeos_habits', JSON.stringify(habits));
     if (user) {
+      const stringified = JSON.stringify(habits);
+      if (lastReceivedFromCloud.current['habits'] === stringified) return;
       saveUserDataToCloud(user.id, 'habits', habits);
     }
   }, [habits, user]);
@@ -607,6 +624,8 @@ export default function App() {
   useEffect(() => {
     safeSetItem('lifeos_journals', JSON.stringify(journalEntries));
     if (user) {
+      const stringified = JSON.stringify(journalEntries);
+      if (lastReceivedFromCloud.current['journalEntries'] === stringified) return;
       saveUserDataToCloud(user.id, 'journalEntries', journalEntries);
     }
   }, [journalEntries, user]);
@@ -614,6 +633,8 @@ export default function App() {
   useEffect(() => {
     safeSetItem('lifeos_finance', JSON.stringify(financeRecords));
     if (user) {
+      const stringified = JSON.stringify(financeRecords);
+      if (lastReceivedFromCloud.current['financeRecords'] === stringified) return;
       saveUserDataToCloud(user.id, 'financeRecords', financeRecords);
     }
   }, [financeRecords, user]);
@@ -621,6 +642,8 @@ export default function App() {
   useEffect(() => {
     safeSetItem('lifeos_health', JSON.stringify(healthLogs));
     if (user) {
+      const stringified = JSON.stringify(healthLogs);
+      if (lastReceivedFromCloud.current['healthLogs'] === stringified) return;
       saveUserDataToCloud(user.id, 'healthLogs', healthLogs);
     }
   }, [healthLogs, user]);
@@ -628,6 +651,8 @@ export default function App() {
   useEffect(() => {
     safeSetItem('lifeos_lifewheel', JSON.stringify(lifeWheel));
     if (user) {
+      const stringified = JSON.stringify(lifeWheel);
+      if (lastReceivedFromCloud.current['lifeWheel'] === stringified) return;
       saveUserDataToCloud(user.id, 'lifeWheel', lifeWheel);
     }
   }, [lifeWheel, user]);
@@ -635,6 +660,8 @@ export default function App() {
   useEffect(() => {
     safeSetItem('lifeos_philosophical', JSON.stringify(philosophicalEntries));
     if (user) {
+      const stringified = JSON.stringify(philosophicalEntries);
+      if (lastReceivedFromCloud.current['philosophicalEntries'] === stringified) return;
       saveUserDataToCloud(user.id, 'philosophicalEntries', philosophicalEntries);
     }
   }, [philosophicalEntries, user]);
@@ -642,6 +669,8 @@ export default function App() {
   useEffect(() => {
     safeSetItem('lifeos_book_wisdom', JSON.stringify(bookWisdomEntries));
     if (user) {
+      const stringified = JSON.stringify(bookWisdomEntries);
+      if (lastReceivedFromCloud.current['bookWisdomEntries'] === stringified) return;
       saveUserDataToCloud(user.id, 'bookWisdomEntries', bookWisdomEntries);
     }
   }, [bookWisdomEntries, user]);
@@ -649,6 +678,8 @@ export default function App() {
   useEffect(() => {
     safeSetItem('lifeos_intuition', JSON.stringify(intuitionEntries));
     if (user) {
+      const stringified = JSON.stringify(intuitionEntries);
+      if (lastReceivedFromCloud.current['intuitionEntries'] === stringified) return;
       saveUserDataToCloud(user.id, 'intuitionEntries', intuitionEntries);
     }
   }, [intuitionEntries, user]);
@@ -1006,6 +1037,8 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('lifeos_nav_items_v3', JSON.stringify(navItems));
     if (user) {
+      const stringified = JSON.stringify(navItems);
+      if (lastReceivedFromCloud.current['navItems'] === stringified) return;
       saveUserDataToCloud(user.id, 'navItems', navItems);
     }
   }, [navItems, user]);
@@ -1051,11 +1084,11 @@ export default function App() {
         );
       case 'newme':
         return (
-          <NewMeView isDarkMode={isDarkMode} userId={user?.id} />
+          <NewMeView isDarkMode={isDarkMode} userId={user?.id} isInitialLoading={isInitialLoading} />
         );
       case 'ventures':
         return (
-          <BusinessIdeasView isDarkMode={isDarkMode} userId={user?.id} />
+          <BusinessIdeasView isDarkMode={isDarkMode} userId={user?.id} isInitialLoading={isInitialLoading} />
         );
       case 'vision':
         return (
@@ -1067,6 +1100,7 @@ export default function App() {
             onDeleteCard={deleteVisionCard}
             isDarkMode={isDarkMode}
             userId={user?.id}
+            isInitialLoading={isInitialLoading}
           />
         );
       case 'goals':
@@ -1081,6 +1115,7 @@ export default function App() {
             addMilestone={addMilestone}
             toggleMilestoneCompleted={toggleMilestoneCompleted}
             deleteMilestone={deleteMilestone}
+            userId={user?.id}
           />
         );
       case 'productivity':
@@ -1098,6 +1133,7 @@ export default function App() {
             deleteHabit={deleteHabit}
             activeTimerTaskId={activeTimerTaskId}
             setActiveTimerTaskId={setActiveTimerTaskId}
+            isInitialLoading={isInitialLoading}
           />
         );
       case 'logs':

@@ -61,6 +61,7 @@ export interface BusinessIdea {
 interface BusinessIdeasViewProps {
   isDarkMode?: boolean;
   userId?: string;
+  isInitialLoading?: boolean;
 }
 
 const CATEGORIES = [
@@ -73,7 +74,12 @@ const CATEGORIES = [
   'Other Venture'
 ];
 
-export default function BusinessIdeasView({ isDarkMode = true, userId }: BusinessIdeasViewProps) {
+export default function BusinessIdeasView({ 
+  isDarkMode = true, 
+  userId,
+  isInitialLoading = false
+}: BusinessIdeasViewProps) {
+  const lastSyncValuesRef = React.useRef<Record<string, string>>({});
   const [ideas, setIdeas] = useState<BusinessIdea[]>(() => {
     const saved = localStorage.getItem('lifeos_business_ideas');
     if (saved) {
@@ -173,11 +179,16 @@ export default function BusinessIdeasView({ isDarkMode = true, userId }: Busines
   const [newMilestoneDate, setNewMilestoneDate] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    localStorage.setItem('lifeos_business_ideas', JSON.stringify(ideas));
-    if (userId) {
+    const serialized = JSON.stringify(ideas);
+    localStorage.setItem('lifeos_business_ideas', serialized);
+    if (userId && !isInitialLoading) {
+      if (lastSyncValuesRef.current['lifeos_business_ideas'] === serialized) {
+        return;
+      }
+      lastSyncValuesRef.current['lifeos_business_ideas'] = serialized;
       saveUserDataToCloud(userId, 'businessIdeas', ideas);
     }
-  }, [ideas, userId]);
+  }, [ideas, userId, isInitialLoading]);
 
   // Sync listener across tabs
   useEffect(() => {
@@ -185,7 +196,9 @@ export default function BusinessIdeasView({ isDarkMode = true, userId }: Busines
       const customEvent = e as CustomEvent;
       if (customEvent.detail && customEvent.detail.key === 'lifeos_business_ideas') {
         const value = customEvent.detail.value;
-        if (JSON.stringify(value) !== JSON.stringify(ideas)) {
+        const serialized = JSON.stringify(value);
+        if (serialized !== JSON.stringify(ideas)) {
+          lastSyncValuesRef.current['lifeos_business_ideas'] = serialized;
           setIdeas(value);
         }
       }

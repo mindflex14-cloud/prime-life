@@ -56,7 +56,17 @@ export interface HabitIntervention {
   lastRelapseDate?: string;
 }
 
-export default function NewMeView({ isDarkMode = true, userId }: { isDarkMode?: boolean; userId?: string }) {
+export default function NewMeView({ 
+  isDarkMode = true, 
+  userId, 
+  isInitialLoading = false 
+}: { 
+  isDarkMode?: boolean; 
+  userId?: string; 
+  isInitialLoading?: boolean;
+}) {
+  const lastSyncValuesRef = React.useRef<Record<string, string>>({});
+
   const [subTab, setSubTab] = useState<'mindset' | 'problems'>(() => {
     const saved = localStorage.getItem('lifeos_newme_subtab');
     return (saved === 'mindset' || saved === 'problems') ? saved : 'mindset';
@@ -479,25 +489,39 @@ export default function NewMeView({ isDarkMode = true, userId }: { isDarkMode?: 
   };
 
   useEffect(() => {
-    localStorage.setItem('lifeos_newme_sections', JSON.stringify(sections));
-    if (userId) {
+    const serialized = JSON.stringify(sections);
+    localStorage.setItem('lifeos_newme_sections', serialized);
+    if (userId && !isInitialLoading) {
+      if (lastSyncValuesRef.current['lifeos_newme_sections'] === serialized) {
+        return;
+      }
+      lastSyncValuesRef.current['lifeos_newme_sections'] = serialized;
       saveUserDataToCloud(userId, 'newMeSections', sections);
     }
-  }, [sections, userId]);
+  }, [sections, userId, isInitialLoading]);
 
   useEffect(() => {
     localStorage.setItem('lifeos_newme_datadrop', dataDrop);
-    if (userId) {
+    if (userId && !isInitialLoading) {
+      if (lastSyncValuesRef.current['lifeos_newme_datadrop'] === dataDrop) {
+        return;
+      }
+      lastSyncValuesRef.current['lifeos_newme_datadrop'] = dataDrop;
       saveUserDataToCloud(userId, 'newMeDataDrop', dataDrop);
     }
-  }, [dataDrop, userId]);
+  }, [dataDrop, userId, isInitialLoading]);
 
   useEffect(() => {
-    localStorage.setItem('lifeos_newme_interventions', JSON.stringify(habitInterventions));
-    if (userId) {
+    const serialized = JSON.stringify(habitInterventions);
+    localStorage.setItem('lifeos_newme_interventions', serialized);
+    if (userId && !isInitialLoading) {
+      if (lastSyncValuesRef.current['lifeos_newme_interventions'] === serialized) {
+        return;
+      }
+      lastSyncValuesRef.current['lifeos_newme_interventions'] = serialized;
       saveUserDataToCloud(userId, 'newMeInterventions', habitInterventions);
     }
-  }, [habitInterventions, userId]);
+  }, [habitInterventions, userId, isInitialLoading]);
 
   // Real-time listener for cloud changes across tabs or devices
   useEffect(() => {
@@ -505,12 +529,23 @@ export default function NewMeView({ isDarkMode = true, userId }: { isDarkMode?: 
       const customEvent = e as CustomEvent;
       if (customEvent.detail) {
         const { key, value } = customEvent.detail;
-        if (key === 'lifeos_newme_sections' && JSON.stringify(value) !== JSON.stringify(sections)) {
-          setSections(value);
-        } else if (key === 'lifeos_newme_datadrop' && value !== dataDrop) {
-          setDataDrop(value);
-        } else if (key === 'lifeos_newme_interventions' && JSON.stringify(value) !== JSON.stringify(habitInterventions)) {
-          setHabitInterventions(value);
+        if (key === 'lifeos_newme_sections') {
+          const serialized = JSON.stringify(value);
+          if (serialized !== JSON.stringify(sections)) {
+            lastSyncValuesRef.current['lifeos_newme_sections'] = serialized;
+            setSections(value);
+          }
+        } else if (key === 'lifeos_newme_datadrop') {
+          if (value !== dataDrop) {
+            lastSyncValuesRef.current['lifeos_newme_datadrop'] = value;
+            setDataDrop(value);
+          }
+        } else if (key === 'lifeos_newme_interventions') {
+          const serialized = JSON.stringify(value);
+          if (serialized !== JSON.stringify(habitInterventions)) {
+            lastSyncValuesRef.current['lifeos_newme_interventions'] = serialized;
+            setHabitInterventions(value);
+          }
         }
       }
     };

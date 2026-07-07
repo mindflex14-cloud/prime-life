@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { Target, Calendar, CheckSquare, Trash2, Plus, Flag, Trophy, Award, Trash, Edit3, Save, Upload, Image as ImageIcon, X, Sparkles, AlertCircle } from 'lucide-react';
+import { Target, Calendar, CheckSquare, Trash2, Plus, Flag, Trophy, Award, Trash, Edit3, Save, Upload, Image as ImageIcon, X, Sparkles, AlertCircle, Loader2 } from 'lucide-react';
 import { Goal, Milestone } from '../types';
 import { SwipeableImageCarousel } from './SwipeableImageCarousel';
+import { uploadImageToSupabase } from '../lib/supabaseStorage';
 
 interface GoalsAndMilestonesProps {
   goals: Goal[];
@@ -13,6 +14,7 @@ interface GoalsAndMilestonesProps {
   addMilestone: (milestone: Omit<Milestone, 'id' | 'completed'>) => void;
   toggleMilestoneCompleted: (id: string) => void;
   deleteMilestone: (id: string) => void;
+  userId?: string;
 }
 
 export default function GoalsAndMilestones({
@@ -24,7 +26,8 @@ export default function GoalsAndMilestones({
   deleteGoal,
   addMilestone,
   toggleMilestoneCompleted,
-  deleteMilestone
+  deleteMilestone,
+  userId
 }: GoalsAndMilestonesProps) {
   const [selectedGoalId, setSelectedGoalId] = useState<string | null>(goals[0]?.id || null);
 
@@ -65,6 +68,7 @@ export default function GoalsAndMilestones({
   // Form states for Milestone
   const [milestoneTitle, setMilestoneTitle] = useState('');
   const [milestoneTargetDate, setMilestoneTargetDate] = useState('');
+  const [isUploadingGoalImage, setIsUploadingGoalImage] = useState(false);
 
   // Process manual local image uploads via FileReader (Base64)
   const processImageFile = (file: File, isEdit: boolean) => {
@@ -74,11 +78,12 @@ export default function GoalsAndMilestones({
     }
 
     const reader = new FileReader();
+    setIsUploadingGoalImage(true);
     reader.onloadend = () => {
       const originalBase64 = reader.result as string;
       
       const img = new Image();
-      img.onload = () => {
+      img.onload = async () => {
         // 1. Full image compression
         const maxWidth = 1600;
         const maxHeight = 1600;
@@ -142,44 +147,58 @@ export default function GoalsAndMilestones({
           }
         }
 
-        applyImage(fullBase64, thumbBase64);
+        try {
+          // Upload both to Supabase Storage
+          const [uploadedFullUrl, uploadedThumbUrl] = await Promise.all([
+            uploadImageToSupabase(fullBase64, userId || 'guest', 'goals'),
+            uploadImageToSupabase(thumbBase64, userId || 'guest', 'goals-thumb')
+          ]);
+          applyImage(uploadedFullUrl, uploadedThumbUrl);
+        } catch (uploadError) {
+          console.error("Failed to upload to Supabase Storage, using base64 fallback:", uploadError);
+          applyImage(fullBase64, thumbBase64);
+        } finally {
+          setIsUploadingGoalImage(false);
+        }
       };
       
       img.onerror = () => {
         applyImage(originalBase64, originalBase64);
+        setIsUploadingGoalImage(false);
       };
       
       img.src = originalBase64;
     };
 
-    const applyImage = (base64String: string, thumbnailBase64: string) => {
+    const applyImage = (url: string, thumbnailUrl: string) => {
       if (isEdit) {
-        setEditImageUrl(base64String);
-        setEditThumbnailUrl(thumbnailBase64);
+        setEditImageUrl(url);
+        setEditThumbnailUrl(thumbnailUrl);
         setEditImageUrls(prev => {
-          if (prev.includes(base64String)) return prev;
-          return [...prev, base64String];
+          if (prev.includes(url)) return prev;
+          return [...prev, url];
         });
         setEditThumbnailUrls(prev => {
-          if (prev.includes(thumbnailBase64)) return prev;
-          return [...prev, thumbnailBase64];
+          if (prev.includes(thumbnailUrl)) return prev;
+          return [...prev, thumbnailUrl];
         });
       } else {
-        setGoalImageUrl(base64String);
-        setGoalThumbnailUrl(thumbnailBase64);
+        setGoalImageUrl(url);
+        setGoalThumbnailUrl(thumbnailUrl);
         setGoalImageUrls(prev => {
-          if (prev.includes(base64String)) return prev;
-          return [...prev, base64String];
+          if (prev.includes(url)) return prev;
+          return [...prev, url];
         });
         setGoalThumbnailUrls(prev => {
-          if (prev.includes(thumbnailBase64)) return prev;
-          return [...prev, thumbnailBase64];
+          if (prev.includes(thumbnailUrl)) return prev;
+          return [...prev, thumbnailUrl];
         });
       }
     };
 
     reader.onerror = () => {
       alert("Error reading file");
+      setIsUploadingGoalImage(false);
     };
     reader.readAsDataURL(file);
   };
@@ -445,10 +464,19 @@ export default function GoalsAndMilestones({
                       : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 hover:border-cyan-500'
                   }`}
                 >
-                  <Upload className="w-5 h-5 text-slate-400 mb-1" />
-                  <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">
-                    Drag & drop files, or <span className="text-cyan-500">browse files</span>
-                  </span>
+                  {isUploadingGoalImage ? (
+                    <div className="flex flex-col items-center justify-center p-2">
+                      <Loader2 className="w-5 h-5 text-cyan-500 animate-spin mb-1" />
+                      <span className="text-[10px] font-mono text-cyan-500">Uploading to Supabase Storage...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="w-5 h-5 text-slate-400 mb-1" />
+                      <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">
+                        Drag & drop files, or <span className="text-cyan-500">browse files</span>
+                      </span>
+                    </>
+                  )}
                 </div>
                 <input
                   type="file"
@@ -697,10 +725,19 @@ export default function GoalsAndMilestones({
                           : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 hover:border-cyan-500'
                       }`}
                     >
-                      <Upload className="w-5 h-5 text-slate-400 mb-1" />
-                      <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">
-                        Drag & drop files, or <span className="text-cyan-500">browse files</span>
-                      </span>
+                      {isUploadingGoalImage ? (
+                        <div className="flex flex-col items-center justify-center p-2">
+                          <Loader2 className="w-5 h-5 text-cyan-500 animate-spin mb-1" />
+                          <span className="text-[10px] font-mono text-cyan-500">Uploading to Supabase Storage...</span>
+                        </div>
+                      ) : (
+                        <>
+                          <Upload className="w-5 h-5 text-slate-400 mb-1" />
+                          <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">
+                            Drag & drop files, or <span className="text-cyan-500">browse files</span>
+                          </span>
+                        </>
+                      )}
                     </div>
                     <input
                       type="file"

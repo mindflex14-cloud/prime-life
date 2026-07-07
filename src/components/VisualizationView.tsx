@@ -23,11 +23,13 @@ import {
   Heart,
   Camera,
   Compass,
-  Eye
+  Eye,
+  Loader2
 } from 'lucide-react';
 import { VisionCard, Goal } from '../types';
 import { SwipeableImageCarousel } from './SwipeableImageCarousel';
 import { saveUserDataToCloud } from '../lib/supabaseSync';
+import { uploadImageToSupabase } from '../lib/supabaseStorage';
 
 // High Precision Real-Time countdown subcomponent with BIG display typography
 function GoalCountdown({ targetDate, isDarkMode }: { targetDate: string; isDarkMode: boolean }) {
@@ -229,6 +231,7 @@ interface VisualizationViewProps {
   onDeleteCard: (id: string) => void;
   isDarkMode?: boolean;
   userId?: string;
+  isInitialLoading?: boolean;
 }
 
 export default function VisualizationView({
@@ -238,10 +241,12 @@ export default function VisualizationView({
   onUpdateCard,
   onDeleteCard,
   isDarkMode = true,
-  userId
+  userId,
+  isInitialLoading = false
 }: VisualizationViewProps) {
   const [editingCardId, setEditingCardId] = useState<string | null>(null);
   const [tempTitle, setTempTitle] = useState('');
+  const lastSyncValuesRef = useRef<Record<string, string>>({});
 
   // ==========================================
   // Premium Cosmic Earth Horizon Countdown State
@@ -288,31 +293,47 @@ export default function VisualizationView({
   // Sync back on state change
   useEffect(() => {
     localStorage.setItem('lifeos_earth_target', earthCountdownTarget);
-    if (userId) {
+    if (userId && !isInitialLoading) {
+      if (lastSyncValuesRef.current['lifeos_earth_target'] === earthCountdownTarget) {
+        return;
+      }
+      lastSyncValuesRef.current['lifeos_earth_target'] = earthCountdownTarget;
       saveUserDataToCloud(userId, 'earthCountdownTarget', earthCountdownTarget);
     }
-  }, [earthCountdownTarget, userId]);
+  }, [earthCountdownTarget, userId, isInitialLoading]);
 
   useEffect(() => {
     localStorage.setItem('lifeos_earth_title', earthCountdownTitle);
-    if (userId) {
+    if (userId && !isInitialLoading) {
+      if (lastSyncValuesRef.current['lifeos_earth_title'] === earthCountdownTitle) {
+        return;
+      }
+      lastSyncValuesRef.current['lifeos_earth_title'] = earthCountdownTitle;
       saveUserDataToCloud(userId, 'earthCountdownTitle', earthCountdownTitle);
     }
-  }, [earthCountdownTitle, userId]);
+  }, [earthCountdownTitle, userId, isInitialLoading]);
 
   useEffect(() => {
     localStorage.setItem('lifeos_earth_image', earthCountdownImage);
-    if (userId) {
+    if (userId && !isInitialLoading) {
+      if (lastSyncValuesRef.current['lifeos_earth_image'] === earthCountdownImage) {
+        return;
+      }
+      lastSyncValuesRef.current['lifeos_earth_image'] = earthCountdownImage;
       saveUserDataToCloud(userId, 'earthCountdownImage', earthCountdownImage);
     }
-  }, [earthCountdownImage, userId]);
+  }, [earthCountdownImage, userId, isInitialLoading]);
 
   useEffect(() => {
     localStorage.setItem('lifeos_earth_quote', earthCountdownQuote);
-    if (userId) {
+    if (userId && !isInitialLoading) {
+      if (lastSyncValuesRef.current['lifeos_earth_quote'] === earthCountdownQuote) {
+        return;
+      }
+      lastSyncValuesRef.current['lifeos_earth_quote'] = earthCountdownQuote;
       saveUserDataToCloud(userId, 'earthCountdownQuote', earthCountdownQuote);
     }
-  }, [earthCountdownQuote, userId]);
+  }, [earthCountdownQuote, userId, isInitialLoading]);
 
   // Sync listener across tabs and devices
   useEffect(() => {
@@ -320,6 +341,7 @@ export default function VisualizationView({
       const customEvent = e as CustomEvent;
       if (customEvent.detail) {
         const { key, value } = customEvent.detail;
+        lastSyncValuesRef.current[key] = value;
         if (key === 'lifeos_earth_target' && value !== earthCountdownTarget) {
           setEarthCountdownTarget(value);
         } else if (key === 'lifeos_earth_title' && value !== earthCountdownTitle) {
@@ -334,6 +356,33 @@ export default function VisualizationView({
     window.addEventListener('local-storage-sync', handleSync);
     return () => window.removeEventListener('local-storage-sync', handleSync);
   }, [earthCountdownTarget, earthCountdownTitle, earthCountdownImage, earthCountdownQuote]);
+
+  // ==========================================
+  // Quantum Manifestation Theme & Quote State
+  // ==========================================
+  const [manifestQuote, setManifestQuote] = useState<string>(() => {
+    return localStorage.getItem('lifeos_manifest_quote') || 'FEELING IS EVERYTHING. Assume the feeling of your wish already fulfilled.';
+  });
+  const [manifestAuthor, setManifestAuthor] = useState<string>(() => {
+    return localStorage.getItem('lifeos_manifest_author') || 'Neville Goddard';
+  });
+  const [isEditingManifestQuote, setIsEditingManifestQuote] = useState(false);
+  const [tempManifestQuote, setTempManifestQuote] = useState(manifestQuote);
+  const [tempManifestAuthor, setTempManifestAuthor] = useState(manifestAuthor);
+
+  const MANIFESTATION_PRESETS = [
+    { quote: "FEELING IS EVERYTHING. Assume the feeling of your wish already fulfilled.", author: "Neville Goddard" },
+    { quote: "An idea that is only an idea produces nothing and does nothing unless it is felt.", author: "Neville Goddard" },
+    { quote: "You do not attract what you want, you attract what you are.", author: "Dr. Wayne Dyer" },
+    { quote: "Feeling is the secret. What you feel, you create. What you imagine, you manifest.", author: "Quantum Law" },
+    { quote: "To be conscious of being poor while praying for riches is to be rewarded with what you are conscious of being.", author: "Neville Goddard" },
+    { quote: "Align your internal vibration with the timeline of your ultimate desires.", author: "Quantum Mechanics" }
+  ];
+
+  useEffect(() => {
+    localStorage.setItem('lifeos_manifest_quote', manifestQuote);
+    localStorage.setItem('lifeos_manifest_author', manifestAuthor);
+  }, [manifestQuote, manifestAuthor]);
 
   const activeCountdownTarget = showEarthEdit ? editEarthTarget : earthCountdownTarget;
 
@@ -497,13 +546,15 @@ export default function VisualizationView({
     
     if (cardId) {
       setUploadingCardId(cardId);
+    } else {
+      setUploadingCardId('new-card');
     }
 
     reader.onloadend = () => {
       const originalBase64 = reader.result as string;
       
       const img = new Image();
-      img.onload = () => {
+      img.onload = async () => {
         // 1. Generate full-size image (max 1600x1600, quality 0.85)
         const maxWidth = 1600;
         const maxHeight = 1600;
@@ -567,62 +618,74 @@ export default function VisualizationView({
           }
         }
 
-        applyImage(fullBase64, thumbBase64);
+        try {
+          // Upload both to Supabase Storage
+          const [uploadedFullUrl, uploadedThumbUrl] = await Promise.all([
+            uploadImageToSupabase(fullBase64, userId || 'guest', 'vision'),
+            uploadImageToSupabase(thumbBase64, userId || 'guest', 'vision-thumb')
+          ]);
+          applyImage(uploadedFullUrl, uploadedThumbUrl);
+        } catch (uploadError) {
+          console.error("Failed to upload to Supabase Storage, using base64 fallback:", uploadError);
+          applyImage(fullBase64, thumbBase64);
+        } finally {
+          setUploadingCardId(null);
+        }
       };
 
       img.onerror = () => {
         applyImage(originalBase64, originalBase64);
+        setUploadingCardId(null);
       };
 
       img.src = originalBase64;
     };
 
-    const applyImage = (base64String: string, thumbnailBase64: string) => {
+    const applyImage = (url: string, thumbnailUrl: string) => {
       if (cardId) {
         // If we are actively editing this card, append to the temp edit lists
         if (editingCardId === cardId) {
-          setTempImageUrl(base64String);
-          setTempThumbnailUrl(thumbnailBase64);
+          setTempImageUrl(url);
+          setTempThumbnailUrl(thumbnailUrl);
           setTempImageUrls(prev => {
-            const filtered = prev.filter(url => url && !url.startsWith('https://images.unsplash.com') && url.trim() !== '');
-            if (filtered.includes(base64String)) return filtered;
-            return [...filtered, base64String];
+            const filtered = prev.filter(item => item && !item.startsWith('https://images.unsplash.com') && item.trim() !== '');
+            if (filtered.includes(url)) return filtered;
+            return [...filtered, url];
           });
           setTempThumbnailUrls(prev => {
-            const filtered = prev.filter(url => url && !url.startsWith('https://images.unsplash.com') && url.trim() !== '');
-            if (filtered.includes(thumbnailBase64)) return filtered;
-            return [...filtered, thumbnailBase64];
+            const filtered = prev.filter(item => item && !item.startsWith('https://images.unsplash.com') && item.trim() !== '');
+            if (filtered.includes(thumbnailUrl)) return filtered;
+            return [...filtered, thumbnailUrl];
           });
         } else {
           // If we are updating directly from the card overlay uploader
           const currentCard = visionCards.find(c => c.id === cardId);
           if (currentCard) {
             const currentList = (currentCard.imageUrls || (currentCard.imageUrl ? [currentCard.imageUrl] : []))
-              .filter(url => url && !url.startsWith('https://images.unsplash.com') && url.trim() !== '');
-            const updatedList = currentList.includes(base64String) ? currentList : [...currentList, base64String];
+              .filter(item => item && !item.startsWith('https://images.unsplash.com') && item.trim() !== '');
+            const updatedList = currentList.includes(url) ? currentList : [...currentList, url];
             
             const currentThumbList = (currentCard.thumbnailUrls || (currentCard.thumbnailUrl ? [currentCard.thumbnailUrl] : []))
-              .filter(url => url && !url.startsWith('https://images.unsplash.com') && url.trim() !== '');
-            const updatedThumbList = currentThumbList.includes(thumbnailBase64) ? currentThumbList : [...currentThumbList, thumbnailBase64];
+              .filter(item => item && !item.startsWith('https://images.unsplash.com') && item.trim() !== '');
+            const updatedThumbList = currentThumbList.includes(thumbnailUrl) ? currentThumbList : [...currentThumbList, thumbnailUrl];
 
             onUpdateCard(cardId, {
-              imageUrl: base64String,
+              imageUrl: url,
               imageUrls: updatedList,
-              thumbnailUrl: thumbnailBase64,
+              thumbnailUrl: thumbnailUrl,
               thumbnailUrls: updatedThumbList
             });
           } else {
             onUpdateCard(cardId, { 
-              imageUrl: base64String,
-              thumbnailUrl: thumbnailBase64
+              imageUrl: url,
+              thumbnailUrl: thumbnailUrl
             });
           }
         }
         setImageErrors(prev => ({ ...prev, [cardId]: false }));
-        setUploadingCardId(null);
       } else {
-        setNewImageUrl(base64String);
-        setNewThumbnailUrl(thumbnailBase64);
+        setNewImageUrl(url);
+        setNewThumbnailUrl(thumbnailUrl);
       }
     };
 
@@ -714,25 +777,157 @@ export default function VisualizationView({
       />
 
       {/* Upper header section */}
-      <div className={`flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b pb-5 ${
+      <div className={`flex flex-col gap-6 border-b pb-6 ${
         isDarkMode ? 'border-white/5' : 'border-slate-200'
       }`}>
-        <div>
-          <h2 className={`text-3xl font-light tracking-tight flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-            Interactive <span className="font-bold text-cyan-500">Vision Board</span>
-          </h2>
-          <p className={`text-sm mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-            Immersive high-resolution blueprints, real-time deadlines, and live image uploads synced with your core plans.
-          </p>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h2 className={`text-3xl font-light tracking-tight flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+              Quantum <span className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400 drop-shadow-[0_0_12px_rgba(34,211,238,0.2)]">Manifestation Portal</span>
+            </h2>
+            <p className={`text-sm mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+              Align your vibration, curate high-fidelity anchors, and project your vision of the ultimate timeline.
+            </p>
+          </div>
+
+          <button
+            onClick={() => setShowAddForm(!showAddForm)}
+            className="px-5 py-3 bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-slate-950 font-bold font-mono text-xs rounded-xl flex items-center gap-2 shadow-lg shadow-cyan-500/10 hover:shadow-cyan-500/25 transition-all duration-300 cursor-pointer"
+          >
+            {showAddForm ? <CheckCircle2 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+            {showAddForm ? 'Close Visualizer Setup' : 'Create Intention Anchor'}
+          </button>
         </div>
 
-        <button
-          onClick={() => setShowAddForm(!showAddForm)}
-          className="px-4 py-2.5 bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-slate-950 font-bold font-mono text-xs rounded-xl flex items-center gap-2 shadow-lg hover:shadow-cyan-500/25 transition-all cursor-pointer"
-        >
-          {showAddForm ? <CheckCircle2 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-          {showAddForm ? 'Close Visualizer Setup' : 'Add Goal Photo Card'}
-        </button>
+        {/* Dynamic Manifestation / Intention Quote with Edit Option */}
+        <div className={`relative overflow-hidden rounded-2xl border p-4 sm:p-5 transition-all duration-500 ${
+          isDarkMode 
+            ? 'bg-gradient-to-r from-slate-950/80 via-cyan-950/20 to-slate-950/80 border-cyan-500/15 shadow-[0_0_20px_rgba(6,182,212,0.05)]' 
+            : 'bg-gradient-to-r from-slate-50 via-cyan-50/20 to-slate-50 border-slate-200 shadow-sm'
+        }`}>
+          {/* Cosmic Ambient Dot Grid decoration */}
+          <div className="absolute inset-0 bg-[radial-gradient(#22d3ee_1px,transparent_1px)] [background-size:16px_16px] opacity-[0.04] pointer-events-none" />
+          
+          <div className="flex flex-col sm:flex-row items-start justify-between gap-4 relative z-10">
+            <div className="space-y-1.5 flex-1 w-full">
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] font-mono font-black uppercase text-cyan-500 dark:text-cyan-400 tracking-[0.2em] flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-cyan-400 animate-pulse" /> Core Manifestation Mantra
+                </span>
+                <span className="text-[9px] font-mono text-slate-400 dark:text-slate-500 uppercase bg-slate-200/50 dark:bg-slate-900/80 px-2 py-0.5 rounded">
+                  Feeling is Everything
+                </span>
+              </div>
+              
+              {!isEditingManifestQuote ? (
+                <div className="space-y-1">
+                  <p className={`text-base md:text-lg font-serif italic font-medium leading-relaxed ${
+                    isDarkMode ? 'text-slate-100' : 'text-slate-800'
+                  }`}>
+                    "{manifestQuote}"
+                  </p>
+                  <p className={`text-xs font-mono tracking-widest ${
+                    isDarkMode ? 'text-slate-400' : 'text-slate-500'
+                  }`}>
+                    — {manifestAuthor}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3 mt-1.5 w-full">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-mono text-slate-400 uppercase font-bold">Mantra / Daily Affirmation</label>
+                    <textarea
+                      value={tempManifestQuote}
+                      onChange={(e) => setTempManifestQuote(e.target.value)}
+                      className={`w-full p-2.5 rounded-xl text-sm font-sans font-medium focus:ring-1 focus:ring-cyan-500 outline-none border ${
+                        isDarkMode ? 'bg-slate-950 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
+                      }`}
+                      placeholder="Enter your custom manifestation mantra..."
+                      rows={2}
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-mono text-slate-400 uppercase font-bold">Source / Author</label>
+                      <input
+                        type="text"
+                        value={tempManifestAuthor}
+                        onChange={(e) => setTempManifestAuthor(e.target.value)}
+                        className={`w-full p-2 rounded-xl text-xs font-mono focus:ring-1 focus:ring-cyan-500 outline-none border ${
+                          isDarkMode ? 'bg-slate-950 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
+                        }`}
+                        placeholder="Neville Goddard"
+                      />
+                    </div>
+                    
+                    {/* Preset Selector */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-mono text-slate-400 uppercase font-bold">Quick Presets</label>
+                      <select
+                        onChange={(e) => {
+                          const idx = parseInt(e.target.value);
+                          if (!isNaN(idx)) {
+                            setTempManifestQuote(MANIFESTATION_PRESETS[idx].quote);
+                            setTempManifestAuthor(MANIFESTATION_PRESETS[idx].author);
+                          }
+                        }}
+                        className={`w-full p-2 rounded-xl text-xs font-sans focus:ring-1 focus:ring-cyan-500 outline-none border ${
+                          isDarkMode ? 'bg-slate-950 border-slate-800 text-slate-300' : 'bg-white border-slate-200 text-slate-700'
+                        }`}
+                        defaultValue=""
+                      >
+                        <option value="" disabled>Select an inspired wisdom preset...</option>
+                        {MANIFESTATION_PRESETS.map((p, idx) => (
+                          <option key={idx} value={idx}>{p.quote.substring(0, 36)}...</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 justify-end pt-1">
+                    <button
+                      onClick={() => setIsEditingManifestQuote(false)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
+                        isDarkMode ? 'text-slate-400 hover:text-white hover:bg-white/5' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                      }`}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        setManifestQuote(tempManifestQuote);
+                        setManifestAuthor(tempManifestAuthor);
+                        setIsEditingManifestQuote(false);
+                      }}
+                      className="px-4 py-1.5 bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-slate-950 font-bold font-mono text-xs rounded-lg flex items-center gap-1 shadow-md"
+                    >
+                      <Save className="w-3.5 h-3.5" /> Commit Intention
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {!isEditingManifestQuote && (
+              <button
+                onClick={() => {
+                  setTempManifestQuote(manifestQuote);
+                  setTempManifestAuthor(manifestAuthor);
+                  setIsEditingManifestQuote(true);
+                }}
+                className={`p-2 rounded-xl border transition-all cursor-pointer flex items-center justify-center shrink-0 ${
+                  isDarkMode 
+                    ? 'bg-white/5 hover:bg-white/10 border-white/5 hover:border-cyan-500/30 text-slate-300 hover:text-cyan-400' 
+                    : 'bg-slate-100 hover:bg-slate-200 border-slate-200/60 text-slate-600 hover:text-slate-900'
+                }`}
+                title="Edit core feeling mantra"
+              >
+                <Edit3 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* TIME I HAVE ON EARTH MAIN COUNTDOWN WIDGET */}
@@ -1286,13 +1481,22 @@ export default function VisualizationView({
                             : 'border-slate-300 hover:border-cyan-500/40 bg-slate-50 hover:bg-slate-100/60'
                       }`}
                     >
-                      <Upload className={`w-7 h-7 mb-2 ${isDragging ? 'text-cyan-400' : 'text-slate-400'}`} />
-                      <p className={`text-xs font-semibold ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>
-                        Drag and drop your future goals photo here, or <span className="text-cyan-500 font-bold">browse device</span>
-                      </p>
-                      <p className="text-[10px] text-slate-400 mt-1.5">
-                        High resolution local image files will be saved in your secure Life OS.
-                      </p>
+                      {uploadingCardId === 'new-card' ? (
+                        <div className="flex flex-col items-center justify-center p-2">
+                          <Loader2 className="w-8 h-8 text-cyan-500 animate-spin mb-2" />
+                          <p className="text-xs font-mono text-cyan-500">Uploading to Supabase Storage...</p>
+                        </div>
+                      ) : (
+                        <>
+                          <Upload className={`w-7 h-7 mb-2 ${isDragging ? 'text-cyan-400' : 'text-slate-400'}`} />
+                          <p className={`text-xs font-semibold ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>
+                            Drag and drop your future goals photo here, or <span className="text-cyan-500 font-bold">browse device</span>
+                          </p>
+                          <p className="text-[10px] text-slate-400 mt-1.5">
+                            High resolution local image files will be saved in your secure Life OS.
+                          </p>
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -1557,7 +1761,12 @@ export default function VisualizationView({
                       onClick={() => triggerUploadClick(card.id)}
                       className="p-3 bg-cyan-500/90 hover:bg-cyan-400 hover:scale-105 text-slate-950 rounded-2xl font-bold text-xs font-mono flex items-center gap-2 shadow-lg transition-all cursor-pointer"
                     >
-                      <Upload className="w-4 h-4" /> {uploadingCardId === card.id ? "Uploading..." : "Replace Goal Photo"}
+                      {uploadingCardId === card.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Upload className="w-4 h-4" />
+                      )}
+                      {uploadingCardId === card.id ? "Uploading..." : "Replace Goal Photo"}
                     </button>
                   </div>
                 )}
@@ -1631,10 +1840,19 @@ export default function VisualizationView({
                               : 'border-slate-300 hover:border-cyan-500 bg-slate-50/50'
                           }`}
                         >
-                          <Upload className="w-5 h-5 text-slate-400 mb-1" />
-                          <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">
-                            Drag & drop files, or <span className="text-cyan-500">browse files</span>
-                          </span>
+                          {uploadingCardId === card.id ? (
+                            <div className="flex flex-col items-center justify-center p-2">
+                              <Loader2 className="w-5 h-5 text-cyan-500 animate-spin mb-1" />
+                              <span className="text-[10px] font-mono text-cyan-500">Uploading to Supabase Storage...</span>
+                            </div>
+                          ) : (
+                            <>
+                              <Upload className="w-5 h-5 text-slate-400 mb-1" />
+                              <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">
+                                Drag & drop files, or <span className="text-cyan-500">browse files</span>
+                              </span>
+                            </>
+                          )}
                         </div>
 
                         {/* Thumbnail Row */}
