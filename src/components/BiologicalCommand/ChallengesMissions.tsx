@@ -1,14 +1,22 @@
 import React, { useState } from 'react';
-import { Target, Edit2, Award, Flame, Star, Plus, X } from 'lucide-react';
+import { Target, Edit2, Award, Flame, Star, Plus, X, Minus, Zap, Activity, Trophy, Heart } from 'lucide-react';
 import { Challenge, GamificationState } from './Types';
 
 interface Props {
   challenges: Challenge[];
-  setChallenges: React.Dispatch<React.SetStateAction<Challenge[]>>;
+  setChallenges: (challenges: Challenge[]) => void;
   gamification: GamificationState;
-  setGamification: React.Dispatch<React.SetStateAction<GamificationState>>;
+  setGamification?: React.Dispatch<React.SetStateAction<GamificationState>>;
   isDarkMode: boolean;
 }
+
+const IconMap: Record<string, React.ComponentType<any>> = {
+  zap: Zap,
+  activity: Activity,
+  target: Target,
+  trophy: Trophy,
+  heart: Heart,
+};
 
 export default function ChallengesMissions({ challenges, setChallenges, gamification, isDarkMode }: Props) {
   const [isEditing, setIsEditing] = useState(false);
@@ -160,9 +168,9 @@ export default function ChallengesMissions({ challenges, setChallenges, gamifica
         <div>
           <h2 className={`text-2xl font-bold font-sans tracking-tight flex items-center gap-2 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>
             <Target className="w-6 h-6 text-rose-400" />
-            Challenges & Missions
+            Daily Missions & Performance Goals
           </h2>
-          <p className={`text-sm mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Gamified performance goals and streaks.</p>
+          <p className={`text-sm mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Gamified performance goals and streaks tracked daily.</p>
         </div>
         <button 
           onClick={startEditing}
@@ -199,19 +207,35 @@ export default function ChallengesMissions({ challenges, setChallenges, gamifica
         {challenges.map(challenge => {
           const progress = Math.min((challenge.currentValue / challenge.targetValue) * 100, 100);
           const isCompleted = progress >= 100;
+          const IconComponent = IconMap[challenge.icon] || Target;
+
+          // Compute smart step size based on target value magnitude
+          const getStepSize = () => {
+            if (challenge.targetValue > 5000) return 1000;
+            if (challenge.targetValue > 1000) return 250;
+            if (challenge.targetValue > 100) return 10;
+            if (challenge.targetValue > 10) return 5;
+            return 1;
+          };
+          const stepSize = getStepSize();
 
           return (
             <div key={challenge.id} className={`glass-panel p-5 rounded-2xl relative overflow-hidden group ${isDarkMode ? 'border-white/5 bg-slate-900/60' : 'border-slate-200 bg-white/60 shadow-sm'}`}>
               <div 
-                className="absolute left-0 top-0 bottom-0 w-1 opacity-20"
+                className="absolute left-0 top-0 bottom-0 w-1 opacity-25"
                 style={{ backgroundColor: challenge.color }}
               />
               <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h4 className={`font-bold ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>{challenge.name}</h4>
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500 mt-1 block">
-                    {challenge.goalType} Mission
-                  </span>
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-xl bg-slate-950/40 border border-slate-800" style={{ color: challenge.color }}>
+                    <IconComponent className="w-4 h-4 animate-pulse" />
+                  </div>
+                  <div>
+                    <h4 className={`font-bold ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>{challenge.name}</h4>
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500 mt-0.5 block">
+                      {challenge.goalType} Mission
+                    </span>
+                  </div>
                 </div>
                 {isCompleted && (
                   <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center">
@@ -220,14 +244,55 @@ export default function ChallengesMissions({ challenges, setChallenges, gamifica
                 )}
               </div>
 
-              <div className={`h-2 w-full rounded-full overflow-hidden mb-2 ${isDarkMode ? 'bg-slate-800' : 'bg-slate-200'}`}>
+              <div className={`h-2 w-full rounded-full overflow-hidden mb-3 ${isDarkMode ? 'bg-slate-800' : 'bg-slate-200'}`}>
                 <div 
                   className="h-full rounded-full transition-all duration-500"
                   style={{ width: `${progress}%`, backgroundColor: challenge.color }}
                 />
               </div>
               <div className="flex justify-between items-center text-xs font-mono">
-                <span className={isDarkMode ? 'text-slate-400' : 'text-slate-500'}>{challenge.currentValue} / {challenge.targetValue}</span>
+                <div className="flex items-center gap-2">
+                  <span className={isDarkMode ? 'text-slate-400' : 'text-slate-500'}>
+                    {challenge.currentValue} / {challenge.targetValue}
+                  </span>
+                  
+                  {/* Smart Daily Progress Quick Action Adjusters */}
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => {
+                        const updated = challenges.map(c => 
+                          c.id === challenge.id 
+                            ? { ...c, currentValue: Math.max(0, c.currentValue - stepSize) }
+                            : c
+                        );
+                        setChallenges(updated);
+                      }}
+                      className={`p-1 rounded-md transition-colors ${
+                        isDarkMode ? 'bg-slate-800 hover:bg-slate-700 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+                      }`}
+                      title={`Decrease by ${stepSize}`}
+                    >
+                      <Minus className="w-3 h-3" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        const updated = challenges.map(c => 
+                          c.id === challenge.id 
+                            ? { ...c, currentValue: Math.min(c.targetValue, c.currentValue + stepSize) }
+                            : c
+                        );
+                        setChallenges(updated);
+                      }}
+                      className={`p-1 rounded-md transition-colors ${
+                        isDarkMode ? 'bg-slate-800 hover:bg-slate-700 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+                      }`}
+                      title={`Increase by ${stepSize}`}
+                    >
+                      <Plus className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+
                 <span style={{ color: challenge.color }} className="font-bold">{Math.round(progress)}%</span>
               </div>
             </div>

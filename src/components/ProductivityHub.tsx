@@ -28,7 +28,9 @@ import {
   Settings,
   TrendingUp,
   Award,
-  Repeat
+  Repeat,
+  Zap,
+  Timer
 } from 'lucide-react';
 import { Task, Habit, Goal } from '../types';
 import FocusExecutiveTimer from './FocusExecutiveTimer';
@@ -1631,11 +1633,11 @@ export default function ProductivityHub({
           onClick={() => setActiveSubTab('power')}
           className={`px-4 py-3 text-[11px] font-mono font-bold tracking-wider flex items-center gap-2 border-b-2 whitespace-nowrap transition-all cursor-pointer ${
             activeSubTab === 'power' 
-              ? 'border-red-500 text-red-600 dark:text-red-400' 
-              : 'border-transparent text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-800 dark:text-slate-200'
+              ? 'border-amber-500 text-amber-600 dark:text-amber-400' 
+              : 'border-transparent text-slate-500 dark:text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
           }`}
         >
-          <Target className="w-3.5 h-3.5 text-red-500 dark:text-red-400" /> 🎯 POWER SYSTEM
+          <Zap className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 animate-pulse" /> POWER PROTOCOLS
         </button>
 
         <button 
@@ -1643,10 +1645,10 @@ export default function ProductivityHub({
           className={`px-4 py-3 text-[11px] font-mono font-bold tracking-wider flex items-center gap-2 border-b-2 whitespace-nowrap transition-all cursor-pointer ${
             activeSubTab === 'ai_assistant' 
               ? 'border-purple-500 text-purple-600 dark:text-purple-400' 
-              : 'border-transparent text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-800 dark:text-slate-200'
+              : 'border-transparent text-slate-500 dark:text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
           }`}
         >
-          <BrainCircuit className="w-3.5 h-3.5 text-purple-500 dark:text-purple-400 animate-pulse" /> 🔮 AI ASSISTANT
+          <BrainCircuit className="w-3.5 h-3.5 text-purple-500 dark:text-purple-400 animate-pulse" /> AI STRATEGIST
         </button>
 
         <button 
@@ -1654,10 +1656,10 @@ export default function ProductivityHub({
           className={`px-4 py-3 text-[11px] font-mono font-bold tracking-wider flex items-center gap-2 border-b-2 whitespace-nowrap transition-all cursor-pointer ${
             activeSubTab === 'focus' 
               ? 'border-cyan-500 text-cyan-600 dark:text-cyan-400' 
-              : 'border-transparent text-slate-500 dark:text-slate-500 dark:text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-800 dark:text-slate-200'
+              : 'border-transparent text-slate-500 dark:text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
           }`}
         >
-          <Clock className="w-3.5 h-3.5 text-cyan-500 dark:text-cyan-400" /> ⏱️ FOCUS WORK TIMER
+          <Timer className="w-3.5 h-3.5 text-cyan-500 dark:text-cyan-400" /> DEEP WORK TIMER
         </button>
       </div>
 

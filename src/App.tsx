@@ -53,7 +53,7 @@ import {
   syncPendingData
 } from './lib/supabaseSync';
 import { User } from '@supabase/supabase-js';
-import { Cloud, CloudLightning, LogOut } from 'lucide-react';
+import { Cloud, CloudOff, CloudLightning, Loader2, LogOut } from 'lucide-react';
 import LoginView from './components/LoginView';
 
 export default function App() {
@@ -65,6 +65,30 @@ export default function App() {
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
   const [isSyncDelayed, setIsSyncDelayed] = useState<boolean>(false);
+  const [syncStatus, setSyncStatus] = useState<'saved' | 'saving' | 'failed'>('saved');
+
+  useEffect(() => {
+    const handleSyncStatus = (e: Event) => {
+      const status = (e as CustomEvent).detail;
+      setSyncStatus(status);
+    };
+    const handleOnline = () => {
+      setSyncStatus('saved');
+    };
+    const handleOffline = () => {
+      setSyncStatus('failed');
+    };
+
+    window.addEventListener('supabase-sync-status', handleSyncStatus);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('supabase-sync-status', handleSyncStatus);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
   
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem('lifeos_dark_mode');
@@ -354,7 +378,12 @@ export default function App() {
               'earthCountdownTitle',
               'earthCountdownImage',
               'earthCountdownQuote',
-              'businessIdeas'
+              'businessIdeas',
+              'vitalsWorkoutTemplates',
+              'vitalsWorkoutHistory',
+              'vitalsRecoveryHistory',
+              'vitalsChallenges',
+              'vitalsGamification'
             ];
             const localStorageKeysMap: Record<string, string> = {
               powerSystem: 'lifeos_power_system',
@@ -366,7 +395,12 @@ export default function App() {
               earthCountdownTitle: 'lifeos_earth_title',
               earthCountdownImage: 'lifeos_earth_image',
               earthCountdownQuote: 'lifeos_earth_quote',
-              businessIdeas: 'lifeos_business_ideas'
+              businessIdeas: 'lifeos_business_ideas',
+              vitalsWorkoutTemplates: 'lifeos_vitals_workout_templates',
+              vitalsWorkoutHistory: 'lifeos_vitals_workout_history',
+              vitalsRecoveryHistory: 'lifeos_vitals_recovery_history',
+              vitalsChallenges: 'lifeos_vitals_challenges',
+              vitalsGamification: 'lifeos_vitals_gamification'
             };
             
             extraKeys.forEach((key) => {
@@ -508,6 +542,46 @@ export default function App() {
               }
               case 'businessIdeas': {
                 const lsKey = 'lifeos_business_ideas';
+                if (localStorage.getItem(lsKey) !== stringified) {
+                  localStorage.setItem(lsKey, stringified);
+                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                }
+                break;
+              }
+              case 'vitalsWorkoutTemplates': {
+                const lsKey = 'lifeos_vitals_workout_templates';
+                if (localStorage.getItem(lsKey) !== stringified) {
+                  localStorage.setItem(lsKey, stringified);
+                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                }
+                break;
+              }
+              case 'vitalsWorkoutHistory': {
+                const lsKey = 'lifeos_vitals_workout_history';
+                if (localStorage.getItem(lsKey) !== stringified) {
+                  localStorage.setItem(lsKey, stringified);
+                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                }
+                break;
+              }
+              case 'vitalsRecoveryHistory': {
+                const lsKey = 'lifeos_vitals_recovery_history';
+                if (localStorage.getItem(lsKey) !== stringified) {
+                  localStorage.setItem(lsKey, stringified);
+                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                }
+                break;
+              }
+              case 'vitalsChallenges': {
+                const lsKey = 'lifeos_vitals_challenges';
+                if (localStorage.getItem(lsKey) !== stringified) {
+                  localStorage.setItem(lsKey, stringified);
+                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                }
+                break;
+              }
+              case 'vitalsGamification': {
+                const lsKey = 'lifeos_vitals_gamification';
                 if (localStorage.getItem(lsKey) !== stringified) {
                   localStorage.setItem(lsKey, stringified);
                   window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
@@ -981,23 +1055,21 @@ export default function App() {
   };
 
   const handleClearData = () => {
-    if (confirm("Are you sure you want to restore the environment to its default state? All stored logs will be wiped out.")) {
-      localStorage.clear();
-      setProfile(DEFAULT_PROFILE);
-      setGoals(DEFAULT_GOALS);
-      setMilestones(DEFAULT_MILESTONES);
-      setTasks(DEFAULT_TASKS);
-      setHabits(DEFAULT_HABITS);
-      setJournalEntries(DEFAULT_JOURNAL);
-      setFinanceRecords(DEFAULT_FINANCE);
-      setHealthLogs(DEFAULT_HEALTH);
-      setLifeWheel(DEFAULT_LIFE_WHEEL);
-      setVisionCards(DEFAULT_VISION_CARDS);
-      setPhilosophicalEntries([]);
-      setBookWisdomEntries([]);
-      setIntuitionEntries([]);
-      alert('Local storage ledger restored to default values successfully.');
-    }
+    localStorage.clear();
+    setProfile(DEFAULT_PROFILE);
+    setGoals(DEFAULT_GOALS);
+    setMilestones(DEFAULT_MILESTONES);
+    setTasks(DEFAULT_TASKS);
+    setHabits(DEFAULT_HABITS);
+    setJournalEntries(DEFAULT_JOURNAL);
+    setFinanceRecords(DEFAULT_FINANCE);
+    setHealthLogs(DEFAULT_HEALTH);
+    setLifeWheel(DEFAULT_LIFE_WHEEL);
+    setVisionCards(DEFAULT_VISION_CARDS);
+    setPhilosophicalEntries([]);
+    setBookWisdomEntries([]);
+    setIntuitionEntries([]);
+    alert('Local storage ledger restored to default values successfully.');
   };
 
   // --- NAVIGATION TAB ITEMS CONFIG ---
@@ -1008,7 +1080,7 @@ export default function App() {
     { id: 'vision', label: 'VISION BOARD' },
     { id: 'goals', label: 'GOALS & PLANS' },
     { id: 'productivity', label: 'PRODUCTIVITY' },
-    { id: 'vitals', label: 'BIOLOGICAL COMMAND' },
+    { id: 'vitals', label: 'APEX BIO-COMMAND' },
     { id: 'logs', label: 'GROWTH LEDGER' },
     { id: 'settings', label: 'SETTINGS' }
   ];
@@ -1021,8 +1093,8 @@ export default function App() {
         if (Array.isArray(parsed) && parsed.length > 0) {
           // Keep vitals, let user manage layout
           const filtered = parsed.filter(item => item.id !== 'calendar');
-          // Update 'vitals' item labels to 'BIOLOGICAL COMMAND' if using an older label
-          const mapped = filtered.map(item => item.id === 'vitals' ? { id: 'vitals', label: 'BIOLOGICAL COMMAND' } : item);
+          // Update 'vitals' item labels to 'APEX BIO-COMMAND' if using an older label
+          const mapped = filtered.map(item => item.id === 'vitals' ? { id: 'vitals', label: 'APEX BIO-COMMAND' } : item);
           const idsInParsed = mapped.map(item => item.id);
           const missingItems = DEFAULT_NAV_ITEMS.filter(item => !idsInParsed.includes(item.id));
           return [...mapped, ...missingItems];
@@ -1151,7 +1223,7 @@ export default function App() {
         );
       case 'vitals':
         return (
-          <BiologicalCommand isDarkMode={isDarkMode} />
+          <BiologicalCommand isDarkMode={isDarkMode} userId={user?.id} />
         );
       case 'calendar':
         return (
@@ -1176,6 +1248,7 @@ export default function App() {
             onClearData={handleClearData}
             navItems={navItems}
             onUpdateNavItems={setNavItems}
+            isDarkMode={isDarkMode}
           />
         );
       default:
@@ -1295,7 +1368,7 @@ export default function App() {
                         if (str === 'UNSTOPPABLE ME') return 'Unstoppable Me';
                         if (str === 'VISION BOARD') return 'Vision Board';
                         if (str === 'GOALS & PLANS') return 'Goals & Plans';
-                        if (str === 'BIOLOGICAL COMMAND') return 'Biological Command';
+                        if (str === 'BIOLOGICAL COMMAND' || str === 'APEX BIO-COMMAND') return 'Apex Bio-Command';
                         if (str === 'GROWTH LEDGER') return 'Growth Ledger';
                         return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
                       };
@@ -1428,7 +1501,26 @@ export default function App() {
                   onClick={async () => {
                     await signOutUser();
                     setGuestBypass(false);
-                    localStorage.removeItem('lifeos_guest_bypass');
+                    
+                    // Reset all local state variables to original defaults
+                    setProfile(DEFAULT_PROFILE);
+                    setVisionCards(DEFAULT_VISION_CARDS);
+                    setGoals(DEFAULT_GOALS);
+                    setMilestones(DEFAULT_MILESTONES);
+                    setTasks(DEFAULT_TASKS);
+                    setHabits(DEFAULT_HABITS);
+                    setJournalEntries(DEFAULT_JOURNAL);
+                    setFinanceRecords(DEFAULT_FINANCE);
+                    setHealthLogs(DEFAULT_HEALTH);
+                    setLifeWheel(DEFAULT_LIFE_WHEEL);
+                    setPhilosophicalEntries([]);
+                    setBookWisdomEntries([]);
+                    setIntuitionEntries([]);
+
+                    // Clear all localStorage keys while keeping dark mode state
+                    const isDark = localStorage.getItem('lifeos_dark_mode');
+                    localStorage.clear();
+                    if (isDark) localStorage.setItem('lifeos_dark_mode', isDark);
                   }}
                   className={`p-2 rounded-xl transition-all ${
                     isDarkMode 
@@ -1592,6 +1684,65 @@ export default function App() {
 
       {/* --- MAIN CORE WORKING CONTAINER --- */}
       <main className="flex-1 overflow-y-auto z-10 p-4 md:p-6 lg:p-8 pt-20 lg:pt-8 relative flex flex-col justify-between" id="lifeos-primary-work-container">
+        
+        {/* --- GLOBAL APPLICATION TOP HEADER (Sync & SSO Status) --- */}
+        <header className="w-full max-w-7xl mx-auto mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200/60 dark:border-slate-900/60 pb-5" id="main-application-top-header">
+          {/* Left side: Branding / Active Spec Tab */}
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex w-9 h-9 rounded-xl bg-cyan-500/10 items-center justify-center text-cyan-500 dark:text-cyan-400">
+              <Compass className="w-5 h-5 animate-spin-slow" />
+            </div>
+            <div>
+              <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500 block font-bold">WORKSPACE NODE</span>
+              <h1 className={`text-base font-bold font-sans tracking-tight uppercase ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
+                {activeTab === 'newme' ? 'Identity Rulebook' : activeTab === 'vitals' ? 'Vitals & Wealth' : activeTab === 'dashboard' ? 'Executive Dashboard' : activeTab.toUpperCase()}
+              </h1>
+            </div>
+          </div>
+
+          {/* Right side: Real-time Cloud Sync & SSO Verification */}
+          <div className="flex flex-wrap items-center gap-3 bg-slate-100/70 dark:bg-slate-950/40 border border-slate-200 dark:border-white/5 py-2 px-3.5 rounded-2xl w-full sm:w-auto">
+            {/* Sync Status Badge */}
+            <div className="flex items-center gap-2">
+              {syncStatus === 'saving' && (
+                <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 text-xs font-mono font-bold">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-500" />
+                  <span>Saving...</span>
+                </div>
+              )}
+              {syncStatus === 'saved' && (
+                <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-xs font-mono font-bold">
+                  <Cloud className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
+                  <span>All changes saved</span>
+                </div>
+              )}
+              {syncStatus === 'failed' && (
+                <div className="flex items-center gap-1.5 text-rose-500 text-xs font-mono font-bold">
+                  <CloudOff className="w-3.5 h-3.5 text-rose-500" />
+                  <span>Offline / Sync Failed</span>
+                </div>
+              )}
+            </div>
+
+            {/* Micro Separator */}
+            <div className="hidden xs:block w-[1px] h-3 bg-slate-300 dark:bg-slate-800" />
+
+            {/* Operator Email */}
+            <div className="text-[10px] font-mono text-slate-500 flex items-center gap-1.5">
+              {user ? (
+                <>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="truncate max-w-[180px]">Synced: <strong className="text-slate-600 dark:text-slate-300 font-bold">{user.email}</strong></span>
+                </>
+              ) : (
+                <>
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                  <span>Guest (Unsynced Mode)</span>
+                </>
+              )}
+            </div>
+          </div>
+        </header>
         
         {/* Render Active view */}
         <div className="flex-1 w-full max-w-7xl mx-auto pb-8">

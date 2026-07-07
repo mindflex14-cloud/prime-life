@@ -576,7 +576,7 @@ export default function NewMeView({
   };
 
   const handleSaveSection = (id: string) => {
-    setSections(prev => prev.map(s => 
+    const updated = sections.map(s => 
       s.id === id ? { 
         ...s, 
         title: editTitle, 
@@ -584,9 +584,13 @@ export default function NewMeView({
         createdDate: editCreatedDate,
         targetReviewDate: editReviewDate
       } : s
-    ));
+    );
+    setSections(updated);
     setIsEditingSectionId(null);
     triggerSaveIndicator();
+    if (userId) {
+      saveUserDataToCloud(userId, 'newMeSections', updated, true);
+    }
   };
 
   const handleDeleteSection = (id: string, e: React.MouseEvent) => {
@@ -632,8 +636,9 @@ export default function NewMeView({
       return;
     }
 
+    let updated: HabitIntervention[];
     if (editingHabitId) {
-      setHabitInterventions(prev => prev.map(h => 
+      updated = habitInterventions.map(h => 
         h.id === editingHabitId 
           ? { 
               ...h, 
@@ -647,7 +652,7 @@ export default function NewMeView({
               lastRelapseDate: habitLastRelapseDate || undefined
             }
           : h
-      ));
+      );
     } else {
       const newHabit: HabitIntervention = {
         id: `hi-${Date.now()}`,
@@ -660,25 +665,37 @@ export default function NewMeView({
         startDate: habitStartDate || new Date().toISOString().split('T')[0],
         lastRelapseDate: habitLastRelapseDate || undefined
       };
-      setHabitInterventions(prev => [newHabit, ...prev]);
+      updated = [newHabit, ...habitInterventions];
     }
 
+    setHabitInterventions(updated);
     setShowHabitModal(false);
     triggerSaveIndicator();
+    if (userId) {
+      saveUserDataToCloud(userId, 'newMeInterventions', updated, true);
+    }
   };
 
   const handleIncrementStreak = (id: string) => {
-    setHabitInterventions(prev => prev.map(h => 
+    const updated = habitInterventions.map(h => 
       h.id === id ? { ...h, cleanStreakDays: h.cleanStreakDays + 1 } : h
-    ));
+    );
+    setHabitInterventions(updated);
     triggerSaveIndicator();
+    if (userId) {
+      saveUserDataToCloud(userId, 'newMeInterventions', updated, true);
+    }
   };
 
   const handleResetStreak = (id: string) => {
-    setHabitInterventions(prev => prev.map(h => 
+    const updated = habitInterventions.map(h => 
       h.id === id ? { ...h, cleanStreakDays: 0 } : h
-    ));
+    );
+    setHabitInterventions(updated);
     triggerSaveIndicator();
+    if (userId) {
+      saveUserDataToCloud(userId, 'newMeInterventions', updated, true);
+    }
   };
 
   return (
@@ -985,8 +1002,12 @@ export default function NewMeView({
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setSections(prev => prev.map(s => s.id === sec.id ? { ...s, readToday: !s.readToday } : s));
+                                const updated = sections.map(s => s.id === sec.id ? { ...s, readToday: !s.readToday } : s);
+                                setSections(updated);
                                 triggerSaveIndicator();
+                                if (userId) {
+                                  saveUserDataToCloud(userId, 'newMeSections', updated, true);
+                                }
                               }}
                               className="focus:outline-none shrink-0 cursor-pointer"
                               title={sec.readToday ? "Mark unread today" : "Mark read & anchored today"}
@@ -1525,12 +1546,16 @@ export default function NewMeView({
                     createdDate: new Date().toISOString().split('T')[0],
                     targetReviewDate: newReviewDate || undefined
                   };
-                  setSections(prev => [newSec, ...prev]); // Insert at top
+                  const updated = [newSec, ...sections];
+                  setSections(updated); // Insert at top
                   setShowAddModal(false);
                   setNewTitle('');
                   setNewContent('');
                   setNewReviewDate('');
                   triggerSaveIndicator();
+                  if (userId) {
+                    saveUserDataToCloud(userId, 'newMeSections', updated, true);
+                  }
                 }}
                 className="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold font-mono text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10 cursor-pointer"
               >
@@ -1579,9 +1604,13 @@ export default function NewMeView({
                 <button
                   type="button"
                   onClick={() => {
-                    setSections(prev => prev.filter(s => s.id !== deleteTargetId));
+                    const updated = sections.filter(s => s.id !== deleteTargetId);
+                    setSections(updated);
                     setDeleteTargetId(null);
                     triggerSaveIndicator();
+                    if (userId) {
+                      saveUserDataToCloud(userId, 'newMeSections', updated, true);
+                    }
                   }}
                   className="py-3 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-2xl text-xs font-mono transition-all cursor-pointer"
                 >
@@ -1841,9 +1870,13 @@ export default function NewMeView({
                 <button
                   type="button"
                   onClick={() => {
-                    setHabitInterventions(prev => prev.filter(h => h.id !== deleteHabitId));
+                    const updated = habitInterventions.filter(h => h.id !== deleteHabitId);
+                    setHabitInterventions(updated);
                     setDeleteHabitId(null);
                     triggerSaveIndicator();
+                    if (userId) {
+                      saveUserDataToCloud(userId, 'newMeInterventions', updated, true);
+                    }
                   }}
                   className="py-3 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-2xl text-xs font-mono transition-all cursor-pointer"
                 >

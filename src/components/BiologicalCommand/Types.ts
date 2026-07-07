@@ -15,12 +15,20 @@ export interface WorkoutTemplate {
   schedule: string[]; // e.g., ["Monday", "Wednesday"]
   warmup: string;
   cooldown: string;
+  exercises?: Exercise[]; // legacy backup
+  sections: MuscleGroupSection[];
+}
+
+export interface MuscleGroupSection {
+  id: string;
+  name: string; // e.g., "Upper Body", "Lower Body", "Arms", "Core", "Cardio"
   exercises: Exercise[];
 }
 
 export interface DailyWorkout {
   date: string;
   templateId: string;
+  sections: MuscleGroupSection[]; // Custom copy for this specific day to allow changes to carry forward/stay isolated
   completedSets: Record<string, number>; // exerciseId -> completed sets
   isCompleted: boolean;
 }

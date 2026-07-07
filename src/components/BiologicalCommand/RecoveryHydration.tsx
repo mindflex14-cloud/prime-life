@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Droplets, Edit2, Moon, Plus, X, Zap, Check } from 'lucide-react';
+import { Droplets, Edit2, Moon, Plus, Minus, X, Zap, Check } from 'lucide-react';
 import { RecoveryHydrationState, RecoveryActivity } from './Types';
 
 interface Props {
@@ -223,7 +223,7 @@ export default function RecoveryHydration({ state, setState, isDarkMode }: Props
         {/* Sleep */}
         <div className={`glass-panel p-5 rounded-2xl relative overflow-hidden group ${isDarkMode ? 'border-white/5 bg-slate-900/60' : 'border-slate-200 bg-white/60 shadow-sm'}`}>
           <div className="absolute inset-0 bg-indigo-500/5 transition-opacity opacity-0 group-hover:opacity-100" />
-          <div className="flex items-center justify-between mb-4 relative z-10">
+          <div className="flex items-center justify-between mb-4 relative z-10" id="sleep-card-header">
             <div className="flex items-center gap-2">
               <Moon className="w-5 h-5 text-indigo-400" />
               <h3 className={`font-bold ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>Sleep Target</h3>
@@ -231,14 +231,65 @@ export default function RecoveryHydration({ state, setState, isDarkMode }: Props
             <span className="text-xs font-mono font-bold text-indigo-400">{state.sleepDuration} / {state.sleepTarget} hrs</span>
           </div>
           
-          <div className="flex justify-between items-center text-sm relative z-10">
+          <div className={`h-3 w-full rounded-full overflow-hidden relative z-10 mb-4 ${isDarkMode ? 'bg-slate-800' : 'bg-slate-200'}`}>
+            <div 
+              className="h-full bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-full transition-all duration-500"
+              style={{ width: `${Math.min((state.sleepDuration / Math.max(state.sleepTarget, 1)) * 100, 100)}%` }}
+            />
+          </div>
+
+          <div className="flex justify-between items-center text-sm relative z-10 mb-4 border-b pb-3 border-slate-800/40">
             <div className={isDarkMode ? 'text-slate-400' : 'text-slate-500'}>
-              <span className="block text-xs uppercase tracking-wider mb-0.5">Bedtime</span>
+              <span className="block text-[10px] uppercase tracking-wider mb-0.5 font-mono text-slate-500">Bedtime</span>
               <span className={`font-mono font-bold ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>{state.bedtimeGoal}</span>
             </div>
             <div className={`text-right ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-              <span className="block text-xs uppercase tracking-wider mb-0.5">Wake up</span>
+              <span className="block text-[10px] uppercase tracking-wider mb-0.5 font-mono text-slate-500">Wake up</span>
               <span className={`font-mono font-bold ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>{state.wakeupGoal}</span>
+            </div>
+          </div>
+
+          {/* Daily Sleep Hours Log Controls */}
+          <div className="flex items-center justify-between gap-2 mt-4 relative z-10">
+            <span className="text-xs font-semibold text-indigo-400 uppercase tracking-widest flex items-center gap-1">
+              <Moon className="w-3.5 h-3.5 animate-pulse" /> Slept Hours Today
+            </span>
+            <div className="flex items-center gap-1.5">
+              <button 
+                onClick={() => {
+                  setState(prev => ({ 
+                    ...prev, 
+                    sleepDuration: Math.max(0, parseFloat((prev.sleepDuration - 0.5).toFixed(1))) 
+                  }));
+                }}
+                className={`p-1.5 rounded-lg transition-colors border ${
+                  isDarkMode 
+                    ? 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-white/5' 
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
+                }`}
+                title="Decrease 0.5 hours"
+              >
+                <Minus className="w-3.5 h-3.5" />
+              </button>
+              <span className={`text-sm font-mono font-bold px-2 w-16 text-center ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>
+                {state.sleepDuration}h
+              </span>
+              <button 
+                onClick={() => {
+                  setState(prev => ({ 
+                    ...prev, 
+                    sleepDuration: Math.min(24, parseFloat((prev.sleepDuration + 0.5).toFixed(1))) 
+                  }));
+                }}
+                className={`p-1.5 rounded-lg transition-colors border ${
+                  isDarkMode 
+                    ? 'bg-slate-900 hover:bg-slate-800 text-slate-300 border-white/5' 
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
+                }`}
+                title="Increase 0.5 hours"
+              >
+                <Plus className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
         </div>

@@ -85,7 +85,12 @@ const keyToLocalStorageMap: Record<string, string> = {
   earthCountdownImage: 'lifeos_earth_image',
   earthCountdownQuote: 'lifeos_earth_quote',
   darkMode: 'lifeos_dark_mode',
-  navItems: 'lifeos_nav_items_v3'
+  navItems: 'lifeos_nav_items_v3',
+  vitalsWorkoutTemplates: 'lifeos_vitals_workout_templates',
+  vitalsWorkoutHistory: 'lifeos_vitals_workout_history',
+  vitalsRecoveryHistory: 'lifeos_vitals_recovery_history',
+  vitalsChallenges: 'lifeos_vitals_challenges',
+  vitalsGamification: 'lifeos_vitals_gamification'
 };
 
 const debounceTimeouts: Record<string, any> = {};
@@ -115,6 +120,9 @@ export async function saveUserDataToCloud(userId: string, key: string, data: any
   }
 
   const performSave = async () => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('supabase-sync-status', { detail: 'saving' }));
+    }
     try {
       // Attempt upsert to Supabase
       const { error } = await supabase
@@ -137,9 +145,15 @@ export async function saveUserDataToCloud(userId: string, key: string, data: any
       
       // Broadcast local storage update event for any listening tabs
       window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: localStorageKey, value: data } }));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('supabase-sync-status', { detail: 'saved' }));
+      }
     } catch (error) {
       console.warn(`[SupabaseSync] Offline/failed saving ${key} to Supabase. Storing in queue.`, error);
       addToPendingQueue(key);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('supabase-sync-status', { detail: 'failed' }));
+      }
     } finally {
       delete debounceTimeouts[key];
     }

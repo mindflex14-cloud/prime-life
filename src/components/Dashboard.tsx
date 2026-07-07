@@ -57,8 +57,71 @@ export default function Dashboard({
   onNavigate,
   onStartTimer
 }: DashboardProps) {
-  const todayStr = new Date().toISOString().split('T')[0];
-  const todayHealth = healthLogs[todayStr] || { steps: 0, waterIntake: 0, sleepHours: 0, energyLevel: 0 };
+  const todayStr = useMemo(() => {
+    const todayLocal = new Date();
+    const year = todayLocal.getFullYear();
+    const month = String(todayLocal.getMonth() + 1).padStart(2, '0');
+    const day = String(todayLocal.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }, []);
+
+  const todayHealth = useMemo(() => {
+    const health = healthLogs[todayStr] || { steps: 0, waterIntake: 0, sleepHours: 0, energyLevel: 0 };
+    
+    // Read from vitals recovery history as source of truth
+    const raw = localStorage.getItem('lifeos_vitals_recovery_history');
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        const record = parsed[todayStr];
+        if (record) {
+          return {
+            ...health,
+            waterIntake: record.waterIntake ?? health.waterIntake,
+            sleepHours: record.sleepDuration ?? health.sleepHours,
+          };
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return health;
+  }, [healthLogs, todayStr]);
+
+  const recoveryHistoryData = useMemo(() => {
+    const raw = localStorage.getItem('lifeos_vitals_recovery_history');
+    let parsed: Record<string, any> = {};
+    if (raw) {
+      try {
+        parsed = JSON.parse(raw);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // Generate last 7 days
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (6 - i));
+      const dateStr = d.toISOString().split('T')[0];
+      
+      const record = parsed[dateStr];
+      const sleepHours = record ? (record.sleepDuration ?? 0) : (healthLogs[dateStr]?.sleepHours ?? 0);
+      const waterIntake = record ? (record.waterIntake ?? 0) : (healthLogs[dateStr]?.waterIntake ?? 0);
+      const sleepTarget = record ? (record.sleepTarget ?? 8) : 8;
+      const waterGoal = record ? (record.dailyWaterGoal ?? 3000) : 3000;
+
+      return {
+        dateStr,
+        dayName: d.toLocaleDateString('en-US', { weekday: 'short' }),
+        dayNum: d.getDate(),
+        sleepHours,
+        sleepTarget,
+        waterIntake,
+        waterGoal,
+      };
+    });
+  }, [healthLogs]);
   
   const todayTasks = tasks.filter(t => t.date === todayStr);
   const completedTodayTasks = todayTasks.filter(t => t.status === 'completed').length;
@@ -338,7 +401,7 @@ export default function Dashboard({
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-sm font-display font-medium text-slate-800 dark:text-slate-200 flex items-center gap-2">
                 <Activity className="w-4 h-4 text-emerald-500" />
-                Biological Command
+                Apex Bio-Command
               </h3>
               <button onClick={() => onNavigate('vitals')} className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer text-slate-500">
                 <ChevronRight className="w-4 h-4" />
@@ -391,6 +454,122 @@ export default function Dashboard({
           </div>
         </div>
 
+      </div>
+
+      {/* BIOLOGICAL RESONANCE GRAPHICAL FLOW */}
+      <div className="glass-panel p-6 rounded-3xl bg-white dark:bg-[#0c0c10] border border-slate-200 dark:border-white/5 shadow-sm mt-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div>
+            <h3 className="text-sm font-display font-medium text-slate-800 dark:text-slate-200 flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-indigo-500" />
+              Biological Rhythm Tracking
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Dual sleep duration and hydration tracking over the last 7 days.</p>
+          </div>
+          
+          <div className="flex items-center gap-4 text-xs font-mono">
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-indigo-500" />
+              <span className="text-slate-600 dark:text-slate-300">Sleep (hrs)</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-blue-500" />
+              <span className="text-slate-600 dark:text-slate-300">Hydration (ml)</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* SLEEP TREND CHART */}
+          <div className="p-5 bg-slate-50/50 dark:bg-slate-900/30 rounded-2xl border border-slate-100 dark:border-white/5 flex flex-col h-[280px]">
+            <span className="text-xs font-mono uppercase text-indigo-500 dark:text-indigo-400 font-semibold mb-6 block">Sleep Duration Trend</span>
+            <div className="flex-1 flex items-end justify-between gap-2 relative px-2">
+              {/* Background horizontal target lines */}
+              <div className="absolute left-0 right-0 border-t border-dashed border-slate-200 dark:border-slate-800" style={{ bottom: '66.6%' }}>
+                <span className="absolute -top-3.5 right-0 text-[8px] font-mono text-slate-400 dark:text-slate-500">Sleep Goal (8h)</span>
+              </div>
+              
+              {recoveryHistoryData.map((day) => {
+                const maxVal = 12; // max sleep duration reference
+                const heightPercent = Math.min((day.sleepHours / maxVal) * 100, 100);
+                const isOverGoal = day.sleepHours >= day.sleepTarget;
+
+                return (
+                  <div key={day.dateStr} className="flex-1 flex flex-col items-center gap-2 group h-full justify-end relative z-10">
+                    {/* Tooltip on hover */}
+                    <div className="opacity-0 group-hover:opacity-100 absolute bottom-[90%] bg-slate-950 text-white text-[10px] font-mono py-1 px-2 rounded border border-slate-800 transition-opacity pointer-events-none whitespace-nowrap z-30">
+                      Sleep: {day.sleepHours}h / {day.sleepTarget}h
+                    </div>
+
+                    {/* Bar */}
+                    <div className="w-full relative h-[160px] flex items-end justify-center">
+                      <motion.div 
+                        initial={{ height: 0 }}
+                        animate={{ height: `${heightPercent}%` }}
+                        className={`w-3 sm:w-5 rounded-t-md transition-all duration-300 ${
+                          isOverGoal 
+                            ? 'bg-gradient-to-t from-indigo-600 to-indigo-400 shadow-[0_0_12px_rgba(99,102,241,0.25)]' 
+                            : 'bg-gradient-to-t from-slate-400 to-slate-300 dark:from-slate-700 dark:to-indigo-900'
+                        }`}
+                      />
+                    </div>
+                    
+                    {/* Date label */}
+                    <div className="text-center mt-1">
+                      <span className="text-[9px] font-mono text-slate-500 dark:text-slate-400 block">{day.dayName}</span>
+                      <span className="text-[10px] font-display font-bold text-slate-700 dark:text-slate-300">{day.dayNum}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* HYDRATION TREND CHART */}
+          <div className="p-5 bg-slate-50/50 dark:bg-slate-900/30 rounded-2xl border border-slate-100 dark:border-white/5 flex flex-col h-[280px]">
+            <span className="text-xs font-mono uppercase text-blue-500 dark:text-blue-400 font-semibold mb-6 block">Hydration Trend</span>
+            <div className="flex-1 flex items-end justify-between gap-2 relative px-2">
+              {/* Background horizontal target lines */}
+              <div className="absolute left-0 right-0 border-t border-dashed border-slate-200 dark:border-slate-800" style={{ bottom: '75%' }}>
+                <span className="absolute -top-3.5 right-0 text-[8px] font-mono text-slate-400 dark:text-slate-500 font-bold">Hydration Goal (3L)</span>
+              </div>
+              
+              {recoveryHistoryData.map((day) => {
+                const maxVal = 4000; // max hydration reference
+                const heightPercent = Math.min((day.waterIntake / maxVal) * 100, 100);
+                const isOverGoal = day.waterIntake >= day.waterGoal;
+
+                return (
+                  <div key={day.dateStr} className="flex-1 flex flex-col items-center gap-2 group h-full justify-end relative z-10">
+                    {/* Tooltip on hover */}
+                    <div className="opacity-0 group-hover:opacity-100 absolute bottom-[90%] bg-slate-950 text-white text-[10px] font-mono py-1 px-2 rounded border border-slate-800 transition-opacity pointer-events-none whitespace-nowrap z-30">
+                      Water: {day.waterIntake}ml / {day.waterGoal}ml
+                    </div>
+
+                    {/* Bar */}
+                    <div className="w-full relative h-[160px] flex items-end justify-center">
+                      <motion.div 
+                        initial={{ height: 0 }}
+                        animate={{ height: `${heightPercent}%` }}
+                        className={`w-3 sm:w-5 rounded-t-md transition-all duration-300 ${
+                          isOverGoal 
+                            ? 'bg-gradient-to-t from-blue-600 to-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.25)]' 
+                            : 'bg-gradient-to-t from-slate-400 to-slate-300 dark:from-slate-700 dark:to-blue-900'
+                        }`}
+                      />
+                    </div>
+                    
+                    {/* Date label */}
+                    <div className="text-center mt-1">
+                      <span className="text-[9px] font-mono text-slate-500 dark:text-slate-400 block">{day.dayName}</span>
+                      <span className="text-[10px] font-display font-bold text-slate-700 dark:text-slate-300">{day.dayNum}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* FULL WIDTH BOTTOM SECTION: CALENDAR & ACTIVITY TIMELINE */}
