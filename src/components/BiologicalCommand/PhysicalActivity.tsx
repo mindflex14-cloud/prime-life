@@ -22,6 +22,10 @@ export default function PhysicalActivity({ templates, setTemplates, dailyWorkout
 
   const todayWorkout = getTodayWorkout();
 
+    const completeWorkout = () => {
+    setDailyWorkout(prev => prev ? { ...prev, isCompleted: true } : prev);
+  };
+
   const handleSetComplete = (exerciseId: string) => {
     if (!dailyWorkout) return;
     const currentSets = dailyWorkout.completedSets[exerciseId] || 0;
@@ -335,9 +339,9 @@ export default function PhysicalActivity({ templates, setTemplates, dailyWorkout
             })}
           </div>
 
-          <button className={`w-full py-4 rounded-xl font-bold text-sm uppercase tracking-widest transition-colors flex items-center justify-center gap-2 ${isDarkMode ? 'bg-cyan-500 hover:bg-cyan-400 text-slate-950' : 'bg-cyan-500 hover:bg-cyan-600 text-white'}`}>
+          <button onClick={completeWorkout} disabled={dailyWorkout?.isCompleted} className={`w-full py-4 rounded-xl font-bold text-sm uppercase tracking-widest transition-colors flex items-center justify-center gap-2 ${isDarkMode ? 'bg-cyan-500 hover:bg-cyan-400 text-slate-950' : 'bg-cyan-500 hover:bg-cyan-600 text-white'}`}>
             <CheckCircle className="w-5 h-5" />
-            Complete Workout
+            {dailyWorkout?.isCompleted ? "Workout Completed" : "Complete Workout"}
           </button>
         </div>
       )}
