@@ -455,19 +455,17 @@ export default function VisualizationView({
   };
 
   const handleSaveEdit = (id: string) => {
-    const finalImageUrls = [...tempImageUrls];
-    if (tempImageUrl.trim() && !finalImageUrls.includes(tempImageUrl.trim())) {
-      finalImageUrls.unshift(tempImageUrl.trim());
-    }
-    const finalThumbnailUrls = [...tempThumbnailUrls];
-    if (tempThumbnailUrl.trim() && !finalThumbnailUrls.includes(tempThumbnailUrl.trim())) {
-      finalThumbnailUrls.unshift(tempThumbnailUrl.trim());
-    }
+    const finalImageUrls = tempImageUrls.filter(url => url && typeof url === 'string' && url.trim() !== '');
+    const finalThumbnailUrls = tempThumbnailUrls.filter(url => url && typeof url === 'string' && url.trim() !== '');
+
+    const primaryImageUrl = finalImageUrls[0] || tempImageUrl || '';
+    const primaryThumbnailUrl = finalThumbnailUrls[0] || tempThumbnailUrl || primaryImageUrl;
+
     onUpdateCard(id, {
       title: tempTitle,
-      imageUrl: finalImageUrls[0] || tempImageUrl,
+      imageUrl: primaryImageUrl,
       imageUrls: finalImageUrls.length > 0 ? finalImageUrls : undefined,
-      thumbnailUrl: finalThumbnailUrls[0] || tempThumbnailUrl || finalImageUrls[0],
+      thumbnailUrl: primaryThumbnailUrl,
       thumbnailUrls: finalThumbnailUrls.length > 0 ? finalThumbnailUrls : (finalImageUrls.length > 0 ? finalImageUrls : undefined),
       category: tempCategory,
       targetDate: tempTargetDate || undefined,
@@ -586,21 +584,25 @@ export default function VisualizationView({
           setTempImageUrl(base64String);
           setTempThumbnailUrl(thumbnailBase64);
           setTempImageUrls(prev => {
-            if (prev.includes(base64String)) return prev;
-            return [...prev, base64String];
+            const filtered = prev.filter(url => url && !url.startsWith('https://images.unsplash.com') && url.trim() !== '');
+            if (filtered.includes(base64String)) return filtered;
+            return [...filtered, base64String];
           });
           setTempThumbnailUrls(prev => {
-            if (prev.includes(thumbnailBase64)) return prev;
-            return [...prev, thumbnailBase64];
+            const filtered = prev.filter(url => url && !url.startsWith('https://images.unsplash.com') && url.trim() !== '');
+            if (filtered.includes(thumbnailBase64)) return filtered;
+            return [...filtered, thumbnailBase64];
           });
         } else {
           // If we are updating directly from the card overlay uploader
           const currentCard = visionCards.find(c => c.id === cardId);
           if (currentCard) {
-            const currentList = currentCard.imageUrls || (currentCard.imageUrl ? [currentCard.imageUrl] : []);
+            const currentList = (currentCard.imageUrls || (currentCard.imageUrl ? [currentCard.imageUrl] : []))
+              .filter(url => url && !url.startsWith('https://images.unsplash.com') && url.trim() !== '');
             const updatedList = currentList.includes(base64String) ? currentList : [...currentList, base64String];
             
-            const currentThumbList = currentCard.thumbnailUrls || (currentCard.thumbnailUrl ? [currentCard.thumbnailUrl] : []);
+            const currentThumbList = (currentCard.thumbnailUrls || (currentCard.thumbnailUrl ? [currentCard.thumbnailUrl] : []))
+              .filter(url => url && !url.startsWith('https://images.unsplash.com') && url.trim() !== '');
             const updatedThumbList = currentThumbList.includes(thumbnailBase64) ? currentThumbList : [...currentThumbList, thumbnailBase64];
 
             onUpdateCard(cardId, {
@@ -1525,8 +1527,16 @@ export default function VisualizationView({
                   </div>
                 ) : (
                   <SwipeableImageCarousel
-                    images={card.thumbnailUrls && card.thumbnailUrls.length > 0 ? card.thumbnailUrls : (card.thumbnailUrl ? [card.thumbnailUrl] : (card.imageUrls && card.imageUrls.length > 0 ? card.imageUrls : [card.imageUrl]))}
-                    fullImages={card.imageUrls && card.imageUrls.length > 0 ? card.imageUrls : [card.imageUrl]}
+                    images={
+                      editingCardId === card.id
+                        ? (tempThumbnailUrls.length > 0 ? tempThumbnailUrls : (tempImageUrl ? [tempImageUrl] : (tempImageUrls.length > 0 ? tempImageUrls : [tempImageUrl])))
+                        : (card.thumbnailUrls && card.thumbnailUrls.length > 0 ? card.thumbnailUrls : (card.thumbnailUrl ? [card.thumbnailUrl] : (card.imageUrls && card.imageUrls.length > 0 ? card.imageUrls : [card.imageUrl])))
+                    }
+                    fullImages={
+                      editingCardId === card.id
+                        ? (tempImageUrls.length > 0 ? tempImageUrls : [tempImageUrl])
+                        : (card.imageUrls && card.imageUrls.length > 0 ? card.imageUrls : [card.imageUrl])
+                    }
                     alt={card.title}
                     onError={() => {
                       // Flag this card's image as failed so we can show the helpful uploader fallback!

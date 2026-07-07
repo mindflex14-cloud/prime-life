@@ -20,8 +20,10 @@ export const SwipeableImageCarousel: React.FC<SwipeableImageCarouselProps> = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0); // -1 for left, 1 for right
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
-  const touchStartXRef = useRef<number | null>(null);
-  const mouseStartXRef = useRef<number | null>(null);
+
+  const validImages = (images || []).filter(img => img && typeof img === 'string' && img.trim() !== '');
+  const resolvedFullImages = (fullImages && fullImages.length > 0 ? fullImages : validImages)
+    .filter(img => img && typeof img === 'string' && img.trim() !== '');
 
   // Keyboard navigation for Lightbox
   useEffect(() => {
@@ -39,66 +41,26 @@ export const SwipeableImageCarousel: React.FC<SwipeableImageCarouselProps> = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isLightboxOpen, images.length]);
+  }, [isLightboxOpen, validImages.length]);
 
-  if (!images || images.length === 0) return null;
-
-  const resolvedFullImages = fullImages && fullImages.length > 0 ? fullImages : images;
+  if (validImages.length === 0) return null;
 
   const handleNext = (e?: React.MouseEvent) => {
     e?.stopPropagation();
     setDirection(1);
-    setCurrentIndex((prev) => (prev + 1) % images.length);
+    setCurrentIndex((prev) => (prev + 1) % validImages.length);
   };
 
   const handlePrev = (e?: React.MouseEvent) => {
     e?.stopPropagation();
     setDirection(-1);
-    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+    setCurrentIndex((prev) => (prev - 1 + validImages.length) % validImages.length);
   };
 
   const handleDotClick = (index: number, e: React.MouseEvent) => {
     e.stopPropagation();
     setDirection(index > currentIndex ? 1 : -1);
     setCurrentIndex(index);
-  };
-
-  // Touch Swipe Handlers
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartXRef.current = e.touches[0].clientX;
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartXRef.current === null) return;
-    const diffX = touchStartXRef.current - e.changedTouches[0].clientX;
-    const threshold = 50; // min distance for swipe
-    if (Math.abs(diffX) > threshold) {
-      if (diffX > 0) {
-        handleNext();
-      } else {
-        handlePrev();
-      }
-    }
-    touchStartXRef.current = null;
-  };
-
-  // Mouse Swipe Handlers
-  const handleMouseDown = (e: React.MouseEvent) => {
-    mouseStartXRef.current = e.clientX;
-  };
-
-  const handleMouseUp = (e: React.MouseEvent) => {
-    if (mouseStartXRef.current === null) return;
-    const diffX = mouseStartXRef.current - e.clientX;
-    const threshold = 50;
-    if (Math.abs(diffX) > threshold) {
-      if (diffX > 0) {
-        handleNext();
-      } else {
-        handlePrev();
-      }
-    }
-    mouseStartXRef.current = null;
   };
 
   const slideVariants = {
@@ -116,32 +78,39 @@ export const SwipeableImageCarousel: React.FC<SwipeableImageCarouselProps> = ({
     })
   };
 
-  const currentImage = images[currentIndex];
+  const currentImage = validImages[currentIndex];
   const currentFullImage = resolvedFullImages[currentIndex];
 
   return (
     <>
       <div 
         className="relative w-full h-full overflow-hidden select-none group cursor-pointer"
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        onClick={() => setIsLightboxOpen(true)}
       >
         <AnimatePresence initial={false} custom={direction} mode="popLayout">
           <motion.img
             key={currentIndex}
             src={currentImage}
-            alt={`${alt} (Photo ${currentIndex + 1}/${images.length})`}
+            alt={`${alt} (Photo ${currentIndex + 1}/${validImages.length})`}
             custom={direction}
             variants={slideVariants}
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className={className}
+            transition={{ type: 'spring', stiffness: 350, damping: 35 }}
+            className={`${className} touch-pan-y`}
             referrerPolicy="no-referrer"
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.4}
+            onDragEnd={(e, info) => {
+              const swipeThreshold = 50;
+              if (info.offset.x < -swipeThreshold) {
+                handleNext();
+              } else if (info.offset.x > swipeThreshold) {
+                handlePrev();
+              }
+            }}
+            onTap={() => setIsLightboxOpen(true)}
             onError={(e) => {
               // Safe fallback on load error
               e.currentTarget.style.display = 'none';
@@ -150,22 +119,14 @@ export const SwipeableImageCarousel: React.FC<SwipeableImageCarouselProps> = ({
           />
         </AnimatePresence>
 
-        {/* Zoom Overlay on Hover */}
-        <div className="absolute inset-0 bg-black/15 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10 pointer-events-none">
-          <div className="p-3 bg-slate-950/80 rounded-full text-white shadow-lg border border-white/10 flex items-center gap-1.5 backdrop-blur-xs transform scale-90 group-hover:scale-100 transition-transform">
-            <Maximize className="w-4 h-4" />
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-1">Expand Detail</span>
-          </div>
-        </div>
-
         {/* Slide overlay controls (only show if there is more than 1 image) */}
-        {images.length > 1 && (
+        {validImages.length > 1 && (
           <>
             {/* Navigation Arrows */}
             <button
               type="button"
               onClick={handlePrev}
-              className="absolute left-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-slate-950/60 hover:bg-slate-950 text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-15"
+              className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-xl bg-slate-950/70 hover:bg-slate-900 border border-white/10 text-cyan-400 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 cursor-pointer z-15 flex items-center justify-center hover:scale-105 active:scale-95"
               title="Previous Image"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -174,15 +135,15 @@ export const SwipeableImageCarousel: React.FC<SwipeableImageCarouselProps> = ({
             <button
               type="button"
               onClick={handleNext}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-slate-950/60 hover:bg-slate-950 text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-15"
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-xl bg-slate-950/70 hover:bg-slate-900 border border-white/10 text-cyan-400 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 cursor-pointer z-15 flex items-center justify-center hover:scale-105 active:scale-95"
               title="Next Image"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
 
             {/* Pagination Indicators */}
-            <div className="absolute bottom-3 left-1/2 -translate-y-0 -translate-x-1/2 flex items-center gap-1.5 bg-slate-950/40 backdrop-blur-xs px-2.5 py-1 rounded-full z-15">
-              {images.map((_, idx) => (
+            <div className="absolute bottom-3 left-1/2 -translate-y-0 -translate-x-1/2 flex items-center gap-1.5 bg-slate-950/60 backdrop-blur-xs px-2.5 py-1 rounded-full z-15 border border-white/5">
+              {validImages.map((_, idx) => (
                 <button
                   key={idx}
                   type="button"
@@ -190,7 +151,7 @@ export const SwipeableImageCarousel: React.FC<SwipeableImageCarouselProps> = ({
                   className={`w-1.5 h-1.5 rounded-full transition-all ${
                     idx === currentIndex 
                       ? 'bg-cyan-400 w-3' 
-                      : 'bg-white/60 hover:bg-white'
+                      : 'bg-white/40 hover:bg-white'
                   }`}
                   title={`Go to image ${idx + 1}`}
                 />
@@ -198,8 +159,8 @@ export const SwipeableImageCarousel: React.FC<SwipeableImageCarouselProps> = ({
             </div>
 
             {/* Mini Counter Overlay */}
-            <div className="absolute top-3 right-3 px-2 py-0.5 bg-slate-950/70 backdrop-blur-xs rounded-md text-[9px] font-mono font-bold text-white tracking-wider border border-white/5 uppercase z-15">
-              {currentIndex + 1} / {images.length}
+            <div className="absolute top-3 right-3 px-2.5 py-0.5 bg-slate-950/80 backdrop-blur-xs rounded-lg text-[9px] font-mono font-bold text-cyan-400 tracking-wider border border-white/10 uppercase z-15">
+              {currentIndex + 1} / {validImages.length}
             </div>
           </>
         )}
@@ -239,7 +200,7 @@ export const SwipeableImageCarousel: React.FC<SwipeableImageCarouselProps> = ({
               />
 
               {/* Lightbox Navigation Arrows */}
-              {images.length > 1 && (
+              {validImages.length > 1 && (
                 <>
                   <button
                     onClick={handlePrev}
@@ -263,7 +224,7 @@ export const SwipeableImageCarousel: React.FC<SwipeableImageCarouselProps> = ({
             <div className="mt-4 text-center text-white/80 z-10 space-y-1 select-none">
               <h4 className="text-sm font-bold font-mono tracking-wide uppercase text-cyan-400">{alt}</h4>
               <p className="text-xs font-mono text-slate-400">
-                Resolution Loaded: High Definition • Card Image {currentIndex + 1} of {images.length}
+                Resolution Loaded: High Definition • Card Image {currentIndex + 1} of {validImages.length}
               </p>
             </div>
           </motion.div>
