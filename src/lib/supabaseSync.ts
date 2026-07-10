@@ -93,6 +93,17 @@ const keyToLocalStorageMap: Record<string, string> = {
   vitalsGamification: 'lifeos_vitals_gamification'
 };
 
+let isCloudSaveAllowed = false;
+
+export function setCloudSaveAllowed(allowed: boolean) {
+  isCloudSaveAllowed = allowed;
+  console.log(`[SupabaseSync] Cloud save state updated to: ${allowed}`);
+}
+
+export function getCloudSaveAllowed() {
+  return isCloudSaveAllowed;
+}
+
 const debounceTimeouts: Record<string, any> = {};
 
 // Save a specific key's data to Supabase (and cache locally)
@@ -108,6 +119,12 @@ export async function saveUserDataToCloud(userId: string, key: string, data: any
     } catch (e) {
       console.warn(`[SupabaseSync] Failed to save ${key} to localStorage (QuotaExceeded). Will rely on cloud sync.`);
     }
+  }
+
+  // CRITICAL SECURE GUARD: Never save anything to Supabase unless a sync is validated as safe
+  if (!isCloudSaveAllowed) {
+    console.warn(`[SupabaseSync] Save blocked for key "${key}". Cloud sync is not in a validated success state. This prevents accidental defaults overwrite.`);
+    return;
   }
 
   if (!isSupabaseConfigured || !supabase) {
@@ -146,7 +163,11 @@ export async function saveUserDataToCloud(userId: string, key: string, data: any
       // Broadcast local storage update event for any listening tabs
       window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: localStorageKey, value: data } }));
       if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('supabase-sync-status', { detail: 'saved' }));
+        const now = new Date().toISOString();
+        localStorage.setItem('lifeos_last_sync_time', now);
+        window.dispatchEvent(new CustomEvent('supabase-sync-status', { 
+          detail: 'saved'
+        }));
       }
     } catch (error) {
       console.warn(`[SupabaseSync] Offline/failed saving ${key} to Supabase. Storing in queue.`, error);
@@ -176,23 +197,20 @@ export async function loadAllUserDataFromCloud(userId: string): Promise<Record<s
   const result: Record<string, any> = {};
   if (!userId || !isSupabaseConfigured || !supabase) return result;
   
-  try {
-    const { data, error } = await supabase
-      .from('user_data')
-      .select('key, payload')
-      .eq('user_id', userId);
+  const { data, error } = await supabase
+    .from('user_data')
+    .select('key, payload')
+    .eq('user_id', userId);
 
-    if (error) {
-      throw error;
-    }
-
-    if (data) {
-      data.forEach((row) => {
-        result[row.key] = row.payload;
-      });
-    }
-  } catch (error) {
+  if (error) {
     console.error("Error loading user data from Supabase:", error);
+    throw error;
+  }
+
+  if (data) {
+    data.forEach((row) => {
+      result[row.key] = row.payload;
+    });
   }
   return result;
 }

@@ -50,7 +50,8 @@ import {
   saveUserDataToCloud, 
   loadAllUserDataFromCloud, 
   subscribeToUserDataCloud,
-  syncPendingData
+  syncPendingData,
+  setCloudSaveAllowed
 } from './lib/supabaseSync';
 import { User } from '@supabase/supabase-js';
 import { Cloud, CloudOff, CloudLightning, Loader2, LogOut } from 'lucide-react';
@@ -67,10 +68,20 @@ export default function App() {
   const [isSyncDelayed, setIsSyncDelayed] = useState<boolean>(false);
   const [syncStatus, setSyncStatus] = useState<'saved' | 'saving' | 'failed'>('saved');
 
+   const [cloudFetchStatus, setCloudFetchStatus] = useState<'loading' | 'success' | 'error' | 'new_user' | 'unconfigured'>(
+    isSupabaseConfigured ? 'loading' : 'unconfigured'
+  );
+  const [lastSyncTime, setLastSyncTime] = useState<string | null>(() => {
+    return localStorage.getItem('lifeos_last_sync_time');
+  });
+
   useEffect(() => {
     const handleSyncStatus = (e: Event) => {
       const status = (e as CustomEvent).detail;
       setSyncStatus(status);
+      if (status === 'saved') {
+        setLastSyncTime(localStorage.getItem('lifeos_last_sync_time'));
+      }
     };
     const handleOnline = () => {
       setSyncStatus('saved');
@@ -222,6 +233,7 @@ export default function App() {
   useEffect(() => {
     if (!supabase) {
       setIsInitialLoading(false);
+      setCloudFetchStatus('unconfigured');
       return;
     }
 
@@ -232,10 +244,12 @@ export default function App() {
     const timeoutId = setTimeout(() => {
       if (!isFinished) {
         console.warn("[Sync Timeout] Supabase initial load exceeded timeout threshold. Falling back to offline data caches.");
+        setCloudFetchStatus('error');
+        setCloudSaveAllowed(false);
         setIsInitialLoading(false);
         setIsSyncDelayed(true);
       }
-    }, 8500);
+    }, 9500);
 
     // Retrieve initial session and set user
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -263,6 +277,7 @@ export default function App() {
 
       if (sUser) {
         setIsSyncing(true);
+        setCloudFetchStatus('loading');
         try {
           // Sync any pending offline changes
           await syncPendingData(sUser.id);
@@ -270,6 +285,10 @@ export default function App() {
           const cloudData = await loadAllUserDataFromCloud(sUser.id);
           
           if (Object.keys(cloudData).length === 0) {
+            // State (c): Brand-new user with confirmed empty state (0 records loaded). Safe to seed.
+            setCloudSaveAllowed(true);
+            setCloudFetchStatus('new_user');
+
             // Seed cloud data with current local state
             const seedPromises = [
               saveUserDataToCloud(sUser.id, 'profile', profile, true),
@@ -316,10 +335,21 @@ export default function App() {
 
             try {
               await Promise.all(seedPromises);
+              const now = new Date().toISOString();
+              localStorage.setItem('lifeos_last_sync_time', now);
+              setLastSyncTime(now);
             } catch (seedErr) {
               console.error("[Seeding] Error seeding user data to cloud:", seedErr);
             }
           } else {
+            // State (a): Data successfully loaded from Supabase
+            setCloudSaveAllowed(true);
+            setCloudFetchStatus('success');
+
+            const now = new Date().toISOString();
+            localStorage.setItem('lifeos_last_sync_time', now);
+            setLastSyncTime(now);
+
             // Apply downloaded cloud data to states if different
             if (cloudData.profile && JSON.stringify(cloudData.profile) !== JSON.stringify(profile)) {
               setProfile(cloudData.profile);
@@ -414,194 +444,201 @@ export default function App() {
               }
             });
           }
-        } catch (err) {
-          console.error("Error doing initial sync:", err);
-        } finally {
+
           isFinished = true;
           clearTimeout(timeoutId);
-          setIsSyncing(false);
           setIsInitialLoading(false);
-        }
-
-        // Start real-time Supabase listener
-        try {
-          unsubscribeSnapshot = subscribeToUserDataCloud(sUser.id, (key, data) => {
-            const stringified = JSON.stringify(data);
-            lastReceivedFromCloud.current[key] = stringified;
-            switch (key) {
-              case 'profile':
-                setProfile(prev => JSON.stringify(prev) !== stringified ? data : prev);
-                break;
-              case 'visionCards':
-                setVisionCards(prev => JSON.stringify(prev) !== stringified ? data : prev);
-                break;
-              case 'goals':
-                setGoals(prev => JSON.stringify(prev) !== stringified ? data : prev);
-                break;
-              case 'milestones':
-                setMilestones(prev => JSON.stringify(prev) !== stringified ? data : prev);
-                break;
-              case 'tasks':
-                setTasks(prev => JSON.stringify(prev) !== stringified ? data : prev);
-                break;
-              case 'habits':
-                setHabits(prev => JSON.stringify(prev) !== stringified ? data : prev);
-                break;
-              case 'journalEntries':
-                setJournalEntries(prev => JSON.stringify(prev) !== stringified ? data : prev);
-                break;
-              case 'financeRecords':
-                setFinanceRecords(prev => JSON.stringify(prev) !== stringified ? data : prev);
-                break;
-              case 'healthLogs':
-                setHealthLogs(prev => JSON.stringify(prev) !== stringified ? data : prev);
-                break;
-              case 'lifeWheel':
-                setLifeWheel(prev => JSON.stringify(prev) !== stringified ? data : prev);
-                break;
-              case 'philosophicalEntries':
-                setPhilosophicalEntries(prev => JSON.stringify(prev) !== stringified ? data : prev);
-                break;
-              case 'bookWisdomEntries':
-                setBookWisdomEntries(prev => JSON.stringify(prev) !== stringified ? data : prev);
-                break;
-              case 'intuitionEntries':
-                setIntuitionEntries(prev => JSON.stringify(prev) !== stringified ? data : prev);
-                break;
-              case 'powerSystem': {
-                const lsKey = 'lifeos_power_system';
-                if (localStorage.getItem(lsKey) !== stringified) {
-                  localStorage.setItem(lsKey, stringified);
-                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+          setIsSyncing(false);
+          
+          // Start real-time Supabase listener
+          try {
+            unsubscribeSnapshot = subscribeToUserDataCloud(sUser.id, (key, data) => {
+              const stringified = JSON.stringify(data);
+              lastReceivedFromCloud.current[key] = stringified;
+              switch (key) {
+                case 'profile':
+                  setProfile(prev => JSON.stringify(prev) !== stringified ? data : prev);
+                  break;
+                case 'visionCards':
+                  setVisionCards(prev => JSON.stringify(prev) !== stringified ? data : prev);
+                  break;
+                case 'goals':
+                  setGoals(prev => JSON.stringify(prev) !== stringified ? data : prev);
+                  break;
+                case 'milestones':
+                  setMilestones(prev => JSON.stringify(prev) !== stringified ? data : prev);
+                  break;
+                case 'tasks':
+                  setTasks(prev => JSON.stringify(prev) !== stringified ? data : prev);
+                  break;
+                case 'habits':
+                  setHabits(prev => JSON.stringify(prev) !== stringified ? data : prev);
+                  break;
+                case 'journalEntries':
+                  setJournalEntries(prev => JSON.stringify(prev) !== stringified ? data : prev);
+                  break;
+                case 'financeRecords':
+                  setFinanceRecords(prev => JSON.stringify(prev) !== stringified ? data : prev);
+                  break;
+                case 'healthLogs':
+                  setHealthLogs(prev => JSON.stringify(prev) !== stringified ? data : prev);
+                  break;
+                case 'lifeWheel':
+                  setLifeWheel(prev => JSON.stringify(prev) !== stringified ? data : prev);
+                  break;
+                case 'philosophicalEntries':
+                  setPhilosophicalEntries(prev => JSON.stringify(prev) !== stringified ? data : prev);
+                  break;
+                case 'bookWisdomEntries':
+                  setBookWisdomEntries(prev => JSON.stringify(prev) !== stringified ? data : prev);
+                  break;
+                case 'intuitionEntries':
+                  setIntuitionEntries(prev => JSON.stringify(prev) !== stringified ? data : prev);
+                  break;
+                case 'powerSystem': {
+                  const lsKey = 'lifeos_power_system';
+                  if (localStorage.getItem(lsKey) !== stringified) {
+                    localStorage.setItem(lsKey, stringified);
+                    window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                  }
+                  break;
                 }
-                break;
+                case 'exerciseRules': {
+                  const lsKey = 'lifeos_exercise_rules';
+                  if (localStorage.getItem(lsKey) !== stringified) {
+                    localStorage.setItem(lsKey, stringified);
+                    window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                  }
+                  break;
+                }
+                case 'newMeSections': {
+                  const lsKey = 'lifeos_newme_sections';
+                  if (localStorage.getItem(lsKey) !== stringified) {
+                    localStorage.setItem(lsKey, stringified);
+                    window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                  }
+                  break;
+                }
+                case 'newMeDataDrop': {
+                  const lsKey = 'lifeos_newme_datadrop';
+                  if (localStorage.getItem(lsKey) !== data) {
+                    localStorage.setItem(lsKey, data);
+                    window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                  }
+                  break;
+                }
+                case 'newMeInterventions': {
+                  const lsKey = 'lifeos_newme_interventions';
+                  if (localStorage.getItem(lsKey) !== stringified) {
+                    localStorage.setItem(lsKey, stringified);
+                    window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                  }
+                  break;
+                }
+                case 'earthCountdownTarget': {
+                  const lsKey = 'lifeos_earth_target';
+                  if (localStorage.getItem(lsKey) !== data) {
+                    localStorage.setItem(lsKey, data);
+                    window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                  }
+                  break;
+                }
+                case 'earthCountdownTitle': {
+                  const lsKey = 'lifeos_earth_title';
+                  if (localStorage.getItem(lsKey) !== data) {
+                    localStorage.setItem(lsKey, data);
+                    window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                  }
+                  break;
+                }
+                case 'earthCountdownImage': {
+                  const lsKey = 'lifeos_earth_image';
+                  if (localStorage.getItem(lsKey) !== data) {
+                    localStorage.setItem(lsKey, data);
+                    window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                  }
+                  break;
+                }
+                case 'earthCountdownQuote': {
+                  const lsKey = 'lifeos_earth_quote';
+                  if (localStorage.getItem(lsKey) !== data) {
+                    localStorage.setItem(lsKey, data);
+                    window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                  }
+                  break;
+                }
+                case 'businessIdeas': {
+                  const lsKey = 'lifeos_business_ideas';
+                  if (localStorage.getItem(lsKey) !== stringified) {
+                    localStorage.setItem(lsKey, stringified);
+                    window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                  }
+                  break;
+                }
+                case 'vitalsWorkoutTemplates': {
+                  const lsKey = 'lifeos_vitals_workout_templates';
+                  if (localStorage.getItem(lsKey) !== stringified) {
+                    localStorage.setItem(lsKey, stringified);
+                    window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                  }
+                  break;
+                }
+                case 'vitalsWorkoutHistory': {
+                  const lsKey = 'lifeos_vitals_workout_history';
+                  if (localStorage.getItem(lsKey) !== stringified) {
+                    localStorage.setItem(lsKey, stringified);
+                    window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                  }
+                  break;
+                }
+                case 'vitalsRecoveryHistory': {
+                  const lsKey = 'lifeos_vitals_recovery_history';
+                  if (localStorage.getItem(lsKey) !== stringified) {
+                    localStorage.setItem(lsKey, stringified);
+                    window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                  }
+                  break;
+                }
+                case 'vitalsChallenges': {
+                  const lsKey = 'lifeos_vitals_challenges';
+                  if (localStorage.getItem(lsKey) !== stringified) {
+                    localStorage.setItem(lsKey, stringified);
+                    window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                  }
+                  break;
+                }
+                case 'vitalsGamification': {
+                  const lsKey = 'lifeos_vitals_gamification';
+                  if (localStorage.getItem(lsKey) !== stringified) {
+                    localStorage.setItem(lsKey, stringified);
+                    window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
+                  }
+                  break;
+                }
+                case 'darkMode':
+                  if (data !== isDarkMode) {
+                    setIsDarkMode(data);
+                  }
+                  break;
+                case 'navItems':
+                  if (JSON.stringify(data) !== JSON.stringify(navItems)) {
+                    setNavItems(data);
+                  }
+                  break;
               }
-              case 'exerciseRules': {
-                const lsKey = 'lifeos_exercise_rules';
-                if (localStorage.getItem(lsKey) !== stringified) {
-                  localStorage.setItem(lsKey, stringified);
-                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
-                }
-                break;
-              }
-              case 'newMeSections': {
-                const lsKey = 'lifeos_newme_sections';
-                if (localStorage.getItem(lsKey) !== stringified) {
-                  localStorage.setItem(lsKey, stringified);
-                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
-                }
-                break;
-              }
-              case 'newMeDataDrop': {
-                const lsKey = 'lifeos_newme_datadrop';
-                if (localStorage.getItem(lsKey) !== data) {
-                  localStorage.setItem(lsKey, data);
-                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
-                }
-                break;
-              }
-              case 'newMeInterventions': {
-                const lsKey = 'lifeos_newme_interventions';
-                if (localStorage.getItem(lsKey) !== stringified) {
-                  localStorage.setItem(lsKey, stringified);
-                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
-                }
-                break;
-              }
-              case 'earthCountdownTarget': {
-                const lsKey = 'lifeos_earth_target';
-                if (localStorage.getItem(lsKey) !== data) {
-                  localStorage.setItem(lsKey, data);
-                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
-                }
-                break;
-              }
-              case 'earthCountdownTitle': {
-                const lsKey = 'lifeos_earth_title';
-                if (localStorage.getItem(lsKey) !== data) {
-                  localStorage.setItem(lsKey, data);
-                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
-                }
-                break;
-              }
-              case 'earthCountdownImage': {
-                const lsKey = 'lifeos_earth_image';
-                if (localStorage.getItem(lsKey) !== data) {
-                  localStorage.setItem(lsKey, data);
-                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
-                }
-                break;
-              }
-              case 'earthCountdownQuote': {
-                const lsKey = 'lifeos_earth_quote';
-                if (localStorage.getItem(lsKey) !== data) {
-                  localStorage.setItem(lsKey, data);
-                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
-                }
-                break;
-              }
-              case 'businessIdeas': {
-                const lsKey = 'lifeos_business_ideas';
-                if (localStorage.getItem(lsKey) !== stringified) {
-                  localStorage.setItem(lsKey, stringified);
-                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
-                }
-                break;
-              }
-              case 'vitalsWorkoutTemplates': {
-                const lsKey = 'lifeos_vitals_workout_templates';
-                if (localStorage.getItem(lsKey) !== stringified) {
-                  localStorage.setItem(lsKey, stringified);
-                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
-                }
-                break;
-              }
-              case 'vitalsWorkoutHistory': {
-                const lsKey = 'lifeos_vitals_workout_history';
-                if (localStorage.getItem(lsKey) !== stringified) {
-                  localStorage.setItem(lsKey, stringified);
-                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
-                }
-                break;
-              }
-              case 'vitalsRecoveryHistory': {
-                const lsKey = 'lifeos_vitals_recovery_history';
-                if (localStorage.getItem(lsKey) !== stringified) {
-                  localStorage.setItem(lsKey, stringified);
-                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
-                }
-                break;
-              }
-              case 'vitalsChallenges': {
-                const lsKey = 'lifeos_vitals_challenges';
-                if (localStorage.getItem(lsKey) !== stringified) {
-                  localStorage.setItem(lsKey, stringified);
-                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
-                }
-                break;
-              }
-              case 'vitalsGamification': {
-                const lsKey = 'lifeos_vitals_gamification';
-                if (localStorage.getItem(lsKey) !== stringified) {
-                  localStorage.setItem(lsKey, stringified);
-                  window.dispatchEvent(new CustomEvent('local-storage-sync', { detail: { key: lsKey, value: data } }));
-                }
-                break;
-              }
-              case 'darkMode':
-                if (data !== isDarkMode) {
-                  setIsDarkMode(data);
-                }
-                break;
-              case 'navItems':
-                if (JSON.stringify(data) !== JSON.stringify(navItems)) {
-                  setNavItems(data);
-                }
-                break;
-            }
-          });
-        } catch (subErr) {
-          console.error("Error setting up real-time subscription:", subErr);
+            });
+          } catch (subErr) {
+            console.error("Error setting up real-time subscription:", subErr);
+          }
+        } catch (err) {
+          // State (b): Cloud data fetch failed or timed out (Outage)
+          isFinished = true;
+          clearTimeout(timeoutId);
+          console.error("Error doing initial cloud sync (OUTAGE/TIMEOUT):", err);
+          setCloudFetchStatus('error');
+          setCloudSaveAllowed(false); // Guarantee cloud writes are completely blocked
+          setIsInitialLoading(false);
+          setIsSyncing(false);
         }
 
         // Trigger sync of pending data when becoming online or trigger event is received
@@ -614,6 +651,8 @@ export default function App() {
       } else {
         isFinished = true;
         clearTimeout(timeoutId);
+        setCloudSaveAllowed(false);
+        setCloudFetchStatus('unconfigured');
         setIsSyncing(false);
         setIsInitialLoading(false);
       }
@@ -1284,6 +1323,54 @@ export default function App() {
     );
   }
 
+  if (cloudFetchStatus === 'error' && user) {
+    return (
+      <div className={`min-h-screen flex flex-col items-center justify-center relative overflow-hidden font-sans select-none transition-colors duration-300 ${
+        isDarkMode ? 'bg-[#050508] text-slate-200' : 'bg-[#f4f4f7] text-slate-800'
+      }`}>
+        <div className="flex flex-col items-center gap-6 text-center p-8 z-10 max-w-md bg-white dark:bg-[#0c0c12]/80 border border-slate-200 dark:border-rose-500/25 rounded-3xl shadow-2xl m-4">
+          <div className="relative w-16 h-16 flex items-center justify-center bg-rose-500/10 rounded-2xl border border-rose-500/30">
+            <CloudOff className="w-8 h-8 text-rose-500 dark:text-rose-400 animate-pulse" />
+          </div>
+          <div className="space-y-3">
+            <h3 className="text-base font-display font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
+              Cloud Sync Connection Failed
+            </h3>
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              Couldn't reach the cloud — your data is 100% safe. Please check your connection or retry to load your dashboard.
+            </p>
+            <p className="text-[10px] font-mono text-slate-400 dark:text-slate-500">
+              Supabase query timed out or returned an error during calibration.
+            </p>
+          </div>
+          
+          <div className="w-full space-y-2 mt-2">
+            <button
+              onClick={() => {
+                window.location.reload();
+              }}
+              className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-mono text-xs font-bold uppercase hover:opacity-90 active:scale-95 transition-all shadow-md shadow-cyan-500/10 cursor-pointer"
+            >
+              Retry Sync Connection
+            </button>
+            
+            <button
+              onClick={async () => {
+                await signOutUser();
+                setUser(null);
+                setCloudFetchStatus('unconfigured');
+                setIsInitialLoading(false);
+              }}
+              className="w-full py-2 px-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800/40 text-slate-500 dark:text-slate-400 font-mono text-[10px] uppercase transition-all cursor-pointer"
+            >
+              Disconnect & Log Out
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!user && !guestBypass) {
     return (
       <LoginView 
@@ -1727,18 +1814,25 @@ export default function App() {
             {/* Micro Separator */}
             <div className="hidden xs:block w-[1px] h-3 bg-slate-300 dark:bg-slate-800" />
 
-            {/* Operator Email */}
-            <div className="text-[10px] font-mono text-slate-500 flex items-center gap-1.5">
+            {/* Operator Email & Sync Date */}
+            <div className="text-[10px] font-mono text-slate-500 flex flex-col items-start gap-0.5">
               {user ? (
                 <>
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="truncate max-w-[180px]">Synced: <strong className="text-slate-600 dark:text-slate-300 font-bold">{user.email}</strong></span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="truncate max-w-[180px]">Synced: <strong className="text-slate-600 dark:text-slate-300 font-bold">{user.email}</strong></span>
+                  </div>
+                  {lastSyncTime && (
+                    <span className="text-[9px] text-slate-400 dark:text-slate-500 pl-3">
+                      Last Sync: {new Date(lastSyncTime).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                    </span>
+                  )}
                 </>
               ) : (
-                <>
+                <div className="flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                   <span>Guest (Unsynced Mode)</span>
-                </>
+                </div>
               )}
             </div>
           </div>
@@ -1746,6 +1840,26 @@ export default function App() {
         
         {/* Render Active view */}
         <div className="flex-1 w-full max-w-7xl mx-auto pb-8">
+          {user && syncStatus === 'failed' && (
+            <div className="mb-6 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-mono flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm animate-pulse">
+              <div className="flex items-center gap-2.5">
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                </span>
+                <span><strong className="text-rose-600 dark:text-rose-400 uppercase">Cloud Sync Blocked / Outage Detected:</strong> We couldn't save your recent changes to the cloud. Your local cache remains safe, but cloud writes are restricted until connection is restored.</span>
+              </div>
+              <button 
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('supabase-sync-trigger'));
+                }} 
+                className="text-[9px] uppercase font-bold tracking-widest bg-rose-500 text-white px-3 py-1.5 rounded hover:opacity-90 transition-all shrink-0 cursor-pointer"
+              >
+                Retry Manual Sync
+              </button>
+            </div>
+          )}
+
           {isSyncDelayed && (
             <div className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-600 dark:text-amber-400 text-xs font-mono flex items-center justify-between gap-4 shadow-sm animate-fade-in">
               <div className="flex items-center gap-2.5">
