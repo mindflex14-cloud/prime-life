@@ -55,16 +55,21 @@ import {
 } from './lib/supabaseSync';
 import { User } from '@supabase/supabase-js';
 import { Cloud, CloudOff, CloudLightning, Loader2, LogOut } from 'lucide-react';
-import LoginView from './components/LoginView';
 
 export default function App() {
   const lastReceivedFromCloud = useRef<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
-  const [guestBypass, setGuestBypass] = useState<boolean>(() => localStorage.getItem('lifeos_guest_bypass') === 'true');
+  const [guestBypass, setGuestBypass] = useState<boolean>(true);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
-  const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
+  const [isInitialLoading, setIsInitialLoading] = useState<boolean>(() => {
+    try {
+      return Object.keys(localStorage).some(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
+    } catch (e) {
+      return false;
+    }
+  });
   const [isSyncDelayed, setIsSyncDelayed] = useState<boolean>(false);
   const [syncStatus, setSyncStatus] = useState<'saved' | 'saving' | 'failed'>('saved');
 
@@ -255,9 +260,16 @@ export default function App() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setUser(session.user);
+      } else {
+        isFinished = true;
+        clearTimeout(timeoutId);
+        setIsInitialLoading(false);
       }
     }).catch(err => {
       console.error("[Auth] getSession error:", err);
+      isFinished = true;
+      clearTimeout(timeoutId);
+      setIsInitialLoading(false);
     });
 
     // Listen for auth state changes
@@ -1363,23 +1375,11 @@ export default function App() {
               }}
               className="w-full py-2 px-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800/40 text-slate-500 dark:text-slate-400 font-mono text-[10px] uppercase transition-all cursor-pointer"
             >
-              Disconnect & Log Out
+              Open Page in Direct Mode
             </button>
           </div>
         </div>
       </div>
-    );
-  }
-
-  if (!user && !guestBypass) {
-    return (
-      <LoginView 
-        onBypass={() => {
-          setGuestBypass(true);
-          localStorage.setItem('lifeos_guest_bypass', 'true');
-        }}
-        isDarkMode={isDarkMode}
-      />
     );
   }
 
@@ -1587,7 +1587,8 @@ export default function App() {
                 <button
                   onClick={async () => {
                     await signOutUser();
-                    setGuestBypass(false);
+                    setUser(null);
+                    setCloudFetchStatus('unconfigured');
                     
                     // Reset all local state variables to original defaults
                     setProfile(DEFAULT_PROFILE);
@@ -1627,10 +1628,10 @@ export default function App() {
                   </div>
                   <div className="truncate text-left">
                     <p className={`text-sm font-semibold truncate ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>
-                      Cloud Sync
+                      Workspace
                     </p>
                     <span className="text-[11px] font-medium block text-slate-500 dark:text-slate-400">
-                      Local Sandbox Mode
+                      Direct Mode
                     </span>
                   </div>
                 </div>
@@ -1639,17 +1640,7 @@ export default function App() {
                   onClick={signInWithGoogle}
                   className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-mono font-bold tracking-wider uppercase rounded-xl transition-all shadow-md shadow-cyan-600/10 hover:shadow-cyan-500/20 cursor-pointer"
                 >
-                  Connect Google Account
-                </button>
-
-                <button
-                  onClick={() => {
-                    setGuestBypass(false);
-                    localStorage.removeItem('lifeos_guest_bypass');
-                  }}
-                  className="w-full text-center text-[10px] font-mono font-bold tracking-wider text-slate-500 hover:text-cyan-400 uppercase mt-1 transition-colors"
-                >
-                  ← Return to Login Gate
+                  Connect Google (Optional)
                 </button>
               </div>
             )}
@@ -1830,8 +1821,8 @@ export default function App() {
                 </>
               ) : (
                 <div className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                  <span>Guest (Unsynced Mode)</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <span>Direct Workspace Mode</span>
                 </div>
               )}
             </div>
