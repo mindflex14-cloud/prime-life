@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LifeOS • Notion Biological Rhythm & Daily Goals Tracker</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #050508;
+      color: #e2e8f0;
+    }
+    .glass-panel {
+      background: rgba(12, 12, 18, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .glass-input {
+      background: rgba(5, 5, 8, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .glass-input:focus {
+      border-color: rgba(99, 102, 241, 0.5);
+      outline: none;
+    }
+    /* Hide scrollbars but keep functionality */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="p-4 sm:p-6 min-h-screen flex flex-col justify-between max-w-5xl mx-auto no-scrollbar">
+
+  <!-- TOP HEADER & DEPLOY INFORMATION -->
+  <header class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="p-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/30 text-indigo-400">
+          <i data-lucide="activity" class="w-5 h-5"></i>
+        </span>
+        <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-slate-100 via-indigo-200 to-blue-400 bg-clip-text text-transparent font-sans">
+          LifeOS • Biological Rhythm Widget
+        </h1>
+      </div>
+      <p class="text-xs text-slate-400 mt-1">Standalone interactive dashboard custom crafted for Notion embedding.</p>
+    </div>
+    
+    <!-- Export / Help Actions -->
+    <div class="flex items-center gap-2">
+      <button onclick="toggleHelpModal()" class="py-1.5 px-3 rounded-lg border border-white/10 hover:bg-white/5 text-xs text-slate-300 font-mono transition flex items-center gap-1">
+        <i data-lucide="help-circle" class="w-3.5 h-3.5"></i> How to Embed
+      </button>
+      <button onclick="exportToMarkdown()" class="py-1.5 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs text-white font-mono font-semibold transition flex items-center gap-1 shadow-lg shadow-indigo-600/15">
+        <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy Notion Markdown
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN INTERACTIVE CONTENT GRID -->
+  <main class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    
+    <!-- LEFT COLUMN: DAILY LOGGERS (SLEEP & HYDRATION) -->
+    <div class="space-y-6">
+      
+      <!-- SLEEP TRACKING CARD -->
+      <section class="glass-panel p-5 rounded-2xl relative overflow-hidden group">
+        <div class="absolute inset-0 bg-indigo-500/5 transition-opacity opacity-50 pointer-events-none"></div>
+        
+        <div class="flex items-center justify-between mb-4 relative z-10">
+          <div class="flex items-center gap-2.5">
+            <div class="p-2 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400">
+              <i data-lucide="moon" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-slate-200">Sleep Performance Logger</h2>
+              <span class="text-[10px] font-mono uppercase tracking-widest text-indigo-400 block mt-0.5">Recovery System</span>
+            </div>
+          </div>
+          <span class="text-xs font-mono font-bold text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-lg border border-indigo-500/20" id="sleep-badge">
+            0 / 8 hrs
+          </span>
+        </div>
+
+        <!-- Progress Gauge -->
+        <div class="h-2 w-full rounded-full bg-slate-900 overflow-hidden mb-5 border border-white/5 relative z-10">
+          <div id="sleep-progress" class="h-full bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-full transition-all duration-500 w-0"></div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-5 relative z-10">
+          <div class="p-3 bg-slate-950/50 rounded-xl border border-white/5">
+            <span class="block text-[9px] font-mono text-slate-500 uppercase tracking-wider mb-1">Recommended Duration</span>
+            <span class="text-xs font-mono font-bold text-slate-300">7.5 - 9.0 hrs</span>
+          </div>
+          <div class="p-3 bg-slate-950/50 rounded-xl border border-white/5">
+            <span class="block text-[9px] font-mono text-slate-500 uppercase tracking-wider mb-1">Sleep Quality Meter</span>
+            <span class="text-xs font-mono font-bold text-slate-300" id="sleep-quality-text">Awake (0%)</span>
+          </div>
+        </div>
+
+        <!-- Sleep Quick Adjusters -->
+        <div class="flex items-center justify-between gap-4 p-3 bg-slate-950/80 rounded-xl border border-white/5 relative z-10">
+          <span class="text-xs font-semibold text-slate-300">Set Logged Hours</span>
+          <div class="flex items-center gap-2">
+            <button onclick="adjustSleep(-0.5)" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 active:scale-95 transition">
+              <i data-lucide="minus" class="w-3.5 h-3.5"></i>
+            </button>
+            <span id="sleep-value" class="text-sm font-mono font-bold px-3 w-16 text-center text-indigo-300">0.0h</span>
+            <button onclick="adjustSleep(0.5)" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 active:scale-95 transition">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- HYDRATION TRACKING CARD -->
+      <section class="glass-panel p-5 rounded-2xl relative overflow-hidden group">
+        <div class="absolute inset-0 bg-blue-500/5 transition-opacity opacity-50 pointer-events-none"></div>
+        
+        <div class="flex items-center justify-between mb-4 relative z-10">
+          <div class="flex items-center gap-2.5">
+            <div class="p-2 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-400">
+              <i data-lucide="droplets" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-slate-200">Fluid Intake Logger</h2>
+              <span class="text-[10px] font-mono uppercase tracking-widest text-blue-400 block mt-0.5">Hydration System</span>
+            </div>
+          </div>
+          <span class="text-xs font-mono font-bold text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-lg border border-blue-500/20" id="water-badge">
+            0 / 3000 ml
+          </span>
+        </div>
+
+        <!-- Progress Gauge -->
+        <div class="h-2 w-full rounded-full bg-slate-900 overflow-hidden mb-5 border border-white/5 relative z-10">
+          <div id="water-progress" class="h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full transition-all duration-500 w-0"></div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3 mb-5 relative z-10">
+          <button onclick="adjustWater(250)" class="p-2.5 bg-slate-950/40 hover:bg-blue-500/10 border border-white/5 rounded-xl text-center transition group/btn active:scale-95 cursor-pointer">
+            <span class="block text-[10px] font-mono text-slate-500 group-hover/btn:text-blue-400 font-bold">+250ml</span>
+            <span class="text-[9px] text-slate-600">Cup</span>
+          </button>
+          <button onclick="adjustWater(500)" class="p-2.5 bg-slate-950/40 hover:bg-blue-500/10 border border-white/5 rounded-xl text-center transition group/btn active:scale-95 cursor-pointer">
+            <span class="block text-[10px] font-mono text-slate-500 group-hover/btn:text-blue-400 font-bold">+500ml</span>
+            <span class="text-[9px] text-slate-600">Glass</span>
+          </button>
+          <button onclick="adjustWater(1000)" class="p-2.5 bg-slate-950/40 hover:bg-blue-500/10 border border-white/5 rounded-xl text-center transition group/btn active:scale-95 cursor-pointer">
+            <span class="block text-[10px] font-mono text-slate-500 group-hover/btn:text-blue-400 font-bold">+1000ml</span>
+            <span class="text-[9px] text-slate-600">Bottle</span>
+          </button>
+        </div>
+
+        <!-- Custom Manual Adjustment -->
+        <div class="flex items-center justify-between gap-4 p-3 bg-slate-950/80 rounded-xl border border-white/5 relative z-10">
+          <span class="text-xs font-semibold text-slate-300">Fine Adjuster</span>
+          <div class="flex items-center gap-2">
+            <button onclick="adjustWater(-100)" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 active:scale-95 transition">
+              <i data-lucide="minus" class="w-3.5 h-3.5"></i>
+            </button>
+            <span id="water-value" class="text-sm font-mono font-bold px-3 w-20 text-center text-blue-300">0 ml</span>
+            <button onclick="adjustWater(100)" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 active:scale-95 transition">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- RIGHT COLUMN: DYNAMIC RHYTHM GRAPHICAL TREND CHARTS -->
+    <div class="space-y-6">
+      
+      <!-- GRAPHICAL FLOW PANEL -->
+      <section class="glass-panel p-5 rounded-2xl flex flex-col h-[525px]">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h2 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+              <i data-lucide="bar-chart-3" class="w-4 h-4 text-indigo-400"></i>
+              7-Day Rhythm Trends
+            </h2>
+            <p class="text-[11px] text-slate-500 mt-0.5">Historical visualization with live "Today" updates.</p>
+          </div>
+          
+          <!-- Chart Mode Switcher -->
+          <div class="flex rounded-lg bg-slate-950 p-1 border border-white/5 text-[10px] font-mono">
+            <button id="btn-chart-sleep" onclick="switchChart('sleep')" class="px-2.5 py-1 rounded bg-indigo-500/20 text-indigo-300 font-bold transition">Sleep</button>
+            <button id="btn-chart-water" onclick="switchChart('water')" class="px-2.5 py-1 rounded text-slate-400 transition">Water</button>
+          </div>
+        </div>
+
+        <!-- SLEEP CHART CONTAINER -->
+        <div id="chart-sleep-container" class="flex-1 flex flex-col justify-between">
+          <div class="flex-1 flex items-end justify-between gap-3 relative px-1 h-[250px]">
+            <!-- Horizontal guidelines -->
+            <div class="absolute left-0 right-0 border-t border-dashed border-white/5 pointer-events-none" style="bottom: 66.6%;">
+              <span class="absolute -top-3 right-0 text-[8px] font-mono text-slate-500 bg-[#0c0c12]/80 px-1 py-0.5 rounded border border-white/5">Target Sleep (8h)</span>
+            </div>
+            
+            <!-- Bars will be injected here dynamically -->
+            <div id="sleep-bars-mount" class="w-full h-full flex items-end justify-between gap-2 sm:gap-3 z-10 pt-4"></div>
+          </div>
+          
+          <!-- Quick Statistics Summary -->
+          <div class="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-white/5">
+            <div class="p-2.5 rounded-xl bg-slate-950/30 border border-white/5">
+              <span class="block text-[9px] font-mono text-slate-500 uppercase tracking-widest">7d Average</span>
+              <span id="sleep-avg" class="text-sm font-mono font-bold text-indigo-400">7.2 hrs</span>
+            </div>
+            <div class="p-2.5 rounded-xl bg-slate-950/30 border border-white/5">
+              <span class="block text-[9px] font-mono text-slate-500 uppercase tracking-widest">Consistency</span>
+              <span id="sleep-consistency" class="text-sm font-mono font-bold text-emerald-400">Excellent (92%)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- WATER CHART CONTAINER (HIDDEN BY DEFAULT) -->
+        <div id="chart-water-container" class="flex-1 flex flex-col justify-between hidden">
+          <div class="flex-1 flex items-end justify-between gap-3 relative px-1 h-[250px]">
+            <!-- Horizontal guidelines -->
+            <div class="absolute left-0 right-0 border-t border-dashed border-white/5 pointer-events-none" style="bottom: 75%;">
+              <span class="absolute -top-3 right-0 text-[8px] font-mono text-slate-500 bg-[#0c0c12]/80 px-1 py-0.5 rounded border border-white/5">Target Fluid (3000ml)</span>
+            </div>
+            
+            <!-- Bars will be injected here dynamically -->
+            <div id="water-bars-mount" class="w-full h-full flex items-end justify-between gap-2 sm:gap-3 z-10 pt-4"></div>
+          </div>
+          
+          <!-- Quick Statistics Summary -->
+          <div class="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-white/5">
+            <div class="p-2.5 rounded-xl bg-slate-950/30 border border-white/5">
+              <span class="block text-[9px] font-mono text-slate-500 uppercase tracking-widest">7d Total Volume</span>
+              <span id="water-total" class="text-sm font-mono font-bold text-blue-400">19,500 ml</span>
+            </div>
+            <div class="p-2.5 rounded-xl bg-slate-950/30 border border-white/5">
+              <span class="block text-[9px] font-mono text-slate-500 uppercase tracking-widest">Hydration Status</span>
+              <span id="water-status" class="text-sm font-mono font-bold text-emerald-400">Optimal (100%)</span>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- BOTTOM: INTEGRATED INTERACTIVE DAILY MISSIONS CHECKLIST -->
+  <section class="glass-panel p-6 rounded-3xl mb-8">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div>
+        <h2 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+          <i data-lucide="target" class="w-4 h-4 text-rose-400"></i>
+          Notion Daily Missions & Custom Goals
+        </h2>
+        <p class="text-[11px] text-slate-500 mt-0.5">Toggle status and manage custom performance objectives for Notion logging.</p>
+      </div>
+      
+      <!-- Input to add new daily goal -->
+      <div class="flex items-center gap-2 max-w-sm w-full">
+        <input type="text" id="new-goal-input" placeholder="Type a new goal..." class="flex-1 text-xs font-mono py-1.5 px-3 rounded-lg glass-input text-slate-200 placeholder-slate-600 focus:ring-1 focus:ring-rose-500">
+        <button onclick="addCustomGoal()" class="py-1.5 px-3 bg-rose-600 hover:bg-rose-500 text-white font-mono text-xs rounded-lg transition font-semibold flex items-center gap-1 active:scale-95 cursor-pointer">
+          <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add
+        </button>
+      </div>
+    </div>
+
+    <!-- Active Daily Missions List -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" id="goals-list-mount">
+      <!-- Injected Dynamically -->
+    </div>
+  </section>
+
+  <!-- SAVING & ALL CHANGES CONFIRMED INDICATOR -->
+  <footer class="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-white/5 pt-6 text-[11px] font-mono text-slate-500">
+    <div class="flex items-center gap-2 bg-emerald-500/5 px-3 py-1.5 rounded-full border border-emerald-500/15">
+      <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+      <span class="text-emerald-400 font-semibold" id="last-saved-time">All changes saved and stored locally</span>
+    </div>
+    <div>
+      <span>LifeOS Rhythm Controller v2.4 • Offline-First Persistent Frame</span>
+    </div>
+  </footer>
+
+  <!-- HELP MODAL -->
+  <div id="help-modal" class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 hidden">
+    <div class="bg-[#0b0b12] border border-white/10 rounded-2xl max-w-md w-full p-6 relative">
+      <button onclick="toggleHelpModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white transition">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+      
+      <h3 class="text-base font-bold text-slate-100 flex items-center gap-2 mb-4">
+        <i data-lucide="help-circle" class="text-indigo-400 w-5 h-5"></i>
+        How to Embed in Notion
+      </h3>
+      
+      <ol class="space-y-4 text-xs text-slate-300 list-decimal pl-4">
+        <li>
+          <strong>Save or Download the File:</strong> Right-click anywhere on this page and select <em>"Save Page As..."</em> or click the save/download option to download this HTML file (<code>notion_dashboard.html</code>) to your device.
+        </li>
+        <li>
+          <strong>Option A - Upload directly to Notion:</strong> 
+          <p class="text-slate-500 mt-1">In your Notion page, type <code>/embed</code>, select "Upload", and upload this downloaded <code>notion_dashboard.html</code>. It will run locally inside your Notion workspace, retaining all state!</p>
+        </li>
+        <li>
+          <strong>Option B - Host & Embed URL:</strong>
+          <p class="text-slate-500 mt-1">Copy the Development/Production web URL of your LifeOS deployment, append <code>/notion_dashboard.html</code> to the end, paste it into Notion, and choose <strong>"Create Embed"</strong>.</p>
+        </li>
+        <li>
+          <strong>Copy Markdown Data:</strong>
+          <p class="text-slate-500 mt-1">Use the <strong>"Copy Notion Markdown"</strong> button at the top to export your daily status, sleep history, hydration logs, and mission metrics in clean markdown tables instantly copyable to Notion.</p>
+        </li>
+      </ol>
+
+      <button onclick="toggleHelpModal()" class="mt-6 w-full py-2 bg-indigo-600 hover:bg-indigo-500 transition text-white font-mono text-xs font-bold uppercase rounded-lg">
+        Got it, thanks!
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // State Initialization with local storage fallback
+    const DEFAULT_DATA = {
+      sleepDuration: 7.5,
+      waterIntake: 1250,
+      customGoals: [
+        { id: 1, name: "Daily Meditation Routine", completed: true, color: "#f43f5e" },
+        { id: 2, name: "Drink 3.0 Liters Water", completed: false, color: "#3b82f6" },
+        { id: 3, name: "Deep Focus Session (90 mins)", completed: false, color: "#10b981" },
+        { id: 4, name: "Read 10 Pages of Philosophy", completed: true, color: "#8b5cf6" }
+      ],
+      historicalSleep: [6.8, 7.2, 8.0, 5.5, 7.8, 8.2],
+      historicalWater: [2500, 2800, 3100, 1500, 2400, 3500]
+    };
+
+    let state = { ...DEFAULT_DATA };
+
+    // Load from local storage if available
+    function loadState() {
+      const saved = localStorage.getItem('lifeos_notion_embed_state');
+      if (saved) {
+        try {
+          state = JSON.parse(saved);
+        } catch (e) {
+          console.error("Failed to parse state", e);
+        }
+      }
+      saveState(false);
+    }
+
+    // Save state helper with confirmation timestamp updates
+    function saveState(triggerVisuals = true) {
+      localStorage.setItem('lifeos_notion_embed_state', JSON.stringify(state));
+      
+      if (triggerVisuals) {
+        const timeStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const savedText = document.getElementById('last-saved-time');
+        if (savedText) {
+          savedText.innerText = `Changes saved successfully inside local container at ${timeStr}`;
+        }
+      }
+      
+      updateUI();
+    }
+
+    // Adjust Sleep duration
+    function adjustSleep(amount) {
+      state.sleepDuration = Math.max(0, parseFloat((state.sleepDuration + amount).toFixed(1)));
+      saveState();
+    }
+
+    // Adjust Water Intake
+    function adjustWater(amount) {
+      state.waterIntake = Math.max(0, state.waterIntake + amount);
+      saveState();
+    }
+
+    // Switch between chart tabs
+    let activeChart = 'sleep';
+    function switchChart(type) {
+      activeChart = type;
+      document.getElementById('btn-chart-sleep').className = type === 'sleep' 
+        ? "px-2.5 py-1 rounded bg-indigo-500/20 text-indigo-300 font-bold transition" 
+        : "px-2.5 py-1 rounded text-slate-400 transition";
+      
+      document.getElementById('btn-chart-water').className = type === 'water' 
+        ? "px-2.5 py-1 rounded bg-blue-500/20 text-blue-300 font-bold transition" 
+        : "px-2.5 py-1 rounded text-slate-400 transition";
+
+      if (type === 'sleep') {
+        document.getElementById('chart-sleep-container').classList.remove('hidden');
+        document.getElementById('chart-water-container').classList.add('hidden');
+      } else {
+        document.getElementById('chart-sleep-container').classList.add('hidden');
+        document.getElementById('chart-water-container').classList.remove('hidden');
+      }
+    }
+
+    // Add goal
+    function addCustomGoal() {
+      const input = document.getElementById('new-goal-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const colors = ["#f43f5e", "#3b82f6", "#10b981", "#8b5cf6", "#f59e0b", "#06b6d4"];
+      const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
+      state.customGoals.push({
+        id: Date.now(),
+        name: text,
+        completed: false,
+        color: randomColor
+      });
+
+      input.value = '';
+      saveState();
+    }
+
+    // Toggle Goal
+    function toggleGoal(id) {
+      state.customGoals = state.customGoals.map(g => g.id === id ? { ...g, completed: !g.completed } : g);
+      saveState();
+    }
+
+    // Delete Goal
+    function deleteGoal(id) {
+      state.customGoals = state.customGoals.filter(g => g.id !== id);
+      saveState();
+    }
+
+    // Help modal toggle
+    function toggleHelpModal() {
+      const modal = document.getElementById('help-modal');
+      modal.classList.toggle('hidden');
+    }
+
+    // Export clean markdown structure for Notion tables
+    function exportToMarkdown() {
+      let md = `### 🌟 LifeOS Biological Performance Report (Notion-Optimized)\n\n`;
+      md += `| Category | Metric | Current Status | Daily Goal |\n`;
+      md += `| :--- | :--- | :--- | :--- |\n`;
+      md += `| 🛌 Sleep | Sleep Duration | ${state.sleepDuration} hrs | 8.0 hrs |\n`;
+      md += `| 💧 Hydration | Fluid Volume | ${state.waterIntake} ml | 3000 ml |\n\n`;
+      
+      md += `### 🎯 Daily Performance Missions\n`;
+      state.customGoals.forEach(g => {
+        md += `- [${g.completed ? 'x' : ' '}] ${g.name}\n`;
+      });
+
+      // Copy to Clipboard
+      navigator.clipboard.writeText(md).then(() => {
+        alert("Notion Markdown copied successfully to your clipboard! You can paste it directly into any Notion page.");
+      }).catch(err => {
+        console.error("Error copying text", err);
+      });
+    }
+
+    // Update UI Elements dynamically based on active state
+    function updateUI() {
+      // 1. Sleep Metrics Update
+      const sleepProgressWidth = Math.min((state.sleepDuration / 8) * 100, 100);
+      document.getElementById('sleep-progress').style.width = `${sleepProgressWidth}%`;
+      document.getElementById('sleep-badge').innerText = `${state.sleepDuration} / 8.0 hrs`;
+      document.getElementById('sleep-value').innerText = `${state.sleepDuration.toFixed(1)}h`;
+
+      let sleepQuality = "Awake (0%)";
+      if (state.sleepDuration >= 8) sleepQuality = "Optimal (100%)";
+      else if (state.sleepDuration >= 7) sleepQuality = "Very Good (88%)";
+      else if (state.sleepDuration >= 6) sleepQuality = "Good (75%)";
+      else if (state.sleepDuration >= 4) sleepQuality = "Restless (50%)";
+      else if (state.sleepDuration > 0) sleepQuality = "Poor (25%)";
+      document.getElementById('sleep-quality-text').innerText = sleepQuality;
+
+      // 2. Hydration Metrics Update
+      const waterProgressWidth = Math.min((state.waterIntake / 3000) * 100, 100);
+      document.getElementById('water-progress').style.width = `${waterProgressWidth}%`;
+      document.getElementById('water-badge').innerText = `${state.waterIntake} / 3000 ml`;
+      document.getElementById('water-value').innerText = `${state.waterIntake} ml`;
+
+      // 3. Mount Goals Checklist
+      const goalsMount = document.getElementById('goals-list-mount');
+      goalsMount.innerHTML = '';
+      
+      state.customGoals.forEach(g => {
+        const div = document.createElement('div');
+        div.className = `glass-panel p-4 rounded-xl relative overflow-hidden group flex justify-between items-center ${
+          g.completed ? 'opacity-80 border-emerald-500/10' : ''
+        }`;
+        
+        div.innerHTML = `
+          <div class="absolute left-0 top-0 bottom-0 w-1" style="background-color: ${g.color}"></div>
+          <div class="flex items-center gap-3 relative z-10 pl-2">
+            <button onclick="toggleGoal(${g.id})" class="w-4 h-4 rounded border flex items-center justify-center transition cursor-pointer ${
+              g.completed ? 'bg-emerald-500 border-emerald-600 text-slate-950' : 'border-white/20 hover:border-white/40'
+            }">
+              ${g.completed ? '<i data-lucide="check" class="w-3 h-3 stroke-[3px]"></i>' : ''}
+            </button>
+            <span class="text-xs font-semibold ${g.completed ? 'line-through text-slate-500' : 'text-slate-200'}">
+              ${g.name}
+            </span>
+          </div>
+          <button onclick="deleteGoal(${g.id})" class="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-white/5 text-slate-500 hover:text-slate-300 transition relative z-10 cursor-pointer">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        `;
+        goalsMount.appendChild(div);
+      });
+
+      // 4. Render Sleep Trend Chart with Today live bar
+      const sleepMount = document.getElementById('sleep-bars-mount');
+      sleepMount.innerHTML = '';
+      
+      const allSleepDays = [...state.historicalSleep, state.sleepDuration];
+      const dayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Today"];
+      const dates = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - (6 - i));
+        return d.getDate();
+      });
+
+      let totalSleep = 0;
+      allSleepDays.forEach((val, index) => {
+        totalSleep += val;
+        const isToday = index === 6;
+        const percent = Math.min((val / 12) * 100, 100);
+        const overGoal = val >= 8;
+
+        const bar = document.createElement('div');
+        bar.className = "flex-1 flex flex-col items-center justify-end h-full gap-2 group relative";
+        bar.innerHTML = `
+          <div class="opacity-0 group-hover:opacity-100 absolute bottom-[92%] bg-slate-950 text-white text-[9px] font-mono py-1 px-2 rounded border border-white/5 transition-opacity pointer-events-none whitespace-nowrap z-20">
+            ${val}h / 8.0h
+          </div>
+          <div class="w-full relative h-[160px] flex items-end justify-center">
+            <div class="w-3.5 sm:w-5 rounded-t-lg transition-all duration-300 ${
+              overGoal 
+                ? 'bg-gradient-to-t from-indigo-600 to-indigo-400' 
+                : 'bg-gradient-to-t from-slate-600 to-slate-400 dark:from-slate-800 dark:to-indigo-950'
+            } ${isToday ? 'ring-2 ring-indigo-400/50' : ''}" style="height: ${percent}%"></div>
+          </div>
+          <div class="text-center">
+            <span class="text-[9px] font-mono text-slate-500 block">${dayLabels[index]}</span>
+            <span class="text-[10px] font-bold ${isToday ? 'text-indigo-400' : 'text-slate-400'}">${dates[index]}</span>
+          </div>
+        `;
+        sleepMount.appendChild(bar);
+      });
+      document.getElementById('sleep-avg').innerText = `${(totalSleep / 7).toFixed(1)} hrs`;
+      document.getElementById('sleep-consistency').innerText = (totalSleep / 7) >= 7.2 ? "Excellent (94%)" : "Moderate (78%)";
+
+      // 5. Render Water Trend Chart with Today live bar
+      const waterMount = document.getElementById('water-bars-mount');
+      waterMount.innerHTML = '';
+      
+      const allWaterDays = [...state.historicalWater, state.waterIntake];
+      let totalWater = 0;
+      allWaterDays.forEach((val, index) => {
+        totalWater += val;
+        const isToday = index === 6;
+        const percent = Math.min((val / 4000) * 100, 100);
+        const overGoal = val >= 3000;
+
+        const bar = document.createElement('div');
+        bar.className = "flex-1 flex flex-col items-center justify-end h-full gap-2 group relative";
+        bar.innerHTML = `
+          <div class="opacity-0 group-hover:opacity-100 absolute bottom-[92%] bg-slate-950 text-white text-[9px] font-mono py-1 px-2 rounded border border-white/5 transition-opacity pointer-events-none whitespace-nowrap z-20">
+            ${val}ml / 3000ml
+          </div>
+          <div class="w-full relative h-[160px] flex items-end justify-center">
+            <div class="w-3.5 sm:w-5 rounded-t-lg transition-all duration-300 ${
+              overGoal 
+                ? 'bg-gradient-to-t from-blue-600 to-blue-400' 
+                : 'bg-gradient-to-t from-slate-600 to-slate-400 dark:from-slate-800 dark:to-blue-950'
+            } ${isToday ? 'ring-2 ring-blue-400/50' : ''}" style="height: ${percent}%"></div>
+          </div>
+          <div class="text-center">
+            <span class="text-[9px] font-mono text-slate-500 block">${dayLabels[index]}</span>
+            <span class="text-[10px] font-bold ${isToday ? 'text-blue-400' : 'text-slate-400'}">${dates[index]}</span>
+          </div>
+        `;
+        waterMount.appendChild(bar);
+      });
+      document.getElementById('water-total').innerText = `${totalWater.toLocaleString()} ml`;
+      document.getElementById('water-status').innerText = (state.waterIntake >= 3000) ? "Optimal (100%)" : `${Math.round((state.waterIntake / 3000) * 100)}% Hydrated`;
+
+      // Trigger lucide icons parse after mounting
+      lucide.createIcons();
+    }
+
+    // Startup Init
+    window.onload = function() {
+      loadState();
+    };
+  </script>
+</body>
+</html>

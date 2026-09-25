@@ -56,6 +56,24 @@ import {
 import { User } from '@supabase/supabase-js';
 import { Cloud, CloudOff, CloudLightning, Loader2, LogOut } from 'lucide-react';
 
+export const REMOVED_NAV_IDS = ['ventures', 'goals', 'productivity', 'vitals', 'calendar'];
+
+export const DEFAULT_NAV_ITEMS = [
+  { id: 'dashboard', label: 'DASHBOARD' },
+  { id: 'newme', label: 'UNSTOPPABLE ME' },
+  { id: 'vision', label: 'VISION BOARD' },
+  { id: 'logs', label: 'GROWTH LEDGER' },
+  { id: 'settings', label: 'SETTINGS' }
+];
+
+export function sanitizeNavItems(items: any): { id: string; label: string }[] {
+  if (!Array.isArray(items) || items.length === 0) return DEFAULT_NAV_ITEMS;
+  const filtered = items.filter(item => item && typeof item.id === 'string' && !REMOVED_NAV_IDS.includes(item.id));
+  const idsInParsed = filtered.map(item => item.id);
+  const missingItems = DEFAULT_NAV_ITEMS.filter(item => !idsInParsed.includes(item.id));
+  return [...filtered, ...missingItems];
+}
+
 export default function App() {
   const lastReceivedFromCloud = useRef<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState<string>('dashboard');
@@ -343,7 +361,7 @@ export default function App() {
             const savedDarkMode = localStorage.getItem('lifeos_dark_mode');
             if (savedDarkMode) seedPromises.push(saveUserDataToCloud(sUser.id, 'darkMode', savedDarkMode === 'true', true));
             const savedNavItems = localStorage.getItem('lifeos_nav_items_v3');
-            if (savedNavItems) seedPromises.push(saveUserDataToCloud(sUser.id, 'navItems', JSON.parse(savedNavItems), true));
+            seedPromises.push(saveUserDataToCloud(sUser.id, 'navItems', savedNavItems ? sanitizeNavItems(JSON.parse(savedNavItems)) : DEFAULT_NAV_ITEMS, true));
 
             try {
               await Promise.all(seedPromises);
@@ -405,8 +423,17 @@ export default function App() {
             if (cloudData.darkMode !== undefined && cloudData.darkMode !== isDarkMode) {
               setIsDarkMode(cloudData.darkMode);
             }
-            if (cloudData.navItems && JSON.stringify(cloudData.navItems) !== JSON.stringify(navItems)) {
-              setNavItems(cloudData.navItems);
+            if (cloudData.navItems) {
+              const cleaned = sanitizeNavItems(cloudData.navItems);
+              if (JSON.stringify(cleaned) !== JSON.stringify(navItems)) {
+                setNavItems(cleaned);
+              }
+              // If cloud data held un-sanitized items or differs from sanitized, update cloud immediately
+              if (JSON.stringify(cloudData.navItems) !== JSON.stringify(cleaned)) {
+                saveUserDataToCloud(sUser.id, 'navItems', cleaned);
+              }
+            } else {
+              saveUserDataToCloud(sUser.id, 'navItems', sanitizeNavItems(navItems));
             }
             
             // Sync extra component local keys
@@ -632,11 +659,11 @@ export default function App() {
                     setIsDarkMode(data);
                   }
                   break;
-                case 'navItems':
-                  if (JSON.stringify(data) !== JSON.stringify(navItems)) {
-                    setNavItems(data);
-                  }
+                case 'navItems': {
+                  const cleaned = sanitizeNavItems(data);
+                  setNavItems(prev => JSON.stringify(prev) !== JSON.stringify(cleaned) ? cleaned : prev);
                   break;
+                }
               }
             });
           } catch (subErr) {
@@ -1124,42 +1151,42 @@ export default function App() {
   };
 
   // --- NAVIGATION TAB ITEMS CONFIG ---
-  const DEFAULT_NAV_ITEMS = [
-    { id: 'dashboard', label: 'DASHBOARD' },
-    { id: 'newme', label: 'UNSTOPPABLE ME' },
-    { id: 'vision', label: 'VISION BOARD' },
-    { id: 'logs', label: 'GROWTH LEDGER' },
-    { id: 'settings', label: 'SETTINGS' }
-  ];
-
-  const REMOVED_NAV_IDS = ['ventures', 'goals', 'productivity', 'vitals', 'calendar'];
-
   const [navItems, setNavItems] = useState<{ id: string; label: string }[]>(() => {
+    try {
+      localStorage.removeItem('lifeos_nav_items');
+      localStorage.removeItem('lifeos_nav_items_v2');
+    } catch (e) {}
+
     const saved = localStorage.getItem('lifeos_nav_items_v3');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const filtered = parsed.filter(item => !REMOVED_NAV_IDS.includes(item.id));
-          const idsInParsed = filtered.map(item => item.id);
-          const missingItems = DEFAULT_NAV_ITEMS.filter(item => !idsInParsed.includes(item.id));
-          return [...filtered, ...missingItems];
-        }
+        const cleaned = sanitizeNavItems(parsed);
+        localStorage.setItem('lifeos_nav_items_v3', JSON.stringify(cleaned));
+        return cleaned;
       } catch (e) {
         console.error(e);
       }
     }
+    localStorage.setItem('lifeos_nav_items_v3', JSON.stringify(DEFAULT_NAV_ITEMS));
     return DEFAULT_NAV_ITEMS;
   });
 
   useEffect(() => {
-    localStorage.setItem('lifeos_nav_items_v3', JSON.stringify(navItems));
+    const cleaned = sanitizeNavItems(navItems);
+    localStorage.setItem('lifeos_nav_items_v3', JSON.stringify(cleaned));
     if (user) {
-      const stringified = JSON.stringify(navItems);
+      const stringified = JSON.stringify(cleaned);
       if (lastReceivedFromCloud.current['navItems'] === stringified) return;
-      saveUserDataToCloud(user.id, 'navItems', navItems);
+      saveUserDataToCloud(user.id, 'navItems', cleaned);
     }
   }, [navItems, user]);
+
+  useEffect(() => {
+    if (REMOVED_NAV_IDS.includes(activeTab)) {
+      setActiveTab('dashboard');
+    }
+  }, [activeTab]);
 
   const getNavIcon = (id: string, className = "w-4 h-4") => {
     switch (id) {
@@ -1387,15 +1414,15 @@ export default function App() {
             {[
               {
                 title: "Core",
-                items: navItems.filter(item => ['dashboard'].includes(item.id))
+                items: sanitizeNavItems(navItems).filter(item => ['dashboard'].includes(item.id))
               },
               {
                 title: "Personal",
-                items: navItems.filter(item => ['newme', 'vision', 'logs'].includes(item.id))
+                items: sanitizeNavItems(navItems).filter(item => ['newme', 'vision', 'logs'].includes(item.id))
               },
               {
                 title: "System",
-                items: navItems.filter(item => ['settings'].includes(item.id))
+                items: sanitizeNavItems(navItems).filter(item => ['settings'].includes(item.id))
               }
             ].filter(group => group.items.length > 0).map((group) => {
               return (
@@ -1648,7 +1675,7 @@ export default function App() {
             <div className="space-y-4">
               <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest block border-b border-slate-900 pb-2 mb-3">NAVIGATIONAL DIRECTORY</span>
               <nav className="space-y-2">
-                {navItems.map((item) => {
+                {sanitizeNavItems(navItems).map((item) => {
                   const active = activeTab === item.id;
                   return (
                     <button 
@@ -1732,7 +1759,7 @@ export default function App() {
             <div>
               <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500 block font-bold">WORKSPACE NODE</span>
               <h1 className={`text-base font-bold font-sans tracking-tight uppercase ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
-                {activeTab === 'newme' ? 'Identity Rulebook' : activeTab === 'vitals' ? 'Vitals & Wealth' : activeTab === 'dashboard' ? 'Executive Dashboard' : activeTab.toUpperCase()}
+                {activeTab === 'newme' ? 'Identity Rulebook' : activeTab === 'dashboard' ? 'Executive Dashboard' : activeTab.toUpperCase()}
               </h1>
             </div>
           </div>
