@@ -91,11 +91,7 @@ export default function SettingsView({
       { id: 'dashboard', label: 'DASHBOARD' },
       { id: 'newme', label: 'UNSTOPPABLE ME' },
       { id: 'vision', label: 'VISION BOARD' },
-      { id: 'goals', label: 'GOALS & PLANS' },
-      { id: 'productivity', label: 'PRODUCTIVITY' },
-      { id: 'logs', label: 'LOGS & JOURNAL' },
-      { id: 'vitals', label: 'VITALS & WEALTH' },
-      { id: 'calendar', label: 'CALENDAR' },
+      { id: 'logs', label: 'GROWTH LEDGER' },
       { id: 'settings', label: 'SETTINGS' }
     ];
     onUpdateNavItems(DEFAULT_NAV_ITEMS);

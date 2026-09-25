@@ -1127,14 +1127,12 @@ export default function App() {
   const DEFAULT_NAV_ITEMS = [
     { id: 'dashboard', label: 'DASHBOARD' },
     { id: 'newme', label: 'UNSTOPPABLE ME' },
-    { id: 'ventures', label: 'VENTURE LAB' },
     { id: 'vision', label: 'VISION BOARD' },
-    { id: 'goals', label: 'GOALS & PLANS' },
-    { id: 'productivity', label: 'PRODUCTIVITY' },
-    { id: 'vitals', label: 'APEX BIO-COMMAND' },
     { id: 'logs', label: 'GROWTH LEDGER' },
     { id: 'settings', label: 'SETTINGS' }
   ];
+
+  const REMOVED_NAV_IDS = ['ventures', 'goals', 'productivity', 'vitals', 'calendar'];
 
   const [navItems, setNavItems] = useState<{ id: string; label: string }[]>(() => {
     const saved = localStorage.getItem('lifeos_nav_items_v3');
@@ -1142,13 +1140,10 @@ export default function App() {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Keep vitals, let user manage layout
-          const filtered = parsed.filter(item => item.id !== 'calendar');
-          // Update 'vitals' item labels to 'APEX BIO-COMMAND' if using an older label
-          const mapped = filtered.map(item => item.id === 'vitals' ? { id: 'vitals', label: 'APEX BIO-COMMAND' } : item);
-          const idsInParsed = mapped.map(item => item.id);
+          const filtered = parsed.filter(item => !REMOVED_NAV_IDS.includes(item.id));
+          const idsInParsed = filtered.map(item => item.id);
           const missingItems = DEFAULT_NAV_ITEMS.filter(item => !idsInParsed.includes(item.id));
-          return [...mapped, ...missingItems];
+          return [...filtered, ...missingItems];
         }
       } catch (e) {
         console.error(e);
@@ -1188,30 +1183,26 @@ export default function App() {
       case 'dashboard':
         return (
           <Dashboard 
-            goals={goals}
-            milestones={milestones}
-            tasks={tasks}
-            habits={habits}
-            healthLogs={healthLogs}
-            lifeWheel={lifeWheel}
             profile={profile}
-            financeRecords={financeRecords}
+            lifeWheel={lifeWheel}
             updateLifeWheel={setLifeWheel}
-            updateHealthLog={updateHealthLog}
-            onNavigate={(tab) => setActiveTab(tab)}
-            onStartTimer={(task) => {
-              setActiveTimerTaskId(task.id);
-              setActiveTab('productivity');
+            visionCards={visionCards}
+            philosophicalEntries={philosophicalEntries}
+            bookWisdomEntries={bookWisdomEntries}
+            intuitionEntries={intuitionEntries}
+            journalEntries={journalEntries}
+            onNavigate={(tab) => {
+              if (REMOVED_NAV_IDS.includes(tab)) {
+                setActiveTab('dashboard');
+              } else {
+                setActiveTab(tab);
+              }
             }}
           />
         );
       case 'newme':
         return (
           <NewMeView isDarkMode={isDarkMode} userId={user?.id} isInitialLoading={isInitialLoading} />
-        );
-      case 'ventures':
-        return (
-          <BusinessIdeasView isDarkMode={isDarkMode} userId={user?.id} isInitialLoading={isInitialLoading} />
         );
       case 'vision':
         return (
@@ -1223,39 +1214,6 @@ export default function App() {
             onDeleteCard={deleteVisionCard}
             isDarkMode={isDarkMode}
             userId={user?.id}
-            isInitialLoading={isInitialLoading}
-          />
-        );
-      case 'goals':
-        return (
-          <GoalsAndMilestones 
-            goals={goals}
-            milestones={milestones}
-            addGoal={addGoal}
-            updateGoal={updateGoal}
-            toggleGoalCompleted={toggleGoalCompleted}
-            deleteGoal={deleteGoal}
-            addMilestone={addMilestone}
-            toggleMilestoneCompleted={toggleMilestoneCompleted}
-            deleteMilestone={deleteMilestone}
-            userId={user?.id}
-          />
-        );
-      case 'productivity':
-        return (
-          <ProductivityHub 
-            userId={user?.id}
-            tasks={tasks}
-            habits={habits}
-            goals={goals}
-            addTask={addTask}
-            updateTask={updateTask}
-            deleteTask={deleteTask}
-            addHabit={addHabit}
-            toggleHabitCompleted={toggleHabitCompleted}
-            deleteHabit={deleteHabit}
-            activeTimerTaskId={activeTimerTaskId}
-            setActiveTimerTaskId={setActiveTimerTaskId}
             isInitialLoading={isInitialLoading}
           />
         );
@@ -1272,23 +1230,6 @@ export default function App() {
             setIntuitionEntries={setIntuitionEntries}
           />
         );
-      case 'vitals':
-        return (
-          <BiologicalCommand isDarkMode={isDarkMode} userId={user?.id} />
-        );
-      case 'calendar':
-        return (
-          <CalendarView 
-            tasks={tasks}
-            goals={goals}
-            habits={habits}
-            philosophicalEntries={philosophicalEntries}
-            bookWisdomEntries={bookWisdomEntries}
-            intuitionEntries={intuitionEntries}
-            healthLogs={healthLogs}
-            updateHealthLog={updateHealthLog}
-          />
-        );
       case 'settings':
         return (
           <SettingsView 
@@ -1303,7 +1244,25 @@ export default function App() {
           />
         );
       default:
-        return <div>Unknown layout tab</div>;
+        return (
+          <Dashboard 
+            profile={profile}
+            lifeWheel={lifeWheel}
+            updateLifeWheel={setLifeWheel}
+            visionCards={visionCards}
+            philosophicalEntries={philosophicalEntries}
+            bookWisdomEntries={bookWisdomEntries}
+            intuitionEntries={intuitionEntries}
+            journalEntries={journalEntries}
+            onNavigate={(tab) => {
+              if (REMOVED_NAV_IDS.includes(tab)) {
+                setActiveTab('dashboard');
+              } else {
+                setActiveTab(tab);
+              }
+            }}
+          />
+        );
     }
   };
 
@@ -1427,12 +1386,12 @@ export default function App() {
           <div className="space-y-6">
             {[
               {
-                title: "Main",
-                items: navItems.filter(item => ['dashboard', 'productivity'].includes(item.id))
+                title: "Core",
+                items: navItems.filter(item => ['dashboard'].includes(item.id))
               },
               {
                 title: "Personal",
-                items: navItems.filter(item => ['newme', 'vision', 'goals', 'vitals', 'logs'].includes(item.id) || !['dashboard', 'productivity', 'settings'].includes(item.id))
+                items: navItems.filter(item => ['newme', 'vision', 'logs'].includes(item.id))
               },
               {
                 title: "System",
